@@ -1,7 +1,8 @@
 // src/services/UserService.ts
 import type { AxiosResponse } from "axios";
 import ApiService from "./ApiService";
-import type { User } from "../types/user";
+import type { User } from "../types/User";
+
 
 
 

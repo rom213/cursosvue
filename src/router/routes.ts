@@ -1,11 +1,12 @@
 import { createRouter, createWebHistory } from "vue-router";
-import homeComponent from "../components/home.component.vue";
-import loginComponent from "../components/login.component.vue";
+import homeComponent from "../home/home.component.vue"; 
+import loginComponent from "../components/auth/login.component.vue";
 import UsersComponent from "../components/users.component.vue";
-import UserComponent from "../components/user.component.vue";
 import Notfound from "../components/notfound.vue";
 import UserProfileComponent from "../components/user-profile-component.vue";
 import UserPostsComponent from "../components/user-posts.component.vue";
+import RegisterComponent from "../components/auth/register.component.vue";
+import CoursesComponent from "../courses/courses.component.vue";
 
 
 
@@ -26,6 +27,14 @@ const router = createRouter({
         {
             path:'/login',
             component:loginComponent,
+        },
+        {
+            path:'/register',
+            component:RegisterComponent,
+        },
+        {
+            path:'/courses',
+            component:CoursesComponent,
         },
         {
             path:'/users',

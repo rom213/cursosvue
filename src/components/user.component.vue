@@ -1,13 +1,7 @@
 <script setup lang="ts">
-import { watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 const route = useRoute();
 
-console.log(route.params);
-
-watch(() => route.params, (newParam, oldParam) => {
-    console.log("obteniendo los datos de usuario con watch");
-})
 
 
 const router = useRouter()

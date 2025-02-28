@@ -3,21 +3,34 @@ import type { AxiosResponse } from "axios";
 import ApiService from "./ApiService";
 import type { AuthResponse, LogoutResponse } from "../types/Auth";
 
-
-
 class AuthService {
-  static verifyToken(token: string): Promise<AxiosResponse<AuthResponse>> {
-    return ApiService.post<AuthResponse>("/verify-token", { token });
+  static async verifyToken(token: string): Promise<AuthResponse | null> {
+    try {
+      const response: AxiosResponse<AuthResponse> = await ApiService.post<AuthResponse>("/verify-token", { token });
+      return response.data;
+    } catch (error) {
+      console.error("Error al verificar token:", error);
+      return null;
+    }
   }
 
-  static logout(): Promise<AxiosResponse<LogoutResponse>> {
-    return ApiService.post<LogoutResponse>("/logout");
+  static async logout(): Promise<LogoutResponse | null> {
+    try {
+      const response: AxiosResponse<LogoutResponse> = await ApiService.post<LogoutResponse>("/logout");
+      return response.data;
+    } catch (error) {
+      return null;
+    }
   }
 
-  static getProfile(): Promise<AxiosResponse<AuthResponse>> {
-    return ApiService.post<AuthResponse>("/profile");
+  static async getProfile(): Promise<AuthResponse | null> {
+    try {
+      const response: AxiosResponse<AuthResponse> = await ApiService.post<AuthResponse>("/profile");
+      return response.data;
+    } catch (error) {
+      return null;
+    }
   }
-  
 }
 
 export default AuthService;

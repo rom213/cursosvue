@@ -1,6 +1,8 @@
 <script lang="ts" setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import BestSallersComponent from './best.sallers.component.vue';
+
+
 
 const animationDuration = 20; // duración en segundos
 const scrollContainer = ref<HTMLElement | null>(null);
@@ -16,28 +18,32 @@ const resumeScroll = () => {
     scrollContainer.value.style.animationPlayState = 'running';
   }
 };
+
+// Duplicar contenido al montar
+onMounted(() => {
+  if (scrollContainer.value) {
+    const container = scrollContainer.value;
+    container.innerHTML += container.innerHTML; // Duplica el contenido para un efecto de carrusel infinito
+  }
+});
 </script>
 
 <template>
-  <!-- Cambiamos overflow-hidden por overflow-x-auto para permitir scroll horizontal -->
-  <div class="bg-black h-52 rounded-t-lg p-2">
-    <h3 class="text-[#FFD21E] mb-2">
-      CURSOS MÁS PEDIDOS
-    </h3>
-    <!-- Contenedor animado que contiene el grid duplicado -->
-    <div class="overflow-x-auto" >
-      <div ref="scrollContainer" class="animate-scroll" :style="{ '--animation-duration': animationDuration + 's' }"
-        @mouseenter="pauseScroll" @mouseleave="resumeScroll">
-        <template v-for="n in 3" :key="n">
-          <div class="grid grid-cols-4 grid-rows-2 gap-4">
-            <BestSallersComponent />
-            <BestSallersComponent />
-            <BestSallersComponent />
-            <BestSallersComponent />
-          </div>
-        </template>
-      </div>
-    </div>
+  <div class="bg-black h-[200px] rounded-t-lg p-2 relative">
+    <h3 class="text-[#FFD21E] mb-2">CURSOS MÁS PEDIDOS</h3>
+    <div class="overflow-hidden whitespace-nowrap overflow-x-auto">
+                <div ref="scrollContainer" class="animate-scroll flex"
+                    :style="{ '--animation-duration': animationDuration + 's' }" @mouseenter="pauseScroll"
+                    @mouseleave="resumeScroll">
+                    <div class="flex gap-4">
+                        <BestSallersComponent/>
+                        <BestSallersComponent/>
+                        <BestSallersComponent/>
+                        <BestSallersComponent/>
+                        <BestSallersComponent/>
+                    </div>
+                </div>
+            </div>
   </div>
 </template>
 
@@ -46,16 +52,22 @@ const resumeScroll = () => {
   0% {
     transform: translateX(0);
   }
-
   100% {
     transform: translateX(-50%);
   }
 }
 
 .animate-scroll {
-  display: flex;
   width: max-content;
-  /* Se ajusta al ancho total del contenido duplicado */
   animation: scroll var(--animation-duration) linear infinite;
+  display: flex;
+  white-space: nowrap;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+
+.scroll-container::-webkit-scrollbar {
+  display: none;
 }
 </style>

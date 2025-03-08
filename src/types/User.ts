@@ -5,6 +5,7 @@ export interface User {
     google_id: string;
     rol: string;
     name: string;
+    given_name: string;
     email: string;
   }
   

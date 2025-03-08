@@ -6,12 +6,10 @@ import { authStore } from '../../store/AuthStore';
 const userstore = authStore()
 
 
-
 // Esta función se ejecuta al autenticarse correctamente con Google
 const handleSuccess = async (response:any) => {
   const ser = await AuthService.verifyToken(response.credential)
   userstore.setProfile(ser)
-  console.log(ser);
 };
 
 
@@ -92,7 +90,7 @@ const handleError = () => {
             </div>
         </div>
 
-        <div class="absolute bottom-0">
+        <div class="absolute bottom-0 w-full">
             <FooterComponent />
         </div>
     </div>

@@ -16,5 +16,5 @@ export const authStore = defineStore('auth', () => {
 
 
 
-    return { setProfile, getProfile };
+    return { setProfile, getProfile, profile };
 });

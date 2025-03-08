@@ -16,6 +16,11 @@ export interface ICourse {
     num_per?: number;
     descuento?: number;
     precio?: number;
+    precio_desc: number;
+    reference_code:string;
+    signature: string;
+    user_bought: boolean;
+    user_comment:boolean;
     duracion?: string;
     delete_at?: string | null; // Puede ser `null`
     created_at: string;

@@ -40,17 +40,16 @@
 
             </div>
 
-            <div class="w-30 text-center absolute top-14 -left-11">
+            <div class="w-30 text-center absolute top-14 -left-11 floating-text delay-100">
                 No existen obstáculos, como el tiempo y el dinero.
             </div>
-            <div class="w-30 text-center absolute -bottom-7 -left-9">
+            <div class="w-30 text-center absolute -bottom-7 -left-9 floating-text delay-300">
                 Contamos con certificados. Para cada categoria.
             </div>
-            <div class="w-30 text-center absolute -bottom-14 -right-14">
+            <div class="w-30 text-center absolute -bottom-14 -right-14 floating-text delay-500">
                 Contamos con certificados. Para cada categoria.
             </div>
-
-            <div class="w-26 text-center absolute top-10 -right-18">
+            <div class="w-26 text-center absolute top-10 -right-18 floating-text delay-700">
                 Contamos con certificados. Para cada categoria.
             </div>
         </div>
@@ -58,3 +57,44 @@
     </div>
 
 </template>
+
+
+<style scoped>
+.floating-text {
+    opacity: 0;
+    animation: floatIn 1s ease-out forwards infinite;
+    animation-duration: 4s; /* Repetir cada 2 segundos */
+}
+
+
+@keyframes floatIn {
+    0% {
+        opacity: 0;
+        transform: translateY(20px) rotate(-3deg);
+    }
+    50% {
+        opacity: 1;
+        transform: translateY(0) rotate(0);
+    }
+    100% {
+        opacity: 0;
+    }
+}
+.delay-100 { animation-delay: 0.3s; }
+.delay-300 { animation-delay: 0.6s; }
+.delay-500 { animation-delay: 0.9s; }
+.delay-700 { animation-delay: 1.2s; }
+
+/* Animación adicional para los SVG si deseas */
+svg {
+    animation: drawIn 1s ease-out forwards;
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+}
+
+@keyframes drawIn {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+</style>

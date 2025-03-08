@@ -14,7 +14,7 @@ app.use(pinia)
 app.use(router)
 
 app.use(vue3GoogleLogin, {
-  clientId: '150428135378-7p5fkl7douv1sj3kd0tofav3kneks7lv.apps.googleusercontent.com' // Reemplaza 'TU_CLIENT_ID' con tu Client ID real
+  clientId: '150428135378-em2lm6k41hkremer0nn5rkhj916oseoi.apps.googleusercontent.com' // Reemplaza 'TU_CLIENT_ID' con tu Client ID real
 });
 
 app.mount('#app');

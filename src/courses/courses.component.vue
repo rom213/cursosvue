@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue';
 import CourseComponent from './course.component.vue';
 import { categoryStore } from '../store/CategoryStore';
 import CategoryService from '../services/CategorieService';
+import FooterComponent from '../components/footer/footer.component.vue';
 
 const categorStore = categoryStore()
 
@@ -18,8 +19,12 @@ onMounted(async()=>{
 
 
 <template>
-    <div v-for="(item, index) in categories" :key="index">
-        <CourseComponent :item="item" />
-    </div>
+    <div class="h-full" v-for="(item, index) in categories" :key="index">
+        <div v-if="!item.user_bought">
+            <CourseComponent :item="item" />
+        </div>
 
+    </div>
+    <br>
+    <FooterComponent />
 </template>

@@ -1,66 +1,75 @@
 import { createRouter, createWebHistory } from "vue-router";
-import homeComponent from "../home/home.component.vue"; 
-import loginComponent from "../components/auth/login.component.vue";
-import UsersComponent from "../components/users.component.vue";
-import Notfound from "../components/notfound.vue";
-import UserProfileComponent from "../components/user-profile-component.vue";
-import UserPostsComponent from "../components/user-posts.component.vue";
-import RegisterComponent from "../components/auth/register.component.vue";
-import CoursesComponent from "../courses/courses.component.vue";
-
+import { authStore } from "../store/AuthStore";
+import UserService from "../services/UserService";
+import AuthService from "../services/AuthServices";
 
 
 
 
 
 const router = createRouter({
-    history:createWebHistory(),
-    routes:[
+    history: createWebHistory(),
+    routes: [
         {
-            path:'/:pathMach(.*)*',
-            component:Notfound
+            path: '/:pathMach(.*)*',
+            component:()=> import('../components/notfound.vue')
         },
         {
-            path:'/',
-            component:homeComponent
+            path: '/',
+            component:()=> import('../home/home.component.vue'),
+            name:'home'
         },
         {
-            path:'/login',
-            component:loginComponent,
+            path: '/login',
+            component: ()=>import('../components/auth/login.component.vue'),
+            name:'login'
         },
         {
-            path:'/register',
-            component:RegisterComponent,
+            path: '/register',
+            component: ()=> import('../components/auth/register.component.vue'),
+            name:'register'
         },
         {
-            path:'/courses',
-            component:CoursesComponent,
+            path: '/courses',
+            component:()=> import('../courses/courses.component.vue'),
+            name:'courses',
         },
         {
-            path:'/users',
-            component: UsersComponent
+            path: '/courses/:id',
+            component:()=> import('../courses/courseInfoPage/course.info.page.vue'),
+            name:'courses-description',
         },
         {
-            path:'/userabc/:iduser',
-            name: 'user',
-            component: ()=> import('../components/user.component.vue'),
-            children:[
-                {
-                    // /user/:iduser/profile
-                    path:'profile',
-                    component: UserProfileComponent,
-                    name: 'user-profile'
+            path: '/cart',
+            name:'cart',
+            component: () => import('../cart/cart.page.vue'),
+        },
+        {
+            path: '/mis-courses',
+            name:'mycourses',
+            component: () => import('../mycourses/my.courses.page.vue'),
+        },
+        {
+            path: '/:googleid/affiliaty/:id',
+            name:'affiliaty',
+            component: () => import('../courses/courseInfoPage/course.info.page.vue'),
+            beforeEnter: (to, from, next) => {
+                const profile = AuthService.getProfile()
+
+                profile.then((res)=>{
+                    if (res==null) {
+                        localStorage.setItem('referido', to.fullPath); // Guarda el enlace
+                        next({name : 'register'});
+                      } else {
+                        next();
+                      }
                 }
-                ,
-                {
-                    // /user/:iduser/posts
-                    path:'posts',
-                    component: UserPostsComponent,
-                    name: 'user-posts'
-                }
-            ]
+                )
+
+              }
         }
     ]
 })
+
 
 export default router

@@ -1,12 +1,16 @@
 <script lang="ts" setup>
+import { onMounted, ref, watch } from 'vue';
 import { usePayU } from '../payu/usePayu';
 import PaymentService from '../services/PaymentService';
 import { authStore } from '../store/AuthStore';
 import { cartStore } from '../store/CartStore';
 import ItemComponent from './item.component.vue';
+import type { ICategory } from '../types/Categorie';
 const storeCart = cartStore()
 const userAuth = authStore()
 const { generatePayUForm } = usePayU();
+
+
 
 
 const buyCategory = () => {
@@ -15,11 +19,39 @@ const buyCategory = () => {
         if (res?.signature) {
             generatePayUForm(res?.price, " carrito de compras", userAuth.getProfile()?.user?.email, res?.signature, res?.reference_code)
         }
-
     });
-
-
 };
+
+
+const cart = ref<ICategory[]>([]);
+const valueCart = ref<number>(0)
+
+
+
+onMounted(() => {
+    cart.value=storeCart.getCart()
+    valueCart.value=0
+    cart.value?.forEach((item, index) => {
+        if (!userAuth.getProfile()?.user?.is_bought && index>0) {
+            item.precio_desc= item.precio_desc/2
+        }
+        valueCart.value=valueCart.value + item.precio_desc
+    });
+});
+
+
+watch(()=>storeCart.cartCategories, ()=>{
+    cart.value=storeCart.getCart()
+    valueCart.value=0
+    cart.value?.forEach((item, index) => {
+        if (!userAuth.getProfile()?.user?.is_bought && index>0) {
+            item.precio_desc= item.precio_desc/2
+        }
+        valueCart.value=valueCart.value + item.precio_desc
+    });
+})
+
+
 
 
 
@@ -50,7 +82,7 @@ const buyCategory = () => {
         <br>
 
         <!-- seccion carrito vasio -->
-        <div  v-if="storeCart.valueCart == 0">
+        <div  v-if="valueCart == 0">
             <div class="text-center font-light">
                 TU CARRITO ESTA VACIO
                 YA PUEDES AGREGAR LOS CURSOS QUE QUIERAS
@@ -69,17 +101,20 @@ const buyCategory = () => {
         </div>
 
         <div class="flex flex-col gap-3 px-2 overflow-auto">
-            <div v-for="(item, index) in storeCart.getCart()" :key="index">
+            <div v-for="(item, index) in cart" :key="index">
+                
                 <ItemComponent :item="item" />
+                <div class="mt-7 mb-1 text-sm" v-if="index===0 && cart.length>1 && !userAuth.getProfile()?.user?.is_bought">Al SER PRIMERA COMPRA, DESCUENTO 50% 🎁
+                </div>
             </div>
         </div>
 
 
         <!-- si no hay nada en el carro no muestra nada -->
-        <div v-if="storeCart.valueCart >= 1"
+        <div v-if="valueCart >= 1"
             class="flex gap-6 w-full fixed bottom-0 h-[80px] border border-black items-center justify-center font-semibold bg-white">
             <div>
-                Valor total ${{ storeCart.valueCart }}
+                Valor total ${{ valueCart }}
             </div>
             <div>
                 <button class="bg-[#CDFF00] p-2 rounded-lg" @click="buyCategory()">comprar ahora</button>

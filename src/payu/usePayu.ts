@@ -2,10 +2,13 @@
 
 
 export function usePayU() {
-  const generatePayUForm = (precio:number | undefined, titulo:string | undefined, buyerEmail: string | undefined, signature:string, referenceCode: string) => {
+  const generatePayUForm = (precio:number | undefined, titulo:string | undefined, buyerEmail: string | undefined, signature:string | undefined, referenceCode: string | undefined) => {
     const PAYU_URL = import.meta.env.VITE_PAYU_URL;
     const MERCHANT_ID = import.meta.env.VITE_PAYU_MERCHANT_ID;
     const ACCOUNT_ID = import.meta.env.VITE_PAYU_ACCOUNT_ID;
+
+
+    localStorage.removeItem('google_affiliaty')
 
     const amount = precio?.toString();
     const currency = 'COP';

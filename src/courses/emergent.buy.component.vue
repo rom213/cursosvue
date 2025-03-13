@@ -1,0 +1,71 @@
+<script lang="ts" setup>
+import { authStore } from '../store/AuthStore';
+import { emergentBuyStore } from '../store/EmergentBuyStore';
+
+const storeemergentBuy=emergentBuyStore();
+const userAuth = authStore()
+
+
+</script>
+
+
+
+<template>
+    <div v-if="storeemergentBuy.emergentBuy.emergent"
+        class="fixed  inset-0 m-auto mb-80 max-w-[300px] h-[350px] bg-white rounded-sm p-4 border-[0.5px] border-gray-600">
+        <div class="flex w-full gap-5">
+            <div class=" text-justify pr-8 ">¿QUIEN TENDRA ACCESO AL PAQUETE DE CURSOS?</div>
+            <div @click="storeemergentBuy.handleEmergentBuy()" class="absolute right-4 font-bold top-1 cursor-pointer">
+                X
+            </div>
+        </div>
+        <div class="grid gap-3">
+            <div @click="storeemergentBuy.handleChangeOptionsEmergentBuy(0)" :class="{'border border-gray-500 p-2 grid gap-2 rounded-sm': storeemergentBuy.emergentBuy.optionsEmergentBuy === 1, 'border-3 border-blue-400 p-2 grid gap-2 rounded-sm scale-105': storeemergentBuy.emergentBuy.optionsEmergentBuy === 0}">
+                <div class="font-semibold">
+                    Para mi uso personal
+                </div>
+                <div class="flex items-center border border-gray-600 p-1 gap-2 rounded-sm">
+                    <div>
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M18.1711 8.36791H17.4998V8.33332H9.99984V11.6667H14.7094C14.0223 13.6071 12.1761 15 9.99984 15C7.23859 15 4.99984 12.7612 4.99984 9.99999C4.99984 7.23874 7.23859 4.99999 9.99984 4.99999C11.2744 4.99999 12.434 5.48082 13.3169 6.26624L15.674 3.90916C14.1857 2.52207 12.1948 1.66666 9.99984 1.66666C5.39775 1.66666 1.6665 5.39791 1.6665 9.99999C1.6665 14.6021 5.39775 18.3333 9.99984 18.3333C14.6019 18.3333 18.3332 14.6021 18.3332 9.99999C18.3332 9.44124 18.2757 8.89582 18.1711 8.36791Z"
+                                fill="#FFC107" />
+                            <path
+                                d="M2.62744 6.12124L5.36536 8.12916C6.10619 6.29499 7.90036 4.99999 9.99994 4.99999C11.2745 4.99999 12.4341 5.48082 13.317 6.26624L15.6741 3.90916C14.1858 2.52207 12.1949 1.66666 9.99994 1.66666C6.79911 1.66666 4.02327 3.47374 2.62744 6.12124Z"
+                                fill="#FF3D00" />
+                            <path
+                                d="M9.9998 18.3333C12.1523 18.3333 14.1081 17.5096 15.5869 16.17L13.0077 13.9875C12.1431 14.6454 11.0863 15.0012 9.9998 15C7.8323 15 5.99189 13.6179 5.29855 11.6892L2.58105 13.7829C3.96022 16.4817 6.76105 18.3333 9.9998 18.3333Z"
+                                fill="#4CAF50" />
+                            <path
+                                d="M18.1712 8.36793H17.5V8.33334H10V11.6667H14.7096C14.3809 12.5902 13.7889 13.3972 13.0067 13.9879L13.0079 13.9871L15.5871 16.1696C15.4046 16.3354 18.3333 14.1667 18.3333 10C18.3333 9.44126 18.2758 8.89584 18.1712 8.36793Z"
+                                fill="#1976D2" />
+                        </svg>
+
+                    </div>
+                    <div>
+                        {{ userAuth.getProfile()?.user?.email }}
+                    </div>
+                </div>
+            </div>
+
+            <div @click="storeemergentBuy.handleChangeOptionsEmergentBuy(1)" :class="{'border border-gray-500 p-2 grid gap-2 rounded-sm': storeemergentBuy.emergentBuy.optionsEmergentBuy === 0, 'border-3 border-blue-400 p-2 grid gap-2 rounded-sm scale-105': storeemergentBuy.emergentBuy.optionsEmergentBuy === 1}">
+                <div class="font-semibold">
+                    Para otra persona (monetizar)
+                </div>
+                <div>
+                    <input v-model="storeemergentBuy.emergentBuy.correo" class="border border-black w-full h-[40px] rounded-md pl-2 outline-none"
+                        placeholder="Digite el correo Gmail" type="text">
+                </div>
+            </div>
+        </div>
+        <div class="w-full flex flex-col items-center mt-2">
+            <div @click="storeemergentBuy.buyCategory()" class="bg-[#CDFF00] w-44 text-center p-1 rounded-sm">
+                COMPRAR y aceptar termios y condiciones
+            </div>
+            <div class="font-light">
+                Leer termios y condiciones
+            </div>
+        </div>
+
+    </div>
+</template>

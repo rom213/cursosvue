@@ -58,7 +58,7 @@ const router = createRouter({
 
                 profile.then((res)=>{
                     if (res==null) {
-                        localStorage.setItem('referido', to.fullPath); // Guarda el enlace
+                        localStorage.setItem('path_referido', to.fullPath); // Guarda el enlace
                         next({name : 'register'});
                       } else {
                         next();

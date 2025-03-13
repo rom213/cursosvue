@@ -30,8 +30,8 @@ defineProps<{
                         <p class="line-through">${{ item.precio }}</p>
                         <p>{{ item.descuento }}%DTO</p>
                     </div>
-                    <p v-if="item.precio && item.descuento">
-                        precio ${{ item.precio - (item.precio * item.descuento / 100) }}
+                    <p>
+                        precio ${{ item.precio_desc }}
                     </p>
                 </div>
 

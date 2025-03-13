@@ -20,7 +20,7 @@ const cartSt = cartStore();
 const storeCategory = categoryStore()
 
 
-const nameAffiliaty=ref()
+
 
 onMounted(() => {
     let index = Number(route.params.id);
@@ -28,9 +28,12 @@ onMounted(() => {
 
     if (route.params.googleid) {
         AuthService.get_affiliaty(route.params.googleid)
-        .then((res)=> nameAffiliaty.value= res?.name)
+        .then((res)=> {
+            userAuth.nameAffiliaty= res?.name
+            localStorage.setItem('google_affiliaty', String(route.params.googleid))
+        })
     }else{
-        nameAffiliaty.value= undefined
+        userAuth.nameAffiliaty= undefined
     }
 })
 
@@ -60,9 +63,8 @@ const addCarCategory = (item: ICategory | undefined) => {
 <template>
     <div>
         <div class="p-2 grid gap-3 text-sm">
-            <div v-if="nameAffiliaty" class="flex gap-3">
-                <p class="font-semibold">REFERIODO: </p> {{ nameAffiliaty }}
-            </div>
+                <div v-if="userAuth.nameAffiliaty" class="text-[10px] mt-1 pl-2 font-semibold">Comprar con el descuento de {{ userAuth.nameAffiliaty }}</div>
+
             <div class="text-center">
                 <h3 class="font-extrabold text-xl">{{ category?.titulo }}</h3>
                 <p>{{ category?.frase_1 }}</p>

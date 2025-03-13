@@ -3,35 +3,49 @@ import { RouterView } from 'vue-router';
 import HeaderComponent from './components/header/header.component.vue';
 
 import { onMounted, watch } from 'vue';
-import AuthService from './services/AuthServices';import { authStore } from './store/AuthStore';
+import AuthService from './services/AuthServices'; import { authStore } from './store/AuthStore';
 import CategoryService from './services/CategorieService';
 import { categoryStore } from './store/CategoryStore';
 const storeAuth = authStore()
-const catStore=categoryStore()
+const catStore = categoryStore()
 
 
-onMounted(async()=>{
-    const profile= await AuthService.getProfile();
-    const category= await CategoryService.getAllCategories();
-    catStore.setCategories(category);
-    storeAuth.setProfile(profile);  
+onMounted(async () => {
+  const profile = await AuthService.getProfile();
+  const category = await CategoryService.getAllCategories();
+  catStore.setCategories(category);
+  storeAuth.setProfile(profile);
+})
+
+
+onMounted(async () => {
+
+  const affiliaty_id= localStorage.getItem('google_affiliaty')
+  if (affiliaty_id) {
+    AuthService.get_affiliaty(String(affiliaty_id))
+        .then((res)=> {
+            storeAuth.nameAffiliaty= res?.name
+        })
+  }
+
 })
 
 
 
 
 
-watch(()=>storeAuth.profile, ()=>{
-const referido = localStorage.getItem('referido');
-if (referido) {
-  localStorage.removeItem('referido'); // Limpiar
-  let path=location.origin + referido
-  location.href = path
-}
+// solo funciona cuando la persona es nueva y redifige al link del referido
+watch(() => storeAuth.profile, () => {
+  const referido = localStorage.getItem('path_referido');
+  if (referido) {
+    localStorage.removeItem('path_referido');
+    let path = location.origin + referido
+    location.href = path
+  }
 },
-{
-  deep: true
-})
+  {
+    deep: true
+  })
 
 
 

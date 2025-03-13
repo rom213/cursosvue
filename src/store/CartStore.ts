@@ -8,26 +8,11 @@ export const cartStore = defineStore('car', () => {
 
     watch(cartCategories,()=>{
         countCart
-        valueCart
     })
 
     const countCart=computed(()=>{
         return cartCategories.value.length
     })
-
-    const valueCart = computed(() => {
-        let total = 0;
-        cartCategories.value.forEach(item => {
-          // Si no hay descuento, se toma 0%
-          const descuento = item.descuento || 0;
-          if (item.precio) {
-            const precioFinal = item.precio - (item.precio * descuento / 100);
-            total += precioFinal;
-          }
-        });
-        return total;
-      });
-
 
 
     function validateCart(car: ICategory): boolean {
@@ -39,7 +24,7 @@ export const cartStore = defineStore('car', () => {
     }
 
     function getCart(): ICategory[] | [] {
-        return cartCategories.value
+        return JSON.parse(JSON.stringify(cartCategories.value));
     }
 
     function deleteItem(id:Number){
@@ -50,5 +35,5 @@ export const cartStore = defineStore('car', () => {
 
 
 
-    return { setCart, getCart, validateCart, countCart, valueCart, deleteItem };
+    return { setCart, getCart, validateCart, countCart, deleteItem, cartCategories };
 });

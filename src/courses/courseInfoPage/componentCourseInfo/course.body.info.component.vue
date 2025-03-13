@@ -9,7 +9,7 @@ const storeCategory = categoryStore()
 
 </script>
 <template>
-    <div class="p-4">
+    <div class="p-4 pb-30">
         <!-- Lista de cursos -->
         <details class="mb-4">
             <summary class="font-semibold cursor-pointer flex justify-between">

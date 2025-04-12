@@ -5,6 +5,7 @@ import { cartStore } from '../../store/CartStore';
 import { ref, watch } from 'vue';
 
 const positionNavigate = ref(0)
+const showPoverMore = ref(false);
 
 const userStore = authStore()
 
@@ -27,7 +28,7 @@ watch(() => router.path, () => {
 
 <template>
     <div class="grid gap-1 p-2 fixed bg-white z-40 w-full">
-        <div>
+        <div class="relative">
             <div class="flex gap-2 justify-between px-2">
                 <h1 class="font-semibold">Cursos estudia y trabaja</h1>
                 <RouterLink v-if="userStore.getProfile() == null" :to="{ name: 'login' }"><button
@@ -35,15 +36,19 @@ watch(() => router.path, () => {
                 </RouterLink>
 
                 <div v-if="userStore.getProfile() != null"
-                    class="group border border-black p-1 flex text-sm rounded-lg gap-2 relative z-20">
+                    class="border border-black p-1 flex text-sm rounded-lg gap-2 relative z-20"
+                    @click="() => { showPoverMore = !showPoverMore }">
                     <div>{{ userStore.getProfile()?.user?.given_name }}</div>
                     <div>
                         <img class="w-6 h-6 rounded-full" :src="userStore.getProfile()?.user?.picture" alt="">
                     </div>
-                    <!-- popober mas informacion -->
-                    <div
-                        class="hidden group-hover:flex flex-col justify-center  absolute h-16 w-32 right-0 top-8 border border-black rounded-lg bg-white px-2 z-50">
-                        <RouterLink :to="{ name: 'mycourses' }" class="flex items-center gap-3">
+
+                </div>
+                <!-- popober mas informacion -->
+                <div v-if="showPoverMore"
+                    class="flex flex-col justify-center  absolute h-16 right-0 top-8 border border-black rounded-lg bg-white px-2 z-50">
+                    <RouterLink :to="{ name: 'mycourses' }" class="grid grid-cols-4">
+                        <div class="col-span-1">
                             <svg width="22" height="22" viewBox="0 0 22 22" fill="none"
                                 xmlns="http://www.w3.org/2000/svg">
                                 <path
@@ -53,27 +58,49 @@ watch(() => router.path, () => {
                                     d="M14.0001 17H8.00008M20.1941 15.793C19.8441 18.273 19.6691 19.514 18.7721 20.257C17.8751 21 16.5521 21 13.9051 21H8.09509C5.44909 21 4.12509 21 3.22809 20.257C2.33109 19.514 2.15609 18.274 1.80609 15.793L1.38409 12.793C0.937085 9.629 0.714085 8.048 1.66208 7.023C2.61009 6 4.29808 6 7.67208 6H14.3281C17.7021 6 19.3901 6 20.3381 7.024C21.0871 7.833 21.1051 8.99 20.8591 11"
                                     stroke="black" stroke-width="1.5" stroke-linecap="round" />
                             </svg>
-                            mis cursos
-                        </RouterLink>
-                        <RouterLink :to="{ name: 'mycourses' }" class=" flex justify-center items-center gap-2">
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
+                        </div>
+
+                        <div class="col-span-3">mis cursos</div>
+
+                    </RouterLink>
+                    <RouterLink :to="{ name: 'mycourses' }" class="grid grid-cols-4">
+                        <div class="col-span-1">
+                            <svg width="22" height="22" viewBox="0 0 22 22" fill="none"
                                 xmlns="http://www.w3.org/2000/svg">
-                                <path
-                                    d="M11.6324 12.1905L12.0824 11.7435C14.1644 11.8115 14.1964 11.7385 14.2879 11.5245L14.8599 10.132L14.9024 10L14.8559 9.8845C14.8314 9.8235 14.7559 9.6415 13.4559 8.402V7.75C14.9559 6.305 14.9239 6.231 14.8384 6.0195L14.2689 4.6125C14.1834 4.4015 14.1509 4.319 12.0839 4.3755L11.6339 3.9105C11.6809 3.22556 11.6573 2.5376 11.5634 1.8575L11.5054 1.726L10.0184 1.076C9.79941 0.976 9.72241 0.94 8.31841 2.469L7.68741 2.4595C6.24191 0.9165 6.17341 0.9445 5.95691 1.032L4.57441 1.591C4.35791 1.6785 4.28141 1.7095 4.36541 3.8095L3.91891 4.2545C1.83791 4.1865 1.80591 4.2605 1.71541 4.4735L1.14241 5.8665L1.09741 6L1.14441 6.116C1.16891 6.176 1.24141 6.356 2.54441 7.597V8.247C1.04441 9.692 1.07691 9.766 1.16291 9.978L1.73191 11.3865C1.81891 11.602 1.84991 11.6785 3.91641 11.6245L4.36641 12.092C4.31962 12.7759 4.34257 13.4628 4.43491 14.142L4.49291 14.2745L5.98941 14.9285C6.20691 15.0195 6.28241 15.052 7.68241 13.5285L8.31341 13.5365C9.76091 15.0815 9.83491 15.0515 10.0464 14.966L11.4259 14.4085C11.6439 14.322 11.7199 14.2915 11.6324 12.1905ZM5.70341 8.9285C5.52894 8.47253 5.49302 7.97518 5.60015 7.49887C5.70729 7.02255 5.95271 6.58849 6.30562 6.25114C6.65854 5.91379 7.10322 5.68818 7.58388 5.60262C8.06454 5.51706 8.55976 5.57536 9.00741 5.77021C9.45505 5.96505 9.83519 6.28776 10.1001 6.69785C10.365 7.10793 10.5029 7.58712 10.4965 8.07529C10.4901 8.56347 10.3397 9.03887 10.0641 9.44186C9.78849 9.84485 9.40002 10.1575 8.94741 10.3405C8.32988 10.582 7.64182 10.569 7.03385 10.3044C6.42587 10.0397 5.94749 9.54502 5.70341 8.9285Z"
-                                    fill="#40535B" />
+                                <mask id="mask0_662_527" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="-1"
+                                    y="-1" width="24" height="24">
+                                    <path
+                                        d="M10.9999 1.83334L8.24992 4.58334H4.58325V8.25001L1.83325 11L4.58325 13.75V17.4167H8.24992L10.9999 20.1667L13.7499 17.4167H17.4166V13.75L20.1666 11L17.4166 8.25001V4.58334H13.7499L10.9999 1.83334Z"
+                                        fill="white" stroke="white" stroke-width="4" stroke-linejoin="round" />
+                                    <path
+                                        d="M11 13.75C11.7293 13.75 12.4288 13.4603 12.9445 12.9445C13.4603 12.4288 13.75 11.7293 13.75 11C13.75 10.2707 13.4603 9.57118 12.9445 9.05546C12.4288 8.53973 11.7293 8.25 11 8.25C10.2707 8.25 9.57118 8.53973 9.05546 9.05546C8.53973 9.57118 8.25 10.2707 8.25 11C8.25 11.7293 8.53973 12.4288 9.05546 12.9445C9.57118 13.4603 10.2707 13.75 11 13.75Z"
+                                        fill="black" stroke="black" stroke-width="4" stroke-linejoin="round" />
+                                </mask>
+                                <g mask="url(#mask0_662_527)">
+                                    <path d="M0 0H22V22H0V0Z" fill="black" />
+                                </g>
                             </svg>
-                            Configuracion
-                        </RouterLink>
-                    </div>
-                </div>
+
+
+
+                        </div>
+
+                        <div class="col-span-3">Configuracion</div>
+
+                    </RouterLink>
+                </div>  
             </div>
         </div>
 
         <!-- navegacion -->
         <div class="flex justify-between px-6">
-            <RouterLink :class="{'border-t border-black px-2': positionNavigate === 0}"  :to="{ name: 'home' }">home</RouterLink>
-            <RouterLink :class="{'border-t border-black px-2': positionNavigate === 1}"  :to="{ name: 'courses' }">cursos</RouterLink>
-            <RouterLink :class="{'border-t border-black px-2': positionNavigate === 2}"  :to="{ name: 'courses' }">monetizar</RouterLink>
+            <RouterLink :class="{ 'border-t border-black px-2': positionNavigate === 0 }" :to="{ name: 'home' }">home
+            </RouterLink>
+            <RouterLink :class="{ 'border-t border-black px-2': positionNavigate === 1 }" :to="{ name: 'courses' }">
+                cursos
+            </RouterLink>
+            <RouterLink :class="{ 'border-t border-black px-2': positionNavigate === 2 }" :to="{ name: 'courses' }">
+                monetizar</RouterLink>
         </div>
         <!-- carrito e input -->
         <div class="flex justify-between items-center">

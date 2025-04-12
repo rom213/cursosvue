@@ -5,15 +5,19 @@ import { useRouter } from "vue-router";
 import { authStore } from "./AuthStore";
 import type { ICategory } from "../types/Categorie";
 const { generatePayUForm } = usePayU();
-const router = useRouter();
-const userAuth = authStore()
+
 
 export const emergentBuyStore = defineStore('emergentBuy', () => {
+
+    const router = useRouter();
+const userAuth = authStore()
     const emergentBuy = ref({
         'emergent': false,
         'optionsEmergentBuy': 0,
         'correo': ''
     })
+
+
 
     const category= ref<ICategory>()
     

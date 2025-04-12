@@ -54,7 +54,7 @@ const userAuth = authStore()
                 </div>
                 <div>
                     <input v-model="storeemergentBuy.emergentBuy.correo" class="border border-black w-full h-[40px] rounded-md pl-2 outline-none"
-                        placeholder="Digite el correo Gmail" type="text">
+                        placeholder="Digite el correo Gmail" type="email" required>
                 </div>
             </div>
         </div>

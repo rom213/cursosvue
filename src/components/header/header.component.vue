@@ -45,7 +45,7 @@ watch(() => router.path, () => {
 
                 </div>
                 <!-- popober mas informacion -->
-                <div v-if="showPoverMore"
+                <div @click="()=>showPoverMore=false" v-if="showPoverMore"
                     class="flex flex-col justify-center  absolute h-16 right-0 top-8 border border-black rounded-lg bg-white px-2 z-50">
                     <RouterLink :to="{ name: 'mycourses' }" class="grid grid-cols-4">
                         <div class="col-span-1">
@@ -63,7 +63,7 @@ watch(() => router.path, () => {
                         <div class="col-span-3">mis cursos</div>
 
                     </RouterLink>
-                    <RouterLink :to="{ name: 'mycourses' }" class="grid grid-cols-4">
+                    <RouterLink :to="{ name: 'config' }" class="grid grid-cols-4">
                         <div class="col-span-1">
                             <svg width="22" height="22" viewBox="0 0 22 22" fill="none"
                                 xmlns="http://www.w3.org/2000/svg">

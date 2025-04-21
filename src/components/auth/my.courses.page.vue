@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 import { onMounted, ref, watch } from 'vue';
-import type { ICategory } from '../types/Categorie';
-import { categoryStore } from '../store/CategoryStore';
+import type { ICategory } from '../../types/Categorie';
+import { categoryStore } from '../../store/CategoryStore';
 
 const courseBougth = ref<ICategory[] | []>([])
-import FooterComponent from '../components/footer/footer.component.vue';
+import FooterComponent from '../../components/footer/footer.component.vue';
 import { useRouter } from 'vue-router';
-import AffiliatyMessageComponent from '../components/auth/affiliaty.message.component.vue';
+import AffiliatyMessageComponent from '../../components/auth/affiliaty.message.component.vue';
 const storeCatergory = categoryStore()
 const router = useRouter()
 

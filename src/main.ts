@@ -3,7 +3,7 @@ import { createPinia } from 'pinia'
 import App from './App.vue';
 import vue3GoogleLogin from 'vue3-google-login';
 import './style.css'
-import router from './router/routes.js';
+import router from './router/index';
 
 
 

@@ -67,7 +67,7 @@ const saveMessage = () => {
 
         <CourseBodyInfoComponent />
 
-        <div class="fixed bottom-0 h-[80px] w-full flex gap-7 p-4">
+        <div v-if="!storeCategory.getCategory()?.user_bought" class="fixed bottom-0 h-[80px] w-full flex gap-7 p-4 bg-white">
             <button class="bg-[#CDFF00] rounded-sm">
                 <div class="flex gap-4 p-2" v-if="!userAuth.getProfile()?.user?.is_bought && storeCategory.getCategory()?.precio_desc">
                     <div>comprar</div> <div>${{ (storeCategory.getCategory()?.precio_desc ?? 0) + 3999 }}</div>
@@ -100,7 +100,12 @@ const saveMessage = () => {
             </button>
         </div>
 
-        <div class="w-full mb-12 h-[190px]">
+        <div v-if="!storeCategory.getCategory()?.user_bought" class="w-full mb-12 h-[190px]">
+            <FooterComponent />
+        </div>
+
+        
+        <div v-if="storeCategory.getCategory()?.user_bought" class="absolute bottom-0">
             <FooterComponent />
         </div>
 

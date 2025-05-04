@@ -1,12 +1,49 @@
 <script lang="ts" setup>
-import { RouterLink } from 'vue-router';
+import { RouterLink, useRoute, useRouter } from 'vue-router';
 import FooterComponent from '../../footer/footer.component.vue';
+import { onMounted, ref } from 'vue';
+const router = useRouter()
+const route = useRoute()
+
+
+
+const messages = ref({
+    'isSuccess': false,
+    'isCancel': false
+})
+
+
+
+onMounted(() => {
+    if (route.query.is_save) {
+        messages.value.isSuccess = true
+        setTimeout(() => {
+            messages.value.isSuccess = false
+            // Limpiar query sin recargar
+            router.replace({ query: { ...route.query, is_save: undefined } })
+        }, 3000)
+    }
+
+    if (route.query.is_cancel) {
+        messages.value.isCancel = true
+        setTimeout(() => {
+            messages.value.isCancel = false
+            // Limpiar query sin recargar
+            router.replace({ query: { ...route.query, is_cancel: undefined } })
+        }, 3000)
+    }})
+
+
 
 
 </script>
 
 <template>
     <div>
+        <div v-if="messages.isSuccess" class="text-green-600 ml-5 font-sans">GUARDADO CON EXITO</div>
+        <div v-if="messages.isCancel" class="text-yellow-300 ml-5 font-sans">NO FUE GUARDADO</div>
+
+
         <div class="flex items-center justify-center mt-3 gap-2">
             <div class="font-bold text-xl">CONFIGURACION</div>
             <div>

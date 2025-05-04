@@ -66,8 +66,9 @@ const handleClickItem = (id: number) => {
 
       <div class=" grid gap-2">
         <div v-for="(item, index) in courseBougth" :key="index" class="grid grid-cols-3 text-sm">
-          <div @click="handleClickItem(item.id)" class="col-span-1"><img class="rounded-sm" :src="item.imagen_url"
-              alt=""></div>
+          <div @click="handleClickItem(item.id)" class="col-span-1 bg-red-300 flex ">
+            <img class="rounded-sm" :src="item.imagen_url" alt="">
+          </div>
           <div class="col-span-2 flex gap-4 flex-col px-2 justify-center">
             <div>
               <div class="grid grid-cols-3">
@@ -103,9 +104,9 @@ const handleClickItem = (id: number) => {
             <br>
 
             <!-- link de afiliado -->
-             <div>
-                <AffiliatyMessageComponent :id_category="item.id" />
-             </div>
+            <div>
+              <AffiliatyMessageComponent :id_category="item.id" />
+            </div>
             <div>
 
             </div>
@@ -121,7 +122,7 @@ const handleClickItem = (id: number) => {
 
 
     </div>
-    
+
     <div>
       <FooterComponent class="absolute bottom-0 w-full" />
     </div>

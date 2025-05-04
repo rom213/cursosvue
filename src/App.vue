@@ -14,6 +14,7 @@ onMounted(async () => {
   const profile = await AuthService.getProfile();
   const category = await CategoryService.getAllCategories();
   catStore.setCategories(category);
+  
   storeAuth.setProfile(profile);
 })
 

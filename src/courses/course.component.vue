@@ -109,7 +109,7 @@ defineProps<{
                             <button @click="addCarCategory(item)" class="bg-[#2BA0FF] rounded-sm p-1">Agregar
                                 carrito</button>
                             <button
-                                @click="() => { storeemergentBuy.handleEmergentBuy(); storeemergentBuy.category = item }"
+                                @click="() => { storeemergentBuy.handleEmergentBuy(); storeemergentBuy.setCategoryEmergent(item)}"
                                 class="bg-[#CDFF00] rounded-sm p-1">
                                 <!-- se muestra el precio de + 4000 si no ha comprado y  hay referido -->
                                 <p v-if="referCode == null && !userAuth.getProfile()?.user?.is_bought">

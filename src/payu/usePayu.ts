@@ -2,13 +2,41 @@
 
 
 export function usePayU() {
-  const generatePayUForm = (precio:number | undefined, titulo:string | undefined, buyerEmail: string | undefined, signature:string | undefined, referenceCode: string | undefined) => {
+  const generatePayUForm = (precio: number | undefined, titulo: string | undefined, buyerEmail: string | undefined, signature: string | undefined, referenceCode: string | undefined, extra_info: string) => {
     const PAYU_URL = import.meta.env.VITE_PAYU_URL;
     const MERCHANT_ID = import.meta.env.VITE_PAYU_MERCHANT_ID;
     const ACCOUNT_ID = import.meta.env.VITE_PAYU_ACCOUNT_ID;
+    let extra1 = ''
+    let extra2 = ''
+    let extra3 = ''
+    let extra4 = ''
 
+
+    if (extra_info.length > 254) {
+      let array_extra = extra_info.split('|')
+
+
+      array_extra.map((value, index) => {
+
+        if (index != 0) {
+          if ((extra1 + '|' + value).length < 254) {
+            extra1 = extra1 + '|' + value
+          } else if ((extra2 + '|' + value).length < 254) {
+            extra2 = extra2 + '|' + value
+          }else if ((extra3 + '|' + value).length < 254) {
+            extra3 = extra3 + '|' + value
+          }else if ((extra4 + '|' + value).length < 254) {
+            extra4 = extra4 + '|' + value
+          }
+
+        }
+
+      })
+    }
 
     localStorage.removeItem('google_affiliaty')
+
+
 
     const amount = precio?.toString();
     const currency = 'COP';
@@ -33,7 +61,10 @@ export function usePayU() {
       confirmationUrl: `http://www.cursosestudiaytrabaja.com:5000/payu-confirmation`,
       tax: '0',
       taxReturnBase: '0',
-      extra1: "JSON.stringify({ categoryId: item.id, userId: buyerId })"
+      extra1: extra_info.length > 254 ? extra1 : extra_info,
+      extra2,
+      extra3,
+      extra4
     };
 
     Object.entries(params).forEach(([key, value]) => {

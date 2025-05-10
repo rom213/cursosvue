@@ -6,12 +6,14 @@ import CourseImgComponent from './componentCourseInfo/course.img.component.vue';
 import MessageService from '../../services/MessageService';
 import { authStore } from '../../store/AuthStore';
 import FooterComponent from '../../components/footer/footer.component.vue';
+import { emergentBuyStore } from '../../store/EmergentBuyStore';
 
 const stars = ref(0)
 const comment = ref("")
 const userAuth = authStore()
 
 const storeCategory = categoryStore()
+
 
 const hadleMauseOver = (index: number) => {
     stars.value = index
@@ -29,6 +31,18 @@ const saveMessage = () => {
         }
     });
 }
+
+const storeemergentBuy = emergentBuyStore();
+
+const handleBuy=()=>{
+    const categorie = storeCategory.getCategory()
+    if (categorie) {
+        storeemergentBuy.setCategoryEmergent(categorie) 
+        storeemergentBuy.buyCategory(); 
+    }
+
+}
+
 
 
 
@@ -67,7 +81,10 @@ const saveMessage = () => {
 
         <CourseBodyInfoComponent />
 
-        <div v-if="!storeCategory.getCategory()?.user_bought" class="fixed bottom-0 h-[80px] w-full flex gap-7 p-4 bg-white">
+
+
+        <!-- footer comprar cursos -->
+        <div @click="handleBuy()" v-if="!storeCategory.getCategory()?.user_bought" class="fixed bottom-0 h-[80px] w-full flex gap-7 p-4 bg-white">
             <button class="bg-[#CDFF00] rounded-sm">
                 <div class="flex gap-4 p-2" v-if="!userAuth.getProfile()?.user?.is_bought && storeCategory.getCategory()?.precio_desc">
                     <div>comprar</div> <div>${{ (storeCategory.getCategory()?.precio_desc ?? 0) + 3999 }}</div>

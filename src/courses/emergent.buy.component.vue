@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { authStore } from '../store/AuthStore';
 import { emergentBuyStore } from '../store/EmergentBuyStore';
+import { OptionsEmergentBuy } from '../types/Payment';
 
 const storeemergentBuy=emergentBuyStore();
 const userAuth = authStore()
@@ -20,7 +21,7 @@ const userAuth = authStore()
             </div>
         </div>
         <div class="grid gap-3">
-            <div @click="storeemergentBuy.handleChangeOptionsEmergentBuy(0)" :class="{'border border-gray-500 p-2 grid gap-2 rounded-sm': storeemergentBuy.emergentBuy.optionsEmergentBuy === 1, 'border-3 border-blue-400 p-2 grid gap-2 rounded-sm scale-105': storeemergentBuy.emergentBuy.optionsEmergentBuy === 0}">
+            <div @click="storeemergentBuy.handleChangeOptionsEmergentBuy(OptionsEmergentBuy.UserInternal)" :class="{'border border-gray-500 p-2 grid gap-2 rounded-sm': storeemergentBuy.emergentBuy.optionsEmergentBuy === OptionsEmergentBuy.UserExternal, 'border-3 border-blue-400 p-2 grid gap-2 rounded-sm scale-105': storeemergentBuy.emergentBuy.optionsEmergentBuy === OptionsEmergentBuy.UserInternal}">
                 <div class="font-semibold">
                     Para mi uso personal
                 </div>
@@ -48,7 +49,7 @@ const userAuth = authStore()
                 </div>
             </div>
 
-            <div @click="storeemergentBuy.handleChangeOptionsEmergentBuy(1)" :class="{'border border-gray-500 p-2 grid gap-2 rounded-sm': storeemergentBuy.emergentBuy.optionsEmergentBuy === 0, 'border-3 border-blue-400 p-2 grid gap-2 rounded-sm scale-105': storeemergentBuy.emergentBuy.optionsEmergentBuy === 1}">
+            <div @click="storeemergentBuy.handleChangeOptionsEmergentBuy(OptionsEmergentBuy.UserExternal)" :class="{'border border-gray-500 p-2 grid gap-2 rounded-sm': storeemergentBuy.emergentBuy.optionsEmergentBuy === OptionsEmergentBuy.UserInternal, 'border-3 border-blue-400 p-2 grid gap-2 rounded-sm scale-105': storeemergentBuy.emergentBuy.optionsEmergentBuy === OptionsEmergentBuy.UserExternal}">
                 <div class="font-semibold">
                     Para otra persona (monetizar)
                 </div>

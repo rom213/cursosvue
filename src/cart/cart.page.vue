@@ -17,7 +17,7 @@ const buyCategory = () => {
     let data = storeCart.getCart().map(item => ({ id_category: item.id }));
     PaymentService.generate_signature_reference_code({ categories: data }).then((res)=>{
         if (res?.signature) {
-            generatePayUForm(res?.price, " carrito de compras", userAuth.getProfile()?.user?.email, res?.signature, res?.reference_code)
+            generatePayUForm(res?.price, " carrito de compras", userAuth.getProfile()?.user?.email, res?.signature, res?.reference_code,'')
         }
     });
 };

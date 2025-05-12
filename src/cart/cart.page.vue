@@ -17,7 +17,13 @@ const buyCategory = () => {
     let data = storeCart.getCart().map(item => ({ id_category: item.id }));
     PaymentService.generate_signature_reference_code({ categories: data }).then((res)=>{
         if (res?.signature) {
-            generatePayUForm(res?.price, " carrito de compras", userAuth.getProfile()?.user?.email, res?.signature, res?.reference_code,'')
+            let extra_info: string= ''
+            const user_id=userAuth.getProfile()?.user?.google_id
+
+            data.map((item)=>{
+                extra_info= extra_info + '|'+`${item.id_category},` + `${user_id}`
+            })
+            generatePayUForm(res?.price, " carrito de compras", userAuth.getProfile()?.user?.email, res?.signature, res?.reference_code,extra_info)
         }
     });
 };

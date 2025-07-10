@@ -117,14 +117,16 @@ const handleBuy=()=>{
             </button>
         </div>
 
-        <div v-if="!storeCategory.getCategory()?.user_bought" class="w-full mb-12 h-[190px]">
-            <FooterComponent />
-        </div>
 
         
-        <div v-if="storeCategory.getCategory()?.user_bought" class="absolute bottom-0">
-            <FooterComponent />
-        </div>
+
 
     </div>
+    
+        <div v-if="!storeCategory.getCategory()?.user_bought" class="absolute w-full mb-12 h-[190px]">
+            <FooterComponent />
+        </div>
+        <div v-if="storeCategory.getCategory()?.user_bought" class="fixed bottom-0  w-full">
+            <FooterComponent />
+        </div>
 </template>

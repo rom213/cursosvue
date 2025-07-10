@@ -17,14 +17,9 @@ class CategoryService {
 
       static async searchCategories(searchTerm: string, limit: number = 10): Promise<ICategory[] | []> {
         try {
+          
           const response: AxiosResponse<ICategory[]> = await ApiService.get<ICategory[]>(
-            `/api/category/categories/deep-search`,
-            {
-              params: {
-                q: searchTerm,
-                limit: limit
-              }
-            }
+            `/api/category/categories/deep-search?q=${searchTerm}&limit=${limit}`
           );
           return response.data;
         } catch (error) {

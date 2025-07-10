@@ -25,7 +25,6 @@ const addCarCategory = (item: ICategory) => {
         return
     }
     if (cartSt.validateCart(item)) {
-
         cartSt.setCart(item)
     }
 }

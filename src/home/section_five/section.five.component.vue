@@ -29,13 +29,13 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="bg-black h-[200px] rounded-t-lg p-2 relative">
-    <h3 class="text-[#FFD21E] mb-2">CURSOS MÁS PEDIDOS</h3>
+  <div class=" h-[200px] md:h-[350px] rounded-t-lg p-2 relative">
+    <h3 class="text-[#FFD21E] mb-2 md:text-center md:text-3xl">CURSOS MÁS PEDIDOS</h3>
     <div class="overflow-hidden whitespace-nowrap overflow-x-auto">
                 <div ref="scrollContainer" class="animate-scroll flex"
                     :style="{ '--animation-duration': animationDuration + 's' }" @mouseenter="pauseScroll"
                     @mouseleave="resumeScroll">
-                    <div class="flex gap-4">
+                    <div class="flex gap-4 px-4">
                         <BestSallersComponent/>
                         <BestSallersComponent/>
                         <BestSallersComponent/>

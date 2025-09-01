@@ -3,7 +3,7 @@
 </script>
 
 <template>
-    <div class="w-full bg-black text-white text-center p-1 rounded-t-md py-4">
+    <div class="w-full bg-black text-white text-center p-1 rounded-t-md py-4 md:text-2xl md:py-8">
         <div>
             Adquirimos los cursos de las mejores
             plataformas y te las compartimos por google drive.

@@ -2,7 +2,7 @@
 </script>
 
 <template>
-    <div class="flex gap-3 bg-black p-2 rounded-t-xl w-full justify-center">
+    <div class="flex gap-3 bg-black p-2 rounded-t-xl w-full justify-center md:justify-around">
         <div>
             <svg width="85" height="90" viewBox="0 0 85 90" fill="none" xmlns="http://www.w3.org/2000/svg"
                 xmlns:xlink="http://www.w3.org/1999/xlink">

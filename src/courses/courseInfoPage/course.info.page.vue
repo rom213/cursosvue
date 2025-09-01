@@ -34,11 +34,11 @@ const saveMessage = () => {
 
 const storeemergentBuy = emergentBuyStore();
 
-const handleBuy=()=>{
+const handleBuy = () => {
     const categorie = storeCategory.getCategory()
     if (categorie) {
-        storeemergentBuy.setCategoryEmergent(categorie) 
-        storeemergentBuy.buyCategory(); 
+        storeemergentBuy.setCategoryEmergent(categorie)
+        storeemergentBuy.buyCategory();
     }
 
 }
@@ -50,7 +50,7 @@ const handleBuy=()=>{
 
 
 <template>
-    <div>
+    <div class="md:px-42 pt-8">
         <CourseImgComponent />
 
         <div v-if="storeCategory.getCategory()?.user_bought && !storeCategory.getCategory()?.user_comment" class="p-4">
@@ -78,16 +78,16 @@ const handleBuy=()=>{
         </div>
 
 
-
         <CourseBodyInfoComponent />
 
-
-
         <!-- footer comprar cursos -->
-        <div @click="handleBuy()" v-if="!storeCategory.getCategory()?.user_bought" class="fixed bottom-0 h-[80px] w-full flex gap-7 p-4 bg-white">
+        <div @click="handleBuy()" v-if="!storeCategory.getCategory()?.user_bought"
+            class="sticky bottom-0 h-[80px] w-full flex gap-7 p-4 bg-white">
             <button class="bg-[#CDFF00] rounded-sm">
-                <div class="flex gap-4 p-2" v-if="!userAuth.getProfile()?.user?.is_bought && storeCategory.getCategory()?.precio_desc">
-                    <div>comprar</div> <div>${{ (storeCategory.getCategory()?.precio_desc ?? 0) + 3999 }}</div>
+                <div class="flex gap-2 p-2"
+                    v-if="!userAuth.getProfile()?.user?.is_bought && storeCategory.getCategory()?.precio_desc">
+                    <div class="font-bold">COMPRAR</div>
+                    <div>${{ (storeCategory.getCategory()?.precio_desc ?? 0) + 3999 }}</div>
                 </div>
 
                 <!-- se muestra el precio real si la persona compro o hay codigo de referrencia -->
@@ -96,9 +96,9 @@ const handleBuy=()=>{
                 </p>
             </button>
 
-            <button class="flex items-center bg-[#CDFF00] rounded-lg">
+            <button class="flex items-center bg-[#CDFF00] rounded-lg px-3">
                 <div>
-                    Vista previa de los cursos en tu drive
+                    VISTA PREVIA
                 </div>
                 <div>
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -117,16 +117,9 @@ const handleBuy=()=>{
             </button>
         </div>
 
-
-        
-
-
     </div>
-    
-        <div v-if="!storeCategory.getCategory()?.user_bought" class="absolute w-full mb-12 h-[190px]">
-            <FooterComponent />
-        </div>
-        <div v-if="storeCategory.getCategory()?.user_bought" class="fixed bottom-0  w-full">
-            <FooterComponent />
-        </div>
+
+    <FooterComponent />
+
+
 </template>

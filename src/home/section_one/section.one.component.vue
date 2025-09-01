@@ -1,100 +1,98 @@
 <script lang="ts" setup>
+// Componente Vue 3 - responsive
 </script>
+
 <template>
+  <section class="min-h-screen flex items-center bg-hero-gradient">
+    <div class="w-full max-w-7xl mx-auto px-6 sm:px-10 md:px-16 lg:px-24 py-12">
+      <div class="flex flex-col-reverse md:flex-row items-center md:justify-between gap-8">
 
-    <div class="flex justify-center">
-        <div class="relative -left-3">
-            <img class="w-[240px]" src="../../assets/home/senora.png" alt="" srcset="">
+        <!-- Texto (izquierda en desktop, arriba en móvil) -->
+        <div class="w-full md:w-1/2 text-center md:text-left">
+          <h1 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight text-white animate-in delay-200">
+            No existen obstáculos, como el tiempo y el dinero.
+          </h1>
 
-            <div class="absolute top-40 left-7">
-                <svg width="71" height="54" viewBox="0 0 71 54" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path
-                        d="M2.52318 0.785932C2.64141 0.24645 3.17458 -0.0950449 3.71407 0.0231816L12.5054 1.94979C13.0449 2.06802 13.3864 2.6012 13.2682 3.14068C13.15 3.68016 12.6168 4.02166 12.0773 3.90343L4.26275 2.19089L2.55021 10.0054C2.43198 10.5449 1.8988 10.8864 1.35932 10.7682C0.819837 10.65 0.478342 10.1168 0.596568 9.5773L2.52318 0.785932ZM68.7707 53.6843C59.3134 43.6048 52.5908 38.6 47.3404 35.9221C42.1027 33.2506 38.2985 32.8678 34.4265 32.1062C30.4938 31.3328 26.6611 30.1813 21.7299 25.9123C16.854 21.6913 10.9188 14.4371 2.65791 1.53935L4.34208 0.460654C12.5738 13.3129 18.3849 20.3712 23.0389 24.4002C27.6375 28.3812 31.1183 29.4173 34.8124 30.1438C38.5672 30.8823 42.7033 31.3119 48.2491 34.1405C53.7823 36.9626 60.6865 42.1453 70.2292 52.3158L68.7707 53.6843Z"
-                        fill="black" />
-                </svg>
+          <p class="mt-4 text-white text-lg sm:text-xl md:text-2xl font-semibold animate-in delay-400">
+            Contamos con certificados. Para cada categoría.
+          </p>
 
-            </div>
-            <div class="absolute bottom-10 left-10">
-                <svg width="78" height="30" viewBox="0 0 78 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path
-                        d="M0.928291 28.9974C0.377426 28.9578 -0.0370331 28.4792 0.00257111 27.9283L0.647964 18.9515C0.687569 18.4006 1.16624 17.9861 1.7171 18.0257C2.26797 18.0653 2.68243 18.544 2.64282 19.0949L2.06914 27.0743L10.0485 27.648C10.5994 27.6876 11.0139 28.1662 10.9743 28.7171C10.9347 29.268 10.456 29.6824 9.90512 29.6428L0.928291 28.9974ZM77.6102 2.29229C66.6786 10.7108 58.916 14.4334 52.7492 15.7589C46.5488 17.0917 42.0568 15.9745 37.8319 14.973C33.6338 13.978 29.7058 13.0979 24.3163 14.5589C18.8797 16.0327 11.8586 19.9208 1.65458 28.756L0.345421 27.244C10.6414 18.3292 17.9328 14.2173 23.793 12.6286C29.7004 11.0271 34.0537 12.022 38.2931 13.027C42.5057 14.0255 46.6075 15.0333 52.3289 13.8036C58.084 12.5666 65.5714 9.0392 76.3898 0.707715L77.6102 2.29229Z"
-                        fill="black" />
-                </svg>
-            </div>
-
-            <div class="absolute -right-4 bottom-3">
-                <svg width="50" height="55" viewBox="0 0 50 55" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path
-                        d="M45.1116 54.4215C45.6205 54.636 46.207 54.3973 46.4215 53.8884L49.9171 45.595C50.1316 45.086 49.8929 44.4996 49.384 44.2851C48.875 44.0706 48.2886 44.3092 48.0741 44.8182L44.9669 52.1901L37.595 49.0829C37.086 48.8684 36.4996 49.1071 36.2851 49.616C36.0706 50.125 36.3092 50.7114 36.8182 50.9259L45.1116 54.4215ZM0.231779 1.64018C9.07375 12.2505 16.1009 14.8275 22.6453 19.7964C29.199 24.7724 35.8606 32.4675 44.5738 53.877L46.4262 53.123C37.6394 31.5325 30.801 23.4776 23.8547 18.2036C16.8991 12.9225 10.4263 10.7495 1.76822 0.359816L0.231779 1.64018Z"
-                        fill="black" />
-                </svg>
-            </div>
-
-            <div class="absolute -right-4 top-33">
-                <svg width="42" height="56" viewBox="0 0 42 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path
-                        d="M36.888 1.04017C36.634 0.549744 36.0306 0.358059 35.5401 0.612029L27.5482 4.75072C27.0578 5.00469 26.8661 5.60814 27.12 6.09856C27.374 6.58899 27.9775 6.78068 28.4679 6.52671L35.5718 2.84787L39.2507 9.95183C39.5046 10.4423 40.1081 10.6339 40.5985 10.38C41.089 10.126 41.2806 9.52255 41.0267 9.03212L36.888 1.04017ZM1.86592 55.5002C7.78937 45.2463 12.0625 39.4837 15.3346 35.9341C18.5905 32.402 20.8609 31.0479 22.9329 29.5697C25.0827 28.036 26.918 26.4249 29.058 22.4788C31.1634 18.5965 33.5761 12.4341 36.9531 1.80276L35.0469 1.19728C31.6739 11.816 29.3081 17.8221 27.2999 21.5254C25.3261 25.165 23.7126 26.5567 21.7714 27.9416C19.7524 29.3819 17.2899 30.8621 13.864 34.5786C10.4542 38.2776 6.09683 44.1779 0.13411 54.4998L1.86592 55.5002Z"
-                        fill="black" />
-                </svg>
-
-
-            </div>
-
-            <div class="w-30 text-center absolute top-14 -left-11 floating-text delay-100">
-                No existen obstáculos, como el tiempo y el dinero.
-            </div>
-            <div class="w-30 text-center absolute -bottom-7 -left-9 floating-text delay-300">
-                Contamos con certificados. Para cada categoria.
-            </div>
-            <div class="w-30 text-center absolute -bottom-14 -right-14 floating-text delay-500">
-                Contamos con certificados. Para cada categoria.
-            </div>
-            <div class="w-26 text-center absolute top-10 -right-18 floating-text delay-700">
-                Contamos con certificados. Para cada categoria.
-            </div>
+          <p class="mt-4 text-white text-lg sm:text-xl md:text-2xl font-semibold animate-in delay-600">
+            ¡Hazlo posible con nosotros!
+          </p>
         </div>
 
-    </div>
+        <!-- Imagen (derecha en desktop, abajo en móvil) -->
+        <div class="w-full md:w-1/2 flex justify-center md:justify-end">
+          <figure class="max-w-[280px] sm:max-w-[320px] md:max-w-[420px] lg:max-w-[520px]">
+            <img
+              src="../../assets/home/senora.png"
+              alt="Persona sonriendo representando el servicio"
+              class="w-full h-auto object-contain rounded-2xl shadow-2xl transform-gpu animate-in-image delay-300"
+            />
+          </figure>
+        </div>
 
+      </div>
+    </div>
+  </section>
 </template>
 
-
 <style scoped>
-.floating-text {
-    opacity: 0;
-    animation: floatIn 1s ease-out forwards infinite;
-    animation-duration: 4s; /* Repetir cada 2 segundos */
+/* Fondo degradado (también lo dejamos utilizable por utilidades si usas Tailwind) */
+.bg-hero-gradient {
+  background-image: linear-gradient(90deg, #38bdf8 0%, #06b6d4 50%, #0ea5e9 100%);
 }
 
-
+/* Animaciones (entrada sutil) */
 @keyframes floatIn {
-    0% {
-        opacity: 0;
-        transform: translateY(20px) rotate(-3deg);
-    }
-    50% {
-        opacity: 1;
-        transform: translateY(0) rotate(0);
-    }
-    100% {
-        opacity: 0;
-    }
-}
-.delay-100 { animation-delay: 0.3s; }
-.delay-300 { animation-delay: 0.6s; }
-.delay-500 { animation-delay: 0.9s; }
-.delay-700 { animation-delay: 1.2s; }
-
-/* Animación adicional para los SVG si deseas */
-svg {
-    animation: drawIn 1s ease-out forwards;
-    stroke-dasharray: 1000;
-    stroke-dashoffset: 1000;
+  0% { opacity: 0; transform: translateY(18px) rotate(-2deg); }
+  60% { opacity: 1; transform: translateY(-6px) rotate(1deg); }
+  100% { opacity: 1; transform: translateY(0) rotate(0); }
 }
 
-@keyframes drawIn {
-    to {
-        stroke-dashoffset: 0;
-    }
+@keyframes floatImage {
+  0% { opacity: 0; transform: translateY(24px) scale(0.98); }
+  60% { opacity: 1; transform: translateY(-6px) scale(1.01); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.animate-in {
+  opacity: 0;
+  animation-name: floatIn;
+  animation-duration: 700ms;
+  animation-fill-mode: both;
+  animation-timing-function: cubic-bezier(.22,.9,.36,1);
+  animation-iteration-count: 1; /* entra una vez */
+}
+
+.animate-in-image {
+  opacity: 0;
+  animation-name: floatImage;
+  animation-duration: 900ms;
+  animation-fill-mode: both;
+  animation-timing-function: cubic-bezier(.22,.9,.36,1);
+  animation-iteration-count: 1;
+}
+
+/* Delays reutilizables */
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+.delay-400 { animation-delay: 0.45s; }
+.delay-600 { animation-delay: 0.65s; }
+
+/* Preferencias de usuario: reducir animaciones */
+@media (prefers-reduced-motion: reduce) {
+  .animate-in, .animate-in-image { animation: none; opacity: 1; transform: none; }
+}
+
+/* Ajustes finos responsive (si quieres más control sin Tailwind) */
+@media (max-width: 640px) {
+  h1 { line-height: 1.05; }
+}
+
+@media (max-width: 420px) {
+  /* En pantallas muy pequeñas podemos reducir el ancho de la imagen */
+  figure { max-width: 220px; }
 }
 </style>

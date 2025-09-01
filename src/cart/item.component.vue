@@ -15,13 +15,13 @@ defineProps<{
 
 <template>
 
-    <div class="w-full flex justify-between bg-white">
+    <div class="w-full flex justify-between md:justify-around md:h-36 bg-white">
         <!-- seccion imagen -->
-        <div class="w-[120px] flex items-center">
+        <div class="40px flex items-center sm:w-[120px]">
             <img class="rounded-sm" :src="item.imagen_url" alt="" srcset="">
         </div>
         <!-- seccion descripcion -->
-        <div class="grid grid-cols-2 px-1 text-sm">
+        <div class="flex justify-center items-center gap-5 px-1 text-sm">
             <div>
                 <h3 class="font-semibold">{{ item.titulo }}</h3>
                 <div>

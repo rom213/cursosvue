@@ -12,11 +12,12 @@ import SectionTwoComponent from './section_two/section.two.component.vue';
 </script>
 
 <template>
-    <div class="grid gap-16 pt-8">
+    <div class="grid">
+
         <SectionOneComponent />
         <SectionTwoComponent />
     </div>
-    <SectionThreeComponent />
+
     <SectionFourComponent />
     <SectionFiveComponent />
     <br>
@@ -25,8 +26,9 @@ import SectionTwoComponent from './section_two/section.two.component.vue';
     </div>
     <br>
     <SectionTestamentComponent />
+    <SectionThreeComponent />
     <footerComponent />
 
-    
+
 
 </template>

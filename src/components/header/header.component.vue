@@ -1,53 +1,70 @@
 <script lang="ts" setup>
-import { RouterLink, useRoute } from 'vue-router';
+import { RouterLink, useRoute, useRouter } from 'vue-router';
 import { authStore } from '../../store/AuthStore';
 import { cartStore } from '../../store/CartStore';
 import { ref, watch } from 'vue';
 import HeaderSearchComponent from './header.search.component.vue';
+import CartPage from '../../cart/cart.page.vue';
 
 const positionNavigate = ref(0)
 const showPoverMore = ref(false);
+const showCart = ref(false)
 
 const userStore = authStore()
 
 const carSto = cartStore()
 
-const router = useRoute();
+const router = useRouter();
+const route = useRoute();
 
-watch(() => router.path, () => {
-    if (router.path === '/') {
+watch(() => route.path, () => {
+    if (route.path === '/') {
         positionNavigate.value = 0;
-    } else if (router.path === '/courses') {
+    } else if (route.path === '/courses') {
         positionNavigate.value = 1;
-    } else if (router.path === '/monetizar') {
+    } else if (route.path === '/monetizar') {
         positionNavigate.value = 2;
     }
 });
+
+const hadleCartData = () => {
+    if (window.innerWidth > 768) {
+        hadleShowCart();
+        return;
+    }
+
+    router.push({ name: 'cart' })
+}
+
+const hadleShowCart = () => {
+    showCart.value = !showCart.value
+}
+
 
 
 </script>
 
 <template>
-    <div class="grid gap-1 p-2 fixed bg-white z-40 w-full">
+    <div class="grid gap-1 p-2 fixed bg-white z-10 w-full">
         <div class="relative">
             <div class="flex gap-2 justify-between px-2">
-                <h1 class="font-semibold">Cursos estudia y trabaja</h1>
+                <h1 class="font-semibold md:text-2xl md:text-center">CURSOS ESTUDIA Y TRABAJA</h1>
                 <RouterLink v-if="userStore.getProfile() == null" :to="{ name: 'login' }"><button
                         class="bg-[#FFBF2B] p-1 px-2 rounded-sm  border-[0.5px]  border-black ">INICIAR SESION</button>
                 </RouterLink>
 
                 <div v-if="userStore.getProfile() != null"
-                    class="border border-black p-1 flex text-sm rounded-lg gap-2 relative z-20"
+                    class="border border-black p-1 flex text-sm rounded-lg gap-2 relative z-20 md:items-center md:gap-6 px-3"
                     @click="() => { showPoverMore = !showPoverMore }">
-                    <div>{{ userStore.getProfile()?.user?.given_name }}</div>
+                    <div class="md:text-2xl">{{ userStore.getProfile()?.user?.given_name }}</div>
                     <div>
-                        <img class="w-6 h-6 rounded-full" :src="userStore.getProfile()?.user?.picture" alt="">
+                        <img class="w-6 h-6 rounded-full md:w-10 md:h-10" :src="userStore.getProfile()?.user?.picture"
+                            alt="">
                     </div>
-
                 </div>
                 <!-- popober mas informacion -->
-                <div @click="()=>showPoverMore=false" v-if="showPoverMore"
-                    class="flex flex-col justify-center  absolute h-16 right-0 top-8 border border-black rounded-lg bg-white px-2 z-50">
+                <div @click="() => showPoverMore = false" v-if="showPoverMore"
+                    class="flex flex-col justify-center  absolute h-16 right-0 top-12 md:w-52 border border-black rounded-lg bg-white px-2 z-50">
                     <RouterLink :to="{ name: 'mycourses' }" class="grid grid-cols-4">
                         <div class="col-span-1">
                             <svg width="22" height="22" viewBox="0 0 22 22" fill="none"
@@ -89,69 +106,90 @@ watch(() => router.path, () => {
                         <div class="col-span-3">Configuracion</div>
 
                     </RouterLink>
-                </div>  
+                </div>
             </div>
         </div>
 
         <!-- navegacion -->
-        <div class="flex justify-between px-6">
-            <RouterLink :class="{ 'border-t border-black px-2': positionNavigate === 0 }" :to="{ name: 'home' }">home
-            </RouterLink>
-            <RouterLink :class="{ 'border-t border-black px-2': positionNavigate === 1 }" :to="{ name: 'courses' }">
-                cursos
-            </RouterLink>
-            <RouterLink :class="{ 'border-t border-black px-2': positionNavigate === 2 }" :to="{ name: 'courses' }">
-                monetizar</RouterLink>
-        </div>
-        <!-- carrito e input -->
-        <div class="flex justify-between items-center">
-
-            <!-- esto aparece en el caso de que no se haya logeado -->
-            <div v-if="userStore.getProfile() === null">
-                <router-link :to="{ name: 'register' }"><button
-                        class="bg-[#FFBF2B] p-1 px-2 rounded-sm ">REGISTRARME</button></router-link>
+        <div class="flex justify-between px-3 md:text-xl flex-col md:flex-row">
+            <div class="flex gap-4 md:gap-20">
+                <RouterLink :class="{ 'border-t border-black px-2': positionNavigate === 0 }" :to="{ name: 'home' }">
+                    HOME
+                </RouterLink>
+                <RouterLink :class="{ 'border-t border-black px-2': positionNavigate === 1 }" :to="{ name: 'courses' }">
+                    CURSOS
+                </RouterLink>
+                <RouterLink :class="{ 'border-t border-black px-2': positionNavigate === 2 }" :to="{ name: 'courses' }">
+                    MONETIZAR</RouterLink>
             </div>
+            <!-- carrito e input -->
+            <div>
+                <div class="flex justify-between items-center md:justify-end md:gap-12">
 
-            <!-- input busqueda -->
-            <HeaderSearchComponent />
-            <!-- carrito de compras -->
-            <div class="group relative mr-3">
-                <RouterLink :to="{ name: 'cart' }">
-                    <div class="relative" v-if="userStore.getProfile() !== null">
-                        <div>
-                            <svg width="50" height="36" viewBox="0 0 50 36" fill="none"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <rect x="0.5" y="0.5" width="49" height="35" rx="9.5"
-                                    fill="url(#paint0_linear_294_321)" />
-                                <rect x="0.5" y="0.5" width="49" height="35" rx="9.5" stroke="black" />
-                                <path
-                                    d="M35.2154 10.2358C35.1059 10.1094 34.9704 10.0081 34.8182 9.93863C34.666 9.86918 34.5007 9.83327 34.3334 9.83333H18.2112L17.9837 8.47533C17.9385 8.20292 17.798 7.9554 17.5874 7.7768C17.3767 7.59821 17.1096 7.50013 16.8334 7.5H14.2084C13.899 7.5 13.6022 7.62292 13.3835 7.84171C13.1647 8.0605 13.0417 8.35725 13.0417 8.66667C13.0417 8.97609 13.1647 9.27283 13.3835 9.49162C13.6022 9.71042 13.899 9.83333 14.2084 9.83333H15.8452L18.0152 22.858L18.0677 23.0027L18.1307 23.1788L18.2707 23.3877L18.3816 23.5183L18.6067 23.67L18.7374 23.7458C18.8734 23.8017 19.0186 23.8314 19.1656 23.8333H32.0001C32.3095 23.8333 32.6062 23.7104 32.825 23.4916C33.0438 23.2728 33.1667 22.9761 33.1667 22.6667C33.1667 22.3572 33.0438 22.0605 32.825 21.8417C32.6062 21.6229 32.3095 21.5 32.0001 21.5H20.1549L19.9612 20.3333H33.1667C33.4475 20.3334 33.7188 20.2322 33.931 20.0483C34.1431 19.8644 34.2819 19.6102 34.3217 19.3323L35.4884 11.1657C35.5122 11.0002 35.5001 10.8315 35.453 10.6711C35.4059 10.5106 35.3249 10.3622 35.2154 10.2358ZM32.9882 12.1667L32.6557 14.5H28.5001V12.1667H32.9882ZM27.3334 12.1667V14.5H23.8334V12.1667H27.3334ZM27.3334 15.6667V18H23.8334V15.6667H27.3334ZM22.6667 12.1667V14.5H19.1667L18.9941 14.535L18.5997 12.1667H22.6667ZM19.1831 15.6667H22.6667V18H19.5716L19.1831 15.6667ZM28.5001 18V15.6667H32.4877L32.1552 18H28.5001Z"
-                                    fill="black" />
-                                <path
-                                    d="M20.9167 28.5C21.8832 28.5 22.6667 27.7165 22.6667 26.75C22.6667 25.7835 21.8832 25 20.9167 25C19.9502 25 19.1667 25.7835 19.1667 26.75C19.1667 27.7165 19.9502 28.5 20.9167 28.5Z"
-                                    fill="black" />
-                                <path
-                                    d="M31.4167 28.5C32.3832 28.5 33.1667 27.7165 33.1667 26.75C33.1667 25.7835 32.3832 25 31.4167 25C30.4502 25 29.6667 25.7835 29.6667 26.75C29.6667 27.7165 30.4502 28.5 31.4167 28.5Z"
-                                    fill="black" />
-                                <defs>
-                                    <linearGradient id="paint0_linear_294_321" x1="25" y1="0" x2="25" y2="36"
-                                        gradientUnits="userSpaceOnUse">
-                                        <stop stop-color="#FFFEFA" />
-                                    </linearGradient>
-                                </defs>
-                            </svg>
+                    <!-- esto aparece en el caso de que no se haya logeado -->
+                    <div v-if="userStore.getProfile() === null">
+                        <router-link :to="{ name: 'register' }"><button
+                                class="bg-[#FFBF2B] p-1 px-2 rounded-sm ">REGISTRARME</button></router-link>
+                    </div>
 
-                        </div>
-                        <div v-if="carSto.countCart !== 0"
-                            class="absolute w-5 h-5 bg-red-500 -top-2 rounded-full -right-1 flex justify-center items-center text-[10px]">
-                            <p>{{ carSto.countCart }}</p>
+                    <!-- input busqueda -->
+                    <HeaderSearchComponent />
+                    <!-- carrito de compras -->
+                    <div class="group relative mr-3">
+                        <div @click="hadleCartData()">
+                            <div class="relative" v-if="userStore.getProfile() !== null">
+                                <div class="">
+                                    <svg class="w-10 h-10 md:w-20 md:h-11" viewBox="0 0 50 36" fill="none"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <rect x="0.5" y="0.5" width="49" height="35" rx="9.5"
+                                            fill="url(#paint0_linear_294_321)" />
+                                        <rect x="0.5" y="0.5" width="49" height="35" rx="9.5" stroke="black" />
+                                        <path
+                                            d="M35.2154 10.2358C35.1059 10.1094 34.9704 10.0081 34.8182 9.93863C34.666 9.86918 34.5007 9.83327 34.3334 9.83333H18.2112L17.9837 8.47533C17.9385 8.20292 17.798 7.9554 17.5874 7.7768C17.3767 7.59821 17.1096 7.50013 16.8334 7.5H14.2084C13.899 7.5 13.6022 7.62292 13.3835 7.84171C13.1647 8.0605 13.0417 8.35725 13.0417 8.66667C13.0417 8.97609 13.1647 9.27283 13.3835 9.49162C13.6022 9.71042 13.899 9.83333 14.2084 9.83333H15.8452L18.0152 22.858L18.0677 23.0027L18.1307 23.1788L18.2707 23.3877L18.3816 23.5183L18.6067 23.67L18.7374 23.7458C18.8734 23.8017 19.0186 23.8314 19.1656 23.8333H32.0001C32.3095 23.8333 32.6062 23.7104 32.825 23.4916C33.0438 23.2728 33.1667 22.9761 33.1667 22.6667C33.1667 22.3572 33.0438 22.0605 32.825 21.8417C32.6062 21.6229 32.3095 21.5 32.0001 21.5H20.1549L19.9612 20.3333H33.1667C33.4475 20.3334 33.7188 20.2322 33.931 20.0483C34.1431 19.8644 34.2819 19.6102 34.3217 19.3323L35.4884 11.1657C35.5122 11.0002 35.5001 10.8315 35.453 10.6711C35.4059 10.5106 35.3249 10.3622 35.2154 10.2358ZM32.9882 12.1667L32.6557 14.5H28.5001V12.1667H32.9882ZM27.3334 12.1667V14.5H23.8334V12.1667H27.3334ZM27.3334 15.6667V18H23.8334V15.6667H27.3334ZM22.6667 12.1667V14.5H19.1667L18.9941 14.535L18.5997 12.1667H22.6667ZM19.1831 15.6667H22.6667V18H19.5716L19.1831 15.6667ZM28.5001 18V15.6667H32.4877L32.1552 18H28.5001Z"
+                                            fill="black" />
+                                        <path
+                                            d="M20.9167 28.5C21.8832 28.5 22.6667 27.7165 22.6667 26.75C22.6667 25.7835 21.8832 25 20.9167 25C19.9502 25 19.1667 25.7835 19.1667 26.75C19.1667 27.7165 19.9502 28.5 20.9167 28.5Z"
+                                            fill="black" />
+                                        <path
+                                            d="M31.4167 28.5C32.3832 28.5 33.1667 27.7165 33.1667 26.75C33.1667 25.7835 32.3832 25 31.4167 25C30.4502 25 29.6667 25.7835 29.6667 26.75C29.6667 27.7165 30.4502 28.5 31.4167 28.5Z"
+                                            fill="black" />
+                                        <defs>
+                                            <linearGradient id="paint0_linear_294_321" x1="25" y1="0" x2="25" y2="36"
+                                                gradientUnits="userSpaceOnUse">
+                                                <stop stop-color="#FFFEFA" />
+                                            </linearGradient>
+                                        </defs>
+                                    </svg>
+
+                                </div>
+                                <div v-if="carSto.countCart !== 0"
+                                    class="absolute w-5 h-5 bg-red-500 -top-2 rounded-full -right-1 sm:-right-0 flex justify-center items-center text-[10px]">
+                                    <p>{{ carSto.countCart }}</p>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
 
-                </RouterLink>
+
+                </div>
             </div>
-
-
         </div>
+
+
+    </div>
+
+
+
+    <!-- carrito de compra solo si es mayor a 780px -->
+    <div v-if="showCart" class="w-[400px] hidden md:block right-0">
+        <div class="fixed right-12 z-50 top-2" @click="hadleShowCart()">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                stroke="currentColor" class="size-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+        </div>
+
+        <CartPage />
     </div>
 </template>

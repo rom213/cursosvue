@@ -8,5 +8,6 @@ export interface ISail {
   porcetage_refund: string;
   refund_price: string;
   refer_id:number;
+  created_at:Date;
   baucher_image:string
 }

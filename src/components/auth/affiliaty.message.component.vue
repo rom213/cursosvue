@@ -55,7 +55,7 @@ defineProps<{
 
 
 <template>
-    <div @click="validateLinkAfiliaty(id_category)" class="flex gap-3 justify-center rounded-b-lg border-b border-[#ACA9A9]">
+    <div @click="validateLinkAfiliaty(id_category)" class="flex gap-3 justify-center rounded-b-lg border-b border-[#163757] cursor-pointer hover:border-[#ff7987]">
         <div>
             <p class="font-light">Compartir link de afiliado</p>
         </div>
@@ -73,7 +73,7 @@ defineProps<{
         </div>
 
         <div v-if="showMessageIsNotBougth"
-            class="fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-black text-white px-4 py-2 rounded-lg shadow-lg transition-opacity duration-300 text-center text-2xl w-[300px]">
+            class="fixed top-32 left-1/2 transform -translate-x-1/2 bg-black text-white px-4 py-2 rounded-lg shadow-lg transition-opacity duration-300 text-center text-2xl w-[300px]">
             Para ser miembro tienes que haber comprado
         </div>
     </div>

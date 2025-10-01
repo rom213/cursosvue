@@ -6,7 +6,6 @@ import { authStore } from '../store/AuthStore';
 import { cartStore } from '../store/CartStore';
 import ItemComponent from './item.component.vue';
 import type { ICategory } from '../types/Categorie';
-
 const storeCart = cartStore()
 const userAuth = authStore()
 const { generatePayUForm } = usePayU();
@@ -14,6 +13,7 @@ const { generatePayUForm } = usePayU();
 const cart = ref<ICategory[]>([]);
 const valueCart = ref<number>(0)
 const isSidebarMode = ref(false)
+const showPaymentModal = ref(false)
 
 const checkViewport = () => {
   isSidebarMode.value = window.innerWidth > 768
@@ -64,8 +64,9 @@ watch(
 
 
 
-const buyCategory = () => {
+const buyCategoryPayu = () => {
   let data = storeCart.getCart().map(item => ({ id_category: item.id }));
+
   PaymentService.generate_signature_reference_code({ categories: data }).then((res) => {
     if (res?.signature) {
       let extra_info: string = ''
@@ -73,10 +74,21 @@ const buyCategory = () => {
       data.map((item) => {
         extra_info = extra_info + '|' + `${item.id_category},` + `${user_id}`
       })
+      console.log(extra_info);
       generatePayUForm(res?.price, " carrito de compras", userAuth.getProfile()?.user?.email, res?.signature, res?.reference_code, extra_info)
     }
   });
 };
+
+const buyCategoriesPayPal=()=>{
+      let data = storeCart.getCart().map(item => ({ id_category: item.id }));
+      PaymentService.generate_link_pay_paypal({categories: data}).then((res)=>{
+        if (res?.approval_url) window.location.href=res.approval_url
+
+      })
+}
+
+
 </script>
 
 <template>
@@ -135,7 +147,23 @@ const buyCategory = () => {
     >
       <div>Valor total ${{ valueCart }}</div>
       <div>
-        <button class="bg-[#CDFF00] p-2 rounded-lg" @click="buyCategory()">COMPRAR AHORA</button>
+        <button class="bg-[#CDFF00] p-2 rounded-lg" @click="showPaymentModal = true">COMPRAR AHORA</button>
+      </div>
+    </div>
+
+    <!-- Payment Selection Modal -->
+    <div v-if="showPaymentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white p-6 rounded-lg max-w-sm w-full mx-4">
+        <h3 class="text-lg font-semibold mb-4 text-center">Selecciona método de pago</h3>
+        <button @click="buyCategoryPayu(); showPaymentModal = false" class="block w-full bg-blue-500 text-white p-3 rounded-lg mb-3 hover:bg-blue-600 transition">
+          PayU
+        </button>
+        <button @click="buyCategoriesPayPal(); showPaymentModal = false" class="block w-full bg-green-500 text-white p-3 rounded-lg mb-3 hover:bg-green-600 transition">
+          PayPal
+        </button>
+        <button @click="showPaymentModal = false" class="block w-full bg-gray-500 text-white p-3 rounded-lg hover:bg-gray-600 transition">
+          Cancelar
+        </button>
       </div>
     </div>
   </div>

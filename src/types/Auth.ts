@@ -22,7 +22,7 @@ export enum typeAcc {
   llave = "llave"
 }
 
-interface IAccount{
+export interface IAccount{
   id:number;
   name_acc:typeAcc;
   number_acc:string
@@ -32,9 +32,31 @@ interface IAccount{
 
 export interface IUserAfiliaty{
   name: string
+  cupon: string
 }
 
 export interface LogoutResponse {
   success: boolean;
   message: string;
+}
+
+export interface IUser {
+  created_at: string;
+  delete_at: string | null;
+  email: string;
+  google_id: string;
+  id: number;
+  name: string;
+  num_whatsapp: string | null;
+  picture: string;
+  rol: string;
+}
+
+
+
+
+export interface IApiResponseVerifyEmail {
+  message: string ;
+  records: IUser[] | []
+  status: string
 }

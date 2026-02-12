@@ -10,7 +10,8 @@ const initialBalanceState: IBalance = {
   courses_payments_value: 0,
   non_refunded_value: 0,
   refunded_value: 0,
-  total_value_all_refunds: 0
+  total_value_all_refunds: 0,
+  list_ids_refers: []
 };
 
 // --- Refs de estado ---

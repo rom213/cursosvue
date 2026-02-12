@@ -6,6 +6,15 @@ import type { AuthResponse } from '../types/Auth';
 export const authStore = defineStore('auth', () => {
     const profile = ref<AuthResponse | null>(null);
     const nameAffiliaty=ref()
+    const cupoCode=ref()
+
+    function setCupoCode(cupo: string){
+        cupoCode.value = cupo;
+    }
+
+    function getCupoCode(): string {
+        return cupoCode.value;
+    }
 
     function setProfile(prof: AuthResponse | null){
         profile.value = prof;
@@ -17,5 +26,5 @@ export const authStore = defineStore('auth', () => {
 
 
 
-    return { setProfile, getProfile, profile, nameAffiliaty };
+    return { setProfile, getProfile, profile, nameAffiliaty, setCupoCode, getCupoCode };
 });

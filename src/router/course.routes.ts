@@ -6,11 +6,13 @@ export default [
       path: '/courses',
       component: () => import('../courses/courses.component.vue'),
       name: 'courses',
+      meta: { showHeader: true }
     },
     {
       path: '/courses/:id',
       component: () => import('../courses/courseInfoPage/course.info.page.vue'),
       name: 'courses-description',
+      meta: { showHeader: true }
     },
 {
   path: '/:googleid/affiliaty/:id',
@@ -32,6 +34,7 @@ export default [
       });
     });
   },
+  meta: { showHeader: true }
 }
 
   ];

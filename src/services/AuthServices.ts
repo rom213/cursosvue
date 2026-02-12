@@ -1,7 +1,7 @@
 // src/services/AuthService.ts
 import type { AxiosResponse } from "axios";
 import ApiService from "./ApiService";
-import type { AuthResponse, IUserAfiliaty, LogoutResponse } from "../types/Auth";
+import type { AuthResponse, IApiResponseVerifyEmail, IUserAfiliaty, LogoutResponse } from "../types/Auth";
 
 class AuthService {
   static async verifyToken(token: string): Promise<AuthResponse | null> {
@@ -41,6 +41,25 @@ class AuthService {
       return null;
     }
   }
+
+  static async verificarEmail(email: string): Promise<IApiResponseVerifyEmail> {
+          try {
+              const response: AxiosResponse<IApiResponseVerifyEmail> = await ApiService.post<IApiResponseVerifyEmail>("/validate-email", {
+                  email: email,
+              });
+              if (response.status==200) {
+                  return response.data
+              }
+              return response.data;
+          } catch (error) {
+              console.error("Error al verificar email");
+              return {
+                message: "Error al verificar email",
+                records: [],
+                status: "error",
+              }; 
+          }
+      }
 }
 
 export default AuthService;

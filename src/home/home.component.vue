@@ -19,11 +19,7 @@ import SectionTwoComponent from './section_two/section.two.component.vue';
     </div>
 
     <SectionFourComponent />
-    <SectionFiveComponent />
-    <br>
-    <div class="px-4">
-        <SectionSixComponent />
-    </div>
+    
     <br>
     <SectionTestamentComponent />
     <SectionThreeComponent />

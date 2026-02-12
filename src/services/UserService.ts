@@ -2,6 +2,7 @@
 import type { AxiosResponse } from "axios";
 import ApiService from "./ApiService";
 import type { User } from "../types/User";
+import type { IApiResponseAccount } from "../types/admin/ReferAdmin";
 
 
 
@@ -25,6 +26,10 @@ class UserService {
 
   static deleteUser(id: number): Promise<AxiosResponse<void>> {
     return ApiService.delete<void>(`/users/${id}`);
+  }
+
+  static getAccountsByGoogleId(googleId: string): Promise<AxiosResponse<IApiResponseAccount>> {
+    return ApiService.get<IApiResponseAccount>(`/api/managment/user/accounts/${googleId}`);
   }
 }
 

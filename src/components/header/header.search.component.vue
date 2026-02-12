@@ -37,33 +37,34 @@ const handleClickOutside = () => {
 </script>
 
 <template>
-    <div class="relative">
-        <div class="border border-black px-2 rounded-sm flex items-center gap-2 p-[2px]">
-            <svg width="22" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                    d="M9.37396 6.408C8.50396 6.4415 7.71746 6.752 7.29696 7.173C7.25051 7.21943 7.19536 7.25624 7.13468 7.28135C7.07399 7.30647 7.00896 7.31938 6.94328 7.31935C6.87761 7.31933 6.81258 7.30637 6.75192 7.28122C6.69125 7.25607 6.63613 7.21921 6.58971 7.17275C6.54329 7.1263 6.50647 7.07115 6.48136 7.01047C6.45625 6.94979 6.44334 6.88475 6.44336 6.81908C6.44338 6.7534 6.45634 6.68838 6.48149 6.62771C6.50665 6.56704 6.54351 6.51193 6.58996 6.4655C7.23846 5.817 8.29446 5.449 9.33496 5.4085C10.3825 5.368 11.526 5.6545 12.327 6.4555C12.4207 6.54932 12.4734 6.67655 12.4733 6.80918C12.4733 6.94182 12.4205 7.069 12.3267 7.16275C12.2329 7.25651 12.1057 7.30915 11.973 7.3091C11.8404 7.30906 11.7132 7.25632 11.6195 7.1625C11.0745 6.617 10.2375 6.374 9.37396 6.4075"
-                    fill="black" />
-                <path fill-rule="evenodd" clip-rule="evenodd"
-                    d="M14.468 13.692C15.4593 12.5204 16.0023 11.0347 16 9.5C16 5.91 13.09 3 9.5 3C5.91 3 3 5.91 3 9.5C3 13.09 5.91 16 9.5 16C11.0975 16 12.56 15.424 13.692 14.468L13.5 15.572L17.257 19.329L19.329 17.257L15.572 13.5L14.468 13.692ZM9.5 14.5C12.2615 14.5 14.5 12.2615 14.5 9.5C14.5 6.7385 12.2615 4.5 9.5 4.5C6.7385 4.5 4.5 6.7385 4.5 9.5C4.5 12.2615 6.7385 14.5 9.5 14.5Z"
-                    fill="black" />
-                <path
-                    d="M17.964 20.036L20.036 17.964L20.714 18.642C21.0955 19.0235 21.0955 19.642 20.714 20.023L20.023 20.714C19.6415 21.0955 19.023 21.0955 18.642 20.714L17.964 20.036Z"
-                    fill="black" />
+    <div class="relative group">
+        <div class="flex items-center gap-3 bg-gray-100 px-4 py-2 rounded-full focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:bg-white transition-all duration-300 w-full md:w-auto border border-transparent focus-within:border-blue-100">
+            <svg class="w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M11.5 21C16.7467 21 21 16.7467 21 11.5C21 6.25329 16.7467 2 11.5 2C6.25329 2 2 6.25329 2 11.5C2 16.7467 6.25329 21 11.5 21Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M22 22L20 20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            <input v-model="dataInput" class="w-40 md:w-80 md:h-8 outline-none text-xl"
-                placeholder="Que quieres aprender" type="text">
+            <input 
+                v-model="dataInput" 
+                class="bg-transparent outline-none text-gray-700 placeholder-gray-400 w-full md:w-64 text-sm md:text-base"
+                placeholder="¿Qué quieres aprender?" 
+                type="text"
+            >
         </div>
+        
+        <!-- Results Dropdown -->
         <div v-if="dataReseived.length"
-            class="bg-white z-20  max-h-28 w-[200px] md:w-[380px] absolute px-4 pt-2 rounded-b-xs shadow pb-2 grid gap-2">
-            <div class="flex cursor cursor-pointer justify-between" v-for="(cat, index) in dataReseived" :key="index"
-                @click="handleClickItem(cat.id)">
-                {{ cat.titulo }}
-                <img class="w-12" :src="cat.imagen_url" alt="">
+            class="absolute top-full left-0 mt-2 w-full md:w-[400px] bg-white rounded-xl shadow-xl ring-1 ring-black ring-opacity-5 z-50 overflow-hidden transform transition-all duration-200 origin-top-left">
+            <div class="max-h-[300px] overflow-y-auto py-2">
+                <div class="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">Resultados</div>
+                <div v-for="(cat, index) in dataReseived" :key="index"
+                     @click="handleClickItem(cat.id)"
+                    class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors border-b border-gray-100 last:border-0">
+                    <img class="w-10 h-10 rounded-lg object-cover shadow-sm bg-gray-100" :src="cat.imagen_url" alt="">
+                    <span class="text-sm font-medium text-gray-700">{{ cat.titulo }}</span>
+                </div>
             </div>
         </div>
 
-        <div v-if="dataReseived.length" v-on:click="handleClickOutside()" class="absolute w-screen h-screen">
-
-        </div>
+        <div v-if="dataReseived.length" @click="handleClickOutside()" class="fixed inset-0 z-40 bg-black/5 cursor-default"></div>
     </div>
 </template>

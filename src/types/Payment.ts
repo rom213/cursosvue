@@ -1,3 +1,8 @@
+interface User {
+  google_id: string;
+}
+
+  
   export interface IPaymentResponsePayu {
     signature: string;
     reference_code: string;
@@ -8,8 +13,24 @@
     approval_url:string
   }
 
+  export interface ICuponResponsePayu {
+    status: string;
+    message: string;
+    records: {
+        google_id: string;
+        cupon: string;
+        signature: string;
+        reference_code: string;
+        price: string;
+        descuento: number;
+    }[];
+}
+
+
+
 
   export enum OptionsEmergentBuy {
     UserInternal = 'userinternal',
-    UserExternal = 'userexternal'
+    UserExternal = 'userexternal',
+    UserInternalCupon = 'userinternalcupon'
   }

@@ -21,6 +21,13 @@ class ApiService {
         );
     }
 
+    public postForm<T>(endpoint: string, data: FormData): Promise<AxiosResponse<T>> {
+        return this.api.post<T>(endpoint, data, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        });
+    }
 
     public get<T>(endpoint: string, params?: object): Promise<AxiosResponse<T>> {
         return this.api.get<T>(endpoint, { params });

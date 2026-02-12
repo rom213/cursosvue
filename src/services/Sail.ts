@@ -13,7 +13,6 @@ class SailService {
             // toISOString() genera un formato compatible con datetime.fromisoformat() de Python.
             const formattedDateInit = date_init.toISOString();
             const formattedDateEnd = date_end.toISOString();
-
             // Construimos la URL con los parámetros de búsqueda (query params)
             const url = `/api/sails?date_init=${formattedDateInit}&date_end=${formattedDateEnd}`;
 

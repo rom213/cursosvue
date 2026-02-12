@@ -25,7 +25,10 @@ onMounted(async () => {
   if (affiliaty_id) {
     AuthService.get_affiliaty(String(affiliaty_id))
         .then((res)=> {
-            storeAuth.nameAffiliaty= res?.name
+          if (res) {
+            storeAuth.nameAffiliaty= res.name
+            storeAuth.setCupoCode(res.cupon)
+          }
         })
   }
 
@@ -55,8 +58,8 @@ watch(() => storeAuth.profile, () => {
 
 <template>
   <div class="h-screen bg-[#F9F9F9]">
-    <HeaderComponent />
-    <div class="pt-28">
+    <HeaderComponent v-if="$route.meta.showHeader" />
+    <div :class="{ 'pt-28': $route.meta.showHeader }">
 
       <RouterView></RouterView>
     </div>

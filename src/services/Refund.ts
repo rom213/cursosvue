@@ -10,8 +10,8 @@ class RefundService {
         try {
             // El backend espera fechas en formato ISO (YYYY-MM-DDTHH:mm:ss.sssZ o similar).
             // toISOString() genera un formato compatible con datetime.fromisoformat() de Python.
-            const formattedDateInit = date_init.toISOString();
-            const formattedDateEnd = date_end.toISOString();
+            const formattedDateInit = date_init.toISOString().split("T")[0];
+            const formattedDateEnd = date_end.toISOString().split("T")[0];
 
             // Construimos la URL con los parámetros de búsqueda (query params)
             const url = `/api/refunds?date_init=${formattedDateInit}&date_end=${formattedDateEnd}`;

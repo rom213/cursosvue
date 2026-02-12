@@ -27,9 +27,9 @@ onMounted(() => {
   valueCart.value = 0
   cart.value?.forEach((item, index) => {
     if (!userAuth.getProfile()?.user?.is_bought && index > 0) {
-      item.precio_desc = item.precio_desc / 2
+      item.precio = item.precio
     }
-    valueCart.value += item.precio_desc
+    valueCart.value += item.precio
   });
 })
 
@@ -47,15 +47,13 @@ watch(
     cart.value = original.map(item => ({ ...item }))
 
     valueCart.value = cart.value.reduce((acc, item, index) => {
-      const precio = Number(item.precio_desc ?? 0)
+      const precio = Number(item.precio ?? 0)
 
       const precioFinal = (!userAuth.getProfile()?.user?.is_bought && index > 0)
-        ? precio / 2
+        ? precio
         : precio
-
       // opcional: guardar el precio calculado en la copia (NO en el store)
-      item.precio_desc = precioFinal
-
+      item.precio = precioFinal
       return acc + precioFinal
     }, 0)
   },
@@ -74,7 +72,6 @@ const buyCategoryPayu = () => {
       data.map((item) => {
         extra_info = extra_info + '|' + `${item.id_category},` + `${user_id}`
       })
-      console.log(extra_info);
       generatePayUForm(res?.price, " carrito de compras", userAuth.getProfile()?.user?.email, res?.signature, res?.reference_code, extra_info)
     }
   });

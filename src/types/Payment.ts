@@ -34,3 +34,8 @@ interface User {
     UserExternal = 'userexternal',
     UserInternalCupon = 'userinternalcupon'
   }
+
+  export enum OptionBuyPay {
+    Paypal = 'paypal',
+    PayU = 'payu',
+  }

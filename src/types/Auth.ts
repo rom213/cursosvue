@@ -12,6 +12,8 @@ export interface AuthResponse {
     num_whatsapp:string;
     prefix:string;
     accounts: IAccount[]
+    country:string,
+    tasa_de_cambio:number
   };
   error?: string;
 }

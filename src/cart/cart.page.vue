@@ -14,6 +14,7 @@ const cart = ref<ICategory[]>([]);
 const valueCart = ref<number>(0)
 const isSidebarMode = ref(false)
 const showPaymentModal = ref(false)
+const isProcessingPayment = ref(false)
 
 const checkViewport = () => {
   isSidebarMode.value = window.innerWidth > 768
@@ -29,13 +30,21 @@ onMounted(() => {
     if (!userAuth.getProfile()?.user?.is_bought && index > 0) {
       item.precio = item.precio
     }
-    valueCart.value += item.precio
+    valueCart.value += item.precio || 0
   });
 })
 
 onUnmounted(() => {
   window.removeEventListener('resize', checkViewport)
 })
+
+const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    maximumFractionDigits: 0
+  }).format(value || 0)
+}
 
 
 
@@ -62,10 +71,12 @@ watch(
 
 
 
-const buyCategoryPayu = () => {
+const buyCategoryPayu = async () => {
+  if (isProcessingPayment.value) return;
+  isProcessingPayment.value = true;
   let data = storeCart.getCart().map(item => ({ id_category: item.id }));
 
-  PaymentService.generate_signature_reference_code({ categories: data }).then((res) => {
+  await PaymentService.generate_signature_reference_code({ categories: data }).then((res) => {
     if (res?.signature) {
       let extra_info: string = ''
       const user_id = userAuth.getProfile()?.user?.google_id
@@ -75,15 +86,37 @@ const buyCategoryPayu = () => {
       generatePayUForm(res?.price, " carrito de compras", userAuth.getProfile()?.user?.email, res?.signature, res?.reference_code, extra_info)
     }
   });
+  isProcessingPayment.value = false;
 };
 
-const buyCategoriesPayPal=()=>{
-      let data = storeCart.getCart().map(item => ({ id_category: item.id }));
-      PaymentService.generate_link_pay_paypal({categories: data}).then((res)=>{
-        if (res?.approval_url) window.location.href=res.approval_url
-
-      })
+const buyCategoriesPayPal = async () => {
+  if (isProcessingPayment.value) return;
+  isProcessingPayment.value = true;
+  let data = storeCart.getCart().map(item => ({ id_category: item.id }));
+  await PaymentService.generate_link_pay_paypal({ categories: data }).then((res) => {
+    if (res?.approval_url) window.location.href = res.approval_url
+  }).finally(() => {
+    isProcessingPayment.value = false;
+  })
 }
+
+const isOnlyPaypal = () => {
+  const userCountry = (userAuth.getProfile()?.user?.country || '').toUpperCase()
+  return userCountry !== 'CO'
+}
+
+const handleBuyClick = async () => {
+  if (isProcessingPayment.value) return;
+  if (isOnlyPaypal()) {
+    await buyCategoriesPayPal()
+    return;
+  }
+  showPaymentModal.value = true
+}
+
+
+
+
 
 
 </script>
@@ -92,75 +125,116 @@ const buyCategoriesPayPal=()=>{
   <div
     :class="[
       isSidebarMode
-        ? 'fixed right-0 top-0 h-full w-[500px] bg-white shadow-lg p-4 overflow-y-auto transition-all duration-300 z-30'
-        : 'w-full transition-all duration-300'
+        ? 'fixed right-0 top-0 h-full w-[520px] bg-slate-50 shadow-2xl overflow-y-auto transition-all duration-300 z-30 border-l border-slate-200'
+        : 'w-full bg-slate-50 transition-all duration-300'
     ]"
   >
-    <div>
-      <div class="flex justify-center gap-5">
-        <h2 class="font-semibold">CARRITO DE COMPRA</h2>
-        <svg width="31" height="30" viewBox="0 0 31 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="..." fill="black" />
-          <path d="..." fill="black" />
-          <path d="..." fill="black" />
-        </svg>
-      </div>
-      <p class="text-sm text-center">Cada gran logro comienza con un pequeño paso</p>
-    </div>
-    <br />
-
-    <!-- carrito vacío -->
-    <div v-if="valueCart == 0">
-      <div class="text-center font-light">
-        TU CARRITO ESTÁ VACÍO<br />
-        YA PUEDES AGREGAR LOS CURSOS QUE QUIERAS
-      </div>
-      <div class="flex justify-center">
-        <svg width="40" height="42" viewBox="0 0 40 42" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="..." stroke="black" stroke-linejoin="round" />
-          <path d="..." stroke="black" stroke-linecap="round" />
-        </svg>
-      </div>
-    </div>
-
-    <!-- carrito con items -->
-    <div class="grid gap-3 px-2">
-      <div v-for="(item, index) in cart" :key="index">
-        <ItemComponent :item="item" />
-        <div
-          class="mt-7 mb-1 text-sm"
-          v-if="index === 0 && cart.length > 1 && !userAuth.getProfile()?.user?.is_bought"
-        >
-          Al SER PRIMERA COMPRA, DESCUENTO 50% 🎁
+    <div class="px-4 md:px-6 pt-6 pb-28">
+      <div class="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-full bg-[#CDFF00] flex items-center justify-center">
+              <svg width="24" height="24" viewBox="0 0 31 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="..." fill="black" />
+                <path d="..." fill="black" />
+                <path d="..." fill="black" />
+              </svg>
+            </div>
+            <div>
+              <h2 class="text-base md:text-lg font-extrabold text-slate-900">Carrito de compras</h2>
+              <p class="text-xs text-slate-500">Listo para completar tu compra</p>
+            </div>
+          </div>
+          <span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+            {{ cart.length }} item{{ cart.length === 1 ? '' : 's' }}
+          </span>
+        </div>
+        <div class="mt-4 rounded-xl bg-slate-900 text-white px-4 py-3 text-sm font-medium">
+          Cada gran logro comienza con un pequeño paso.
         </div>
       </div>
-    </div>
 
-    <!-- barra inferior para comprar -->
-    <div
-      v-if="valueCart >= 1"
-      class="flex gap-6 w-[500px] fixed bottom-0 h-[80px] border border-black items-center justify-center font-semibold bg-white"
-      :class="{ 'right-0 ': isSidebarMode, 'left-0 w-full': !isSidebarMode }"
-    >
-      <div>Valor total ${{ valueCart }}</div>
-      <div>
-        <button class="bg-[#CDFF00] p-2 rounded-lg" @click="showPaymentModal = true">COMPRAR AHORA</button>
+      <div v-if="valueCart == 0" class="mt-6 rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center shadow-sm">
+        <div class="mx-auto mb-4 h-14 w-14 rounded-full bg-slate-100 flex items-center justify-center">
+          <svg width="32" height="32" viewBox="0 0 40 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="..." stroke="black" stroke-linejoin="round" />
+            <path d="..." stroke="black" stroke-linecap="round" />
+          </svg>
+        </div>
+        <h3 class="text-lg font-bold text-slate-900">Tu carrito está vacío</h3>
+        <p class="mt-2 text-sm text-slate-500">Agrega cursos y continúa con tu compra en segundos.</p>
       </div>
-    </div>
 
-    <!-- Payment Selection Modal -->
-    <div v-if="showPaymentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white p-6 rounded-lg max-w-sm w-full mx-4">
-        <h3 class="text-lg font-semibold mb-4 text-center">Selecciona método de pago</h3>
-        <button @click="buyCategoryPayu(); showPaymentModal = false" class="block w-full bg-blue-500 text-white p-3 rounded-lg mb-3 hover:bg-blue-600 transition">
-          PayU
-        </button>
-        <button @click="buyCategoriesPayPal(); showPaymentModal = false" class="block w-full bg-green-500 text-white p-3 rounded-lg mb-3 hover:bg-green-600 transition">
-          PayPal
-        </button>
-        <button @click="showPaymentModal = false" class="block w-full bg-gray-500 text-white p-3 rounded-lg hover:bg-gray-600 transition">
-          Cancelar
-        </button>
+      <div v-else class="mt-6 grid gap-3 px-1">
+        <div v-for="(item, index) in cart" :key="index">
+          <ItemComponent :item="item" />
+          <div
+            class="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800"
+            v-if="index === 0 && cart.length > 1 && !userAuth.getProfile()?.user?.is_bought"
+          >
+            Beneficio activo: primera compra con descuento especial en cursos adicionales.
+          </div>
+        </div>
+      </div>
+
+      <div
+        v-if="valueCart >= 1"
+        class="fixed bottom-0 border-t border-slate-200 bg-white/95 backdrop-blur-md"
+        :class="{ 'right-0 w-[520px]': isSidebarMode, 'left-0 w-full': !isSidebarMode }"
+      >
+        <div class="px-4 md:px-6 py-4">
+          <div class="rounded-2xl bg-slate-900 text-white p-4">
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-300">Valor total</span>
+              <span class="text-xl font-extrabold">{{ formatCurrency(valueCart) }}</span>
+            </div>
+            <button
+              class="mt-3 w-full rounded-xl bg-[#CDFF00] py-3 text-sm font-extrabold text-slate-900 transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-70"
+              :disabled="isProcessingPayment"
+              @click="handleBuyClick"
+            >
+              {{ isProcessingPayment ? 'Lo estamos alistando para ti...' : 'Comprar ahora' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="showPaymentModal" class="absolute inset-0 z-50 bg-black/55 flex items-center justify-center p-4 w-full">
+        <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-200">
+          <div class="mb-5">
+            <h3 class="text-lg font-extrabold text-slate-900">Selecciona método de pago</h3>
+            <p class="text-sm text-slate-500">Elige cómo deseas finalizar tu compra.</p>
+          </div>
+          <div class="space-y-3">
+            <button
+              @click="buyCategoryPayu(); showPaymentModal = false"
+              class="w-full rounded-xl border border-sky-200 bg-sky-50 py-3 text-sm font-bold text-sky-800 transition hover:bg-sky-100 disabled:cursor-not-allowed disabled:opacity-70"
+              :disabled="isProcessingPayment"
+            >
+              Pagar con PayU
+            </button>
+            <button
+              @click="buyCategoriesPayPal(); showPaymentModal = false"
+              class="w-full rounded-xl border border-emerald-200 bg-emerald-50 py-3 text-sm font-bold text-emerald-800 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-70"
+              :disabled="isProcessingPayment"
+            >
+              Pagar con PayPal
+            </button>
+            <button
+              @click="showPaymentModal = false"
+              class="w-full rounded-xl border border-slate-200 bg-white py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-70"
+              :disabled="isProcessingPayment"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+      <div v-if="isProcessingPayment" class="absolute inset-0 z-[60] bg-white/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-xl flex items-center gap-3">
+          <div class="h-6 w-6 rounded-full border-2 border-slate-300 border-t-slate-700 animate-spin"></div>
+          <p class="text-sm font-semibold text-slate-700">Lo estamos alistando para ti...</p>
+        </div>
       </div>
     </div>
   </div>

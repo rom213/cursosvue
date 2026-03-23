@@ -2,17 +2,22 @@
 import AuthService from '../services/AuthServices';
 import { authStore } from '../store/AuthStore';
 import { emergentBuyStore } from '../store/EmergentBuyStore';
-import { OptionsEmergentBuy } from '../types/Payment';
+import { categoryStore } from '../store/CategoryStore';
+import { OptionsEmergentBuy, OptionBuyPay } from '../types/Payment';
 import AlertNotification from '../components/common/AlertNotification.vue';
+import { useRouter } from 'vue-router';
 
 import { ref, watch, computed } from 'vue';
 
 const storeemergentBuy = emergentBuyStore();
 const userAuth = authStore();
+const storeCategory = categoryStore();
+const router = useRouter();
 
 const emailVerified = ref(false);
 const tieneCupon = ref(false);
 const loadingVerify = ref(false);
+const isProcessingPayment = ref(false);
 const cupon = ref('');
 const alert = ref({
     show: false,
@@ -48,6 +53,75 @@ const discountAmount = computed(() => {
 });
 
 const isCouponApplied = computed(() => !!couponFullData.value);
+const isOnlyPaypal = computed(() => {
+    const country = (userAuth.getProfile()?.user?.country || '').toUpperCase();
+    return country !== 'CO';
+});
+
+const normalizeId = (rawId: number | string | undefined): number | null => {
+    if (rawId === undefined || rawId === null) return null;
+    const parsed = Number(rawId);
+    return Number.isFinite(parsed) ? parsed : null;
+};
+
+const getCategoryLevel = (categoryId: number): number => {
+    if (categoryId === 100200300) return 3;
+    if ([100200, 100300, 200300].includes(categoryId)) return 2;
+    if ([100, 200, 300].includes(categoryId)) return 1;
+    return 0;
+};
+
+const normalizedCategoryRelations = (category: { cat_rel?: Array<number | string> }): number[] => {
+    return (category.cat_rel || [])
+        .map((item) => normalizeId(item))
+        .filter((item): item is number => item !== null);
+};
+
+const premiumTargetCategory = computed(() => {
+    const currentCategory = storeemergentBuy.getCategoryEmergent();
+    if (!currentCategory) return null;
+
+    const allCategories = storeCategory.getCategories();
+    if (!allCategories || allCategories.length === 0) return null;
+
+    const currentId = normalizeId(currentCategory.id);
+    if (currentId === null) return null;
+
+    // Regla especial: bases 100/200/300 siempre suben al pack total.
+    if ([100, 200, 300].includes(currentId)) {
+        return allCategories.find((item) => item.id === 100200300) || null;
+    }
+
+    // Regla especial: agrupaciones intermedias siempre suben al pack total.
+    if ([100200, 100300, 200300].includes(currentId)) {
+        return allCategories.find((item) => item.id === 100200300) || null;
+    }
+
+    const currentLevel = getCategoryLevel(currentId);
+    const candidates = allCategories
+        .filter((item) => item.id !== currentId)
+        .filter((item) => normalizedCategoryRelations(item).includes(currentId))
+        .map((item) => ({
+            category: item,
+            level: getCategoryLevel(item.id),
+            levelDistance: getCategoryLevel(item.id) - currentLevel
+        }))
+        .filter((item) => item.levelDistance > 0)
+        .sort((a, b) => {
+            if (a.levelDistance !== b.levelDistance) return a.levelDistance - b.levelDistance;
+            if (a.level !== b.level) return a.level - b.level;
+            return a.category.id - b.category.id;
+        });
+
+    return candidates.length > 0 ? candidates[0].category : null;
+});
+
+const goToPremiumTarget = () => {
+    console.log("entro3", premiumTargetCategory.value);
+    const targetCategory = premiumTargetCategory.value;
+    if (!targetCategory) return;
+    router.push({ name: 'courses-description', params: { id: targetCategory.id } });
+};
 
 
 const showAlert = (type: string, message: string) => {
@@ -94,14 +168,23 @@ const resetVerification = () => {
     storeemergentBuy.emergentBuy.correo = '';
 };
 
-const handleBuy = () => {
+const handleBuy = async () => {
+    if (isProcessingPayment.value) return;
     if (storeemergentBuy.emergentBuy.optionsEmergentBuy === OptionsEmergentBuy.UserExternal) {
         if (!emailVerified.value) {
             showAlert('error', 'Debe verificar el correo antes de realizar la compra.');
             return;
         }
     }
+    if (isOnlyPaypal.value) {
+        storeemergentBuy.emergentBuy.optionBuyPay = OptionBuyPay.Paypal;
+    }
+    isProcessingPayment.value = true;
     storeemergentBuy.buyCategory();
+    // Si hay fallo y no hay redirección, desbloquea UI para reintento.
+    window.setTimeout(() => {
+        isProcessingPayment.value = false;
+    }, 7000);
 };
 
 const verificarCupon = (cupon: string) => {
@@ -152,6 +235,9 @@ watch(()=>storeemergentBuy.emergentBuy.emergent, ()=>{
         tieneCupon.value = true;
         cupon.value = userAuth.getCupoCode();
         verificarCupon(userAuth.getCupoCode());
+    }
+    if (isOnlyPaypal.value) {
+        storeemergentBuy.emergentBuy.optionBuyPay = OptionBuyPay.Paypal;
     }
 })
 
@@ -308,22 +394,104 @@ watch(()=>storeemergentBuy.emergentBuy.emergent, ()=>{
                     </transition>
                 </div>
 
+            <div class="pt-4 border-t border-gray-100 space-y-4">
+                 <div class="text-sm text-gray-500 font-medium">
+                    Selecciona tu método de pago
+                </div>
+                <div class="flex gap-3">
+                    <!-- PayU Option -->
+                    <div 
+                        v-if="!isOnlyPaypal"
+                        @click="storeemergentBuy.emergentBuy.optionBuyPay = OptionBuyPay.PayU"
+                        class="cursor-pointer w-full border-2 rounded-lg p-3 flex flex-col items-center justify-center gap-2 transition-all duration-200 relative"
+                        :class="[
+                            storeemergentBuy.emergentBuy.optionBuyPay === OptionBuyPay.PayU 
+                            ? 'border-emerald-600 bg-emerald-50/30' 
+                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                        ]"
+                    >
+                        <div v-if="storeemergentBuy.emergentBuy.optionBuyPay === OptionBuyPay.PayU" class="absolute top-2 right-2 text-emerald-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                         <!-- Credit Card Icon -->
+                        <div class="h-8 w-8 text-gray-700">
+                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                            </svg>
+                        </div>
+                        <span class="text-sm font-bold text-gray-700">Tarjeta / PSE</span>
+                    </div>
+
+                    <!-- PayPal Option -->
+                    <div 
+                        @click="storeemergentBuy.emergentBuy.optionBuyPay = OptionBuyPay.Paypal"
+                        class="cursor-pointer w-full border-2 rounded-lg p-3 flex flex-col items-center justify-center gap-2 transition-all duration-200 relative"
+                         :class="[
+                            storeemergentBuy.emergentBuy.optionBuyPay === OptionBuyPay.Paypal 
+                            ? 'border-blue-500 bg-blue-50/30' 
+                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                        ]"
+                    >
+                         <div v-if="storeemergentBuy.emergentBuy.optionBuyPay === OptionBuyPay.Paypal" class="absolute top-2 right-2 text-blue-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <!-- PayPal Icon (SVG) -->
+                         <div class="h-8 w-8 text-[#003087]">
+                           <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M7.076 19.95L8.237 12.65H5.80801L4.646 19.95H7.076Z" fill="#003087"/>
+                                <path d="M11.238 12.65L12.399 5.35H9.97001L8.80798 12.65H11.238Z" fill="#003087"/>
+                                <path d="M15.111 20.354C15.111 20.354 15.11 20.354 15.109 20.353C16.892 19.467 18.238 17.587 18.238 14.869C18.238 11.258 15.341 8.35999 11.751 8.35999H9.36298L8.148 16H10.578L10.748 14.931H11.751C13.829 14.931 15.529 13.251 15.529 11.173C15.529 10.038 15.035 9.02798 14.254 8.35999C17.076 8.78999 18.914 11.458 18.914 14.869C18.914 17.151 17.94 19.165 16.488 20.25L15.111 20.354Z" fill="#003087"/>
+                                <path d="M9.36295 2H14.139C17.729 2 20.656 4.898 20.656 8.509C20.656 12.12 17.729 15.018 14.139 15.018H11.709L12.871 7.718H15.301C16.463 7.718 17.399 6.782 17.399 5.62C17.399 4.458 16.463 3.522 15.301 3.522H11.729L9.36295 2Z" fill="#009CDE"/>
+                                <path d="M3.46399 19.95H5.894L7.05601 12.65H8.21701L9.379 5.35H5.792C4.629 5.35 3.693 6.286 3.693 7.448C3.693 7.55 3.699 7.65 3.712 7.748L3.46399 19.95Z" fill="#253B80"/>
+                            </svg>
+                        </div>
+                         <span class="text-sm font-bold text-gray-700" :class="{'text-blue-600': storeemergentBuy.emergentBuy.optionBuyPay === OptionBuyPay.Paypal}">PayPal</span>
+                    </div>
+
+                </div>
+                <p v-if="isOnlyPaypal" class="text-xs text-blue-600 font-medium">
+                    Tu región usa PayPal como método disponible. Al pagar te redirigimos automáticamente.
+                </p>
+            </div>
+
             </div>
 
             <!-- Footer / Action -->
-            <div class="p-6 bg-gray-50 border-t border-gray-100">
+            <div class="px-6 py-3 bg-gray-50 border-t border-gray-100">
                  <!-- Price Summary -->
                  <div v-if="isCouponApplied && storeemergentBuy.emergentBuy.optionsEmergentBuy !== OptionsEmergentBuy.UserExternal" class="flex justify-between items-end mb-3 px-1">
                     <span class="text-sm text-gray-500 line-through decoration-red-500">
-                        ${{ storeemergentBuy.getCategoryEmergent()?.precio_desc?.toLocaleString() || 0 }}
+                        {{ storeemergentBuy.getCategoryEmergent()?.precio_desc }}
                     </span>
                     <span class="text-sm font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded">
                         Ahorras ${{ discountAmount?.toLocaleString() || 0 }}
                     </span>
                  </div>
-
-                 <button @click="handleBuy()" class="w-full bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-lg py-3 rounded-lg shadow-lg shadow-emerald-700/20 transition-all transform active:scale-[0.99] flex justify-center items-center">
-                    <span>Pagar </span>
+                 <div class="text-sm text-slate-700">
+                    <span>🎁 ¡Opción Premium! Consigue este pack + el pack completo con descuento usando el código LO NECESITO</span>
+                    <template v-if="premiumTargetCategory">
+                        <button
+                            type="button"
+                            @click="goToPremiumTarget"
+                            class="ml-1 font-semibold text-blue-600 underline underline-offset-2 hover:text-blue-700"
+                        >
+                            {{ premiumTargetCategory.titulo || `Ver categoría ${premiumTargetCategory.id}` }}
+                        </button>
+                    </template>
+                    <template v-else>
+                        <span class="ml-1 font-semibold text-slate-500">[sin categoría relacionada]</span>
+                    </template>
+                 </div>
+                 <button
+                    @click="handleBuy()"
+                    :disabled="isProcessingPayment"
+                    class="w-full bg-emerald-700 hover:bg-emerald-600 disabled:opacity-70 disabled:cursor-not-allowed text-white font-bold text-lg py-3 rounded-lg shadow-lg shadow-emerald-700/20 transition-all transform active:scale-[0.99] flex justify-center items-center"
+                 >
+                    <span>{{ isProcessingPayment ? 'Lo estamos alistando para ti...' : 'Pagar' }}</span>
                     <span class="ml-2 bg-emerald-800/50 px-2 py-0.5 rounded text-sm">
                         ${{ finalPrice?.toLocaleString() || 0 }}
                     </span>
@@ -335,6 +503,12 @@ watch(()=>storeemergentBuy.emergentBuy.emergent, ()=>{
                 </div>
             </div>
 
+        </div>
+        <div v-if="isProcessingPayment" class="absolute inset-0 z-[60] bg-white/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-xl flex items-center gap-3">
+                <div class="h-6 w-6 rounded-full border-2 border-slate-300 border-t-slate-700 animate-spin"></div>
+                <p class="text-sm font-semibold text-slate-700">Lo estamos alistando para ti...</p>
+            </div>
         </div>
     </div>
 

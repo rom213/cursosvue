@@ -26,20 +26,7 @@ watch(() => route.params.id, () => {
 })
 
 
-onMounted(() => {
-    let index = Number(route.params.id);
-    category.value = storeCategory.findCategoryById(index);
 
-    if (route.params.googleid) {
-        AuthService.get_affiliaty(route.params.googleid)
-            .then((res) => {
-                userAuth.nameAffiliaty = res?.name
-                localStorage.setItem('google_affiliaty', String(route.params.googleid))
-            })
-    } else {
-        userAuth.nameAffiliaty = undefined
-    }
-})
 
 watch(() => storeCategory.categories, () => {
     let index = Number(route.params.id);

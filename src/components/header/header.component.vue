@@ -6,6 +6,13 @@ import { ref, watch } from 'vue';
 import HeaderSearchComponent from './header.search.component.vue';
 import CartPage from '../../cart/cart.page.vue';
 import { icons } from './headerIcons';
+import { GoogleLogin } from 'vue3-google-login';
+import AuthService from '../../services/AuthServices';
+
+const handleLoginSuccess = async (response: any) => {
+    const ser = await AuthService.verifyToken(response.credential)
+    userStore.setProfile(ser)
+}
 
 const positionNavigate = ref(0)
 const showPoverMore = ref(false);
@@ -19,12 +26,14 @@ const router = useRouter();
 const route = useRoute();
 
 watch(() => route.path, () => {
-    if (route.path === '/') {
+    if (route.name === 'home' || route.path === '/') {
         positionNavigate.value = 0;
-    } else if (route.path === '/courses') {
+    } else if (route.name === 'courses' || route.path === '/courses') {
         positionNavigate.value = 1;
-    } else if (route.path === '/monetizar') {
+    } else if (route.name === 'monetizar' || route.path === '/monetizar') {
         positionNavigate.value = 2;
+    } else if (route.name === 'mycourses') {
+        positionNavigate.value = 3;
     }
 });
 
@@ -63,11 +72,15 @@ const hadleShowCart = () => {
                 <!-- Right Side: User & Cart -->
                 <div class="flex items-center gap-4">
                      <!-- Login Button -->
-                    <RouterLink v-if="userStore.getProfile() == null" :to="{ name: 'login' }">
+                    <div v-if="userStore.getProfile() == null">
+                        <!-- @ts-ignore -->
+                        <GoogleLogin :callback="handleLoginSuccess" />
+                    </div>
+                    <!-- <RouterLink v-if="userStore.getProfile() == null" :to="{ name: 'login' }">
                         <button class="bg-[#FFBF2B] hover:bg-[#ffcf5c] text-slate-900 font-medium py-2 px-4 rounded-full shadow-sm hover:shadow-md transition-all duration-200 text-sm md:text-base">
                             INICIAR SESION
                         </button>
-                    </RouterLink>
+                    </RouterLink> -->
 
                     <!-- User Profile Dropdown -->
                     <div v-if="userStore.getProfile() != null" class="relative">
@@ -137,6 +150,15 @@ const hadleShowCart = () => {
                              <span class="text-xs md:text-sm">Monetizar</span>
                              <span class="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 transform scale-x-0 transition-transform group-hover:scale-x-100"
                                    :class="{'scale-x-100': positionNavigate === 2}"></span>
+                        </RouterLink>
+                        <!-- work -->
+                        <RouterLink v-if="userStore.getProfile()?.user?.is_bought"  :to="{ name: 'mycourses' }"
+                             class="group flex flex-col items-center py-1 px-2 relative font-medium text-gray-600 hover:text-blue-600 transition-colors"
+                             :class="{ 'text-blue-600': positionNavigate === 3 }">
+                             <span class="" v-html="icons.misCursos"></span>
+                             <span class="text-xs md:text-sm">Mis Cursos</span>
+                             <span class="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 transform scale-x-0 transition-transform group-hover:scale-x-100"
+                                   :class="{'scale-x-100': positionNavigate === 3}"></span>
                         </RouterLink>
                     </div>
 

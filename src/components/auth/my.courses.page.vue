@@ -10,7 +10,8 @@ import AffiliatyMessageComponent from '../../components/auth/affiliaty.message.c
 const storeCatergory = categoryStore()
 const router = useRouter()
 
-onMounted(() => {
+onMounted(async () => {
+  await storeCatergory.fetchCategories(true);
   courseBougth.value = storeCatergory.getCategoriesBougth();
 })
 
@@ -38,93 +39,84 @@ const handleClickItem = (id: number) => {
 </script>
 
 <template>
-  <div class="pt-4">
-    <!-- se muestra si no hay cursos disponibles -->
-    <div v-if="courseBougth.length == 0" class="mt-12">
-      <div class="text-center font-light">
-        AUN
-        NO TIENES CURSOS DISPONIBLES
-        TE INVITAMOS A VER NUESTRAS CATEGORIAS
-      </div>
-      <div class="flex justify-center">
-        <svg width="40" height="42" viewBox="0 0 40 42" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path
-            d="M0.5 13.5H39.5L37.4647 36.4525C37.3546 37.6948 36.7958 38.85 35.8979 39.6914C35 40.5328 33.8278 40.9995 32.6116 41H7.38838C6.17215 40.9995 5.00004 40.5328 4.10213 39.6914C3.20422 38.85 2.64538 37.6948 2.53531 36.4525L0.5 13.5Z"
-            stroke="black" stroke-linejoin="round" />
-          <path
-            d="M10.25 18.5V11C10.25 8.34784 11.2772 5.8043 13.1057 3.92893C14.9342 2.05357 17.4141 1 20 1C22.5859 1 25.0658 2.05357 26.8943 3.92893C28.7228 5.8043 29.75 8.34784 29.75 11V18.5"
-            stroke="black" stroke-linecap="round" />
-        </svg>
+  <div class="min-h-screen flex flex-col bg-gray-50/30">
+    <!-- Main Content pushing footer down -->
+    <div class="flex-grow pt-8 pb-16">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- ENCABEZADO -->
+        <div v-if="courseBougth.length > 0" class="text-center md:text-left mb-10">
+          <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">Mis Cursos</h1>
+          <p class="mt-2 text-base md:text-lg text-gray-500">Cada gran logro comienza con un pequeño paso. ¡Continúa aprendiendo!</p>
+        </div>
 
-      </div>
-    </div>
-    <div v-if="courseBougth.length > 0" class="h-full grid gap-6 px-1">
-      <div class="text-center">
-        <h2 class="font-semibold">MIS CURSOS</h2>
-        <p class="text-sm">Cada gran logro comienza con un pequeño paso</p>
-      </div>
-
-      <div class=" grid gap-2">
-        <div v-for="(item, index) in courseBougth" :key="index" class="grid grid-cols-3 text-sm">
-          <div @click="handleClickItem(item.id)" class="col-span-1 bg-red-300 flex ">
-            <img class="rounded-sm" :src="item.imagen_url" alt="">
-          </div>
-          <div class="col-span-2 flex gap-4 flex-col px-2 justify-center">
-            <div>
-              <div class="grid grid-cols-3">
-                <div @click="handleClickItem(item.id)" class="col-span-2">
-                  <h3 class="font-semibold">{{ item.titulo }}</h3>
-                  <p>cantidad de cursos #{{ item.courses.length }}</p>
-                </div>
-                <!-- boton ver mis cursos -->
-                <div @click="hadleLinkCoursesDrive(item.url)"
-                  class="bg-[#CDFF00] w-full flex col-span-1 p-1 items-center justify-center rounded-sm">
-                  <p class="text-[10px]">ver mis cursos</p>
-                  <div>
-                    <svg width="24" height="25" viewBox="0 0 24 25" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <g clip-path="url(#clip0_537_286)">
-                        <path fill-rule="evenodd" clip-rule="evenodd"
-                          d="M14.3099 3.5C14.6331 3.5 14.9515 3.57832 15.2378 3.72827C15.5241 3.87822 15.7698 4.09533 15.9539 4.361L16.0419 4.5L21.8149 14.5C21.9754 14.7779 22.0666 15.0904 22.0808 15.411C22.0951 15.7316 22.032 16.0509 21.8969 16.342L21.8149 16.5L19.5049 20.5C19.3433 20.7798 19.1164 21.0162 18.8435 21.1892C18.5706 21.3621 18.2599 21.4664 17.9379 21.493L17.7739 21.5H6.2269C5.90353 21.5002 5.58494 21.4219 5.29843 21.272C5.01193 21.122 4.76606 20.9048 4.5819 20.639L4.4949 20.5L2.1849 16.5C2.02445 16.2221 1.93324 15.9096 1.91897 15.589C1.9047 15.2684 1.96779 14.9491 2.1029 14.658L2.1849 14.5L7.9599 4.5C8.12157 4.22009 8.34866 3.98354 8.62174 3.8106C8.89482 3.63766 9.20575 3.53349 9.5279 3.507L9.6909 3.5H14.3099ZM19.5059 16.5H9.1129L7.3809 19.5H17.7739L19.5059 16.5ZM9.1139 6.5L3.9169 15.5L5.6489 18.5L10.8449 9.5L9.1139 6.5ZM14.3099 5.5H10.8459L16.0419 14.5H19.5059L14.3099 5.5ZM11.9999 11.5L10.2679 14.5H13.7319L11.9999 11.5Z"
-                          fill="black" />
-                      </g>
-                      <defs>
-                        <clipPath id="clip0_537_286">
-                          <rect width="24" height="24" fill="white" transform="translate(0 0.5)" />
-                        </clipPath>
-                      </defs>
-                    </svg>
-
-                  </div>
-                </div>
-
-              </div>
-
+        <!-- ESTADO VACÍO (NO HAY CURSOS) -->
+        <div v-if="courseBougth.length === 0" class="flex flex-col items-center justify-center min-h-[50vh] text-center px-4 mt-8">
+          <div class="bg-white p-10 md:p-16 rounded-3xl shadow-sm border border-gray-100 max-w-xl w-full flex flex-col items-center">
+            <div class="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mb-6 text-blue-500">
+              <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+              </svg>
             </div>
-
-            <br>
-
-            <!-- link de afiliado -->
-            <div>
-              <AffiliatyMessageComponent :id_category="item.id" />
-            </div>
-            <div>
-
-            </div>
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-3">Aún no tienes cursos</h2>
+            <p class="text-gray-500 mb-8 max-w-md text-sm md:text-base leading-relaxed">Parece que todavía no has adquirido ningún curso. Explora nuestras categorías y encuentra el curso perfecto para ti.</p>
+            <button @click="router.push({ name: 'courses' })" class="bg-[#FFBF2B] hover:bg-[#FACC15] text-slate-900 font-semibold py-3.5 px-8 rounded-full shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+              Explorar Categorías
+            </button>
           </div>
         </div>
 
+        <!-- GRILLA DE CURSOS -->
+        <div v-if="courseBougth.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div v-for="(item, index) in courseBougth" :key="index" 
+               class="group flex flex-col bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden transform hover:-translate-y-1">
+            
+            <!-- Imagen del curso -->
+            <div @click="handleClickItem(item.id)" class="relative w-full aspect-video overflow-hidden bg-gray-100 cursor-pointer">
+              <img class="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" :src="item.imagen_url" :alt="item.titulo">
+              <!-- Overlay sutil -->
+              <div class="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors duration-300"></div>
+            </div>
+
+            <!-- Contenido del curso -->
+            <div class="flex flex-col flex-grow p-6">
+              <div class="flex-grow">
+                <div @click="handleClickItem(item.id)" class="cursor-pointer">
+                  <h3 class="text-xl font-bold text-gray-800 line-clamp-2 group-hover:text-blue-600 transition-colors leading-snug">{{ item.titulo }}</h3>
+                  
+                  <div class="flex items-center gap-2 mt-3 text-xs md:text-sm text-gray-600 font-medium bg-gray-50 max-w-max px-3 py-1.5 rounded-lg border border-gray-100">
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                    </svg>
+                    <span>{{ item.courses?.length || 0 }} {{ item.courses?.length === 1 ? 'curso incluido' : 'cursos incluidos' }}</span>
+                  </div>
+                </div>
+                
+                <!-- Componente de Afiliado (si ocupa espacio, ponerle margin top) -->
+                <div class="mt-4 pt-1">
+                  <AffiliatyMessageComponent :id_category="item.id" />
+                </div>
+              </div>
+
+              <!-- Acción inferior -->
+              <div class="mt-6 pt-5 border-t border-gray-50 flex items-center justify-between">
+                <button @click="hadleLinkCoursesDrive(item.url)"
+                  class="w-full flex items-center justify-center gap-2 bg-[#FFBF2B] hover:bg-[#FACC15] text-slate-900 font-semibold py-3 px-4 rounded-xl shadow-sm hover:shadow transition-all duration-200">
+                  <span>Ver Mis Cursos</span>
+                  <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-
-      <div>
-
-      </div>
-
-
-
     </div>
 
-    <div>
-      <FooterComponent class="absolute bottom-0 w-full" />
+    <!-- Footer siempre en la parte inferior de la pantalla pero se empuja hacia abajo si hay contenido -->
+    <div class="w-full mt-auto">
+      <FooterComponent />
     </div>
   </div>
 </template>

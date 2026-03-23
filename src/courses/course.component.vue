@@ -135,6 +135,9 @@ defineProps<{
           </div>
 
           <!-- Buy Button -->
+          <p v-if="item.pregunta_respuesta?.[0]?.pregunta" class="text-sm text-gray-700 font-medium">
+            {{ item.pregunta_respuesta[0].pregunta }}
+          </p>
           <button
             @click="() => {
               storeemergentBuy.handleEmergentBuy();
@@ -142,7 +145,7 @@ defineProps<{
             }"
             class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 rounded-xl text-base font-bold shadow-lg shadow-emerald-600/20 hover:shadow-emerald-600/30 hover:-translate-y-0.5 transition-all duration-200 flex justify-center items-center gap-2"
           >
-            <span>Comprar por ${{ item.precio }}</span>
+            <span>{{ " $" + item.precio }}{{ userAuth.getProfile()?.user?.country === 'COP' ? ' COP' : ' USD' }}</span>
           </button>
         </div>
       </div>

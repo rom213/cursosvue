@@ -4,7 +4,7 @@ import { usePayU } from "../payu/usePayu";
 import { useRouter } from "vue-router";
 import { authStore } from "./AuthStore";
 import type { ICategory } from "../types/Categorie";
-import { OptionsEmergentBuy, type ICuponResponsePayu } from "../types/Payment";
+import { OptionBuyPay, OptionsEmergentBuy, type ICuponResponsePayu } from "../types/Payment";
 const { generatePayUForm } = usePayU();
 import PaymentService from '../services/PaymentService';
 import CuponService from "../services/Cupon";
@@ -20,6 +20,7 @@ export const emergentBuyStore = defineStore('emergentBuy', () => {
     const emergentBuy = ref({
         emergent: false,
         optionsEmergentBuy: OptionsEmergentBuy.UserInternal,
+        optionBuyPay: OptionBuyPay.PayU,
         correo: '',
         user_google_id:''
       })
@@ -63,12 +64,22 @@ export const emergentBuyStore = defineStore('emergentBuy', () => {
                 value_extra= value_extra + `,${google_affiliaty}`
             }
 
-            PaymentService.generate_signature_reference_code({ categories: [{id_category:category.value?.id}] }).then((res) => {
-                if (res?.signature) {
-                    console.log(value_extra);
-                    generatePayUForm(res.price, category.value?.titulo, userAuth.getProfile()?.user?.email, res?.signature, res?.reference_code, value_extra);
-                }
-            });
+            if (emergentBuy.value.optionBuyPay=== OptionBuyPay.PayU) {
+                PaymentService.generate_signature_reference_code({ categories: [{id_category:category.value?.id}] }).then((res) => {
+                    if (res?.signature) {
+                        generatePayUForm(res.price, category.value?.titulo, userAuth.getProfile()?.user?.email, res?.signature, res?.reference_code, value_extra);
+                    }
+                });
+            }
+
+            if (emergentBuy.value.optionBuyPay=== OptionBuyPay.Paypal) {
+                PaymentService.generate_link_pay_paypal({ categories: [{id_category:category.value?.id}] }).then((res) => {
+                    if (res?.approval_url) {
+                        window.location.href = res.approval_url;
+                    }
+                });
+            }
+
 
         }
 
@@ -85,11 +96,21 @@ export const emergentBuyStore = defineStore('emergentBuy', () => {
             }
 
             const record = cuponResponse.value.records[0];
+            console.log(record);
             let value_extra=`|${category.value?.id},${userAuth.getProfile()?.user?.google_id},${record.google_id}`
 
             const finalPrice = parseFloat(record.price);
+            if (emergentBuy.value.optionBuyPay=== OptionBuyPay.PayU) {
+                generatePayUForm(finalPrice, category.value?.titulo, userAuth.getProfile()?.user?.email, record.signature, record.reference_code, value_extra);
+            }
 
-            generatePayUForm(finalPrice, category.value?.titulo, userAuth.getProfile()?.user?.email, record.signature, record.reference_code, value_extra);
+            if (emergentBuy.value.optionBuyPay=== OptionBuyPay.Paypal) {
+                PaymentService.generate_link_pay_paypal_cupon({ categories: [{id_category:category.value?.id}], cupon: record.cupon }).then((res) => {
+                    if (res?.approval_url) {
+                        window.location.href = res.approval_url;
+                    }
+                });
+            }
         }
 
         if (emergentBuy.value.optionsEmergentBuy === OptionsEmergentBuy.UserExternal) {
@@ -102,12 +123,21 @@ export const emergentBuyStore = defineStore('emergentBuy', () => {
             clearCupon();
 
             let value_extra=`|${category.value?.id},${emergentBuy.value.user_google_id}`
-            
-            PaymentService.generate_signature_reference_code({ categories: [{id_category:category.value?.id}] }).then((res) => {
-                if (res?.signature) {
-                    generatePayUForm(res.price, category.value?.titulo, emergentBuy.value.correo, res?.signature, res?.reference_code, value_extra);
-                }
-            });
+            if (emergentBuy.value.optionBuyPay=== OptionBuyPay.PayU) {
+                PaymentService.generate_signature_reference_code({ categories: [{id_category:category.value?.id}] }).then((res) => {
+                    if (res?.signature) {
+                        generatePayUForm(res.price, category.value?.titulo, emergentBuy.value.correo, res?.signature, res?.reference_code, value_extra);
+                    }
+                });
+            }
+
+            if (emergentBuy.value.optionBuyPay=== OptionBuyPay.Paypal) {
+                PaymentService.generate_link_pay_paypal_external({ categories: [{id_category:category.value?.id}], google_id_external:emergentBuy.value.user_google_id }).then((res) => {
+                    if (res?.approval_url) {
+                        window.location.href = res.approval_url;
+                    }
+                });
+            }
 
         }
     };

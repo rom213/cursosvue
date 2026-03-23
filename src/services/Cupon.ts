@@ -35,6 +35,16 @@ class CuponService {
     }
   }
 
+  static async generate_link_pay_paypal_cupon(data: { categories: any[], cupon: string }): Promise<IPaymentResponsePayPal | null> {
+    try {
+      const response: AxiosResponse<any> = await ApiService.post<IPaymentResponsePayPal>("/paypal-generate-link-pay-cupon", data);
+      return response.data;
+    } catch (error) {
+      console.error("Error al verificar token:", error);
+      return null;
+    }
+  }
+
 }
 
 export default CuponService;

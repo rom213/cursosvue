@@ -5,7 +5,6 @@ import FooterComponent from "../../../footer/footer.component.vue";
 import type { IRecordBalance, IPendingRefund } from "../../../../types/admin/ReferAdmin";
 import ManagementAdminRefundFormComponent from "./management.admin.refund.form.component.vue";
 import { AdminRefundService } from "../../../../services/AdminService";
-import UserService from "../../../../services/UserService";
 import SalesStatisticsWidget from "../widgets/SalesStatisticsWidget.vue";
 
 const initialBalanceState: IRecordBalance = {
@@ -337,7 +336,7 @@ onMounted(()=>{
                   placeholder="Buscar usuario..."
                 />
                  <button 
-                  @click="openFormPayment(searchTerm, fechaInicio, fechaFin)" 
+                  @click="openFormPayment()" 
                   v-if="searchTerm.length > 1" 
                   class="absolute right-1 top-1 bottom-1 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md text-xs px-3 transition-colors shadow-sm"
                 >

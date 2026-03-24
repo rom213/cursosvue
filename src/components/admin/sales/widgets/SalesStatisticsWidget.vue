@@ -15,7 +15,7 @@ const endDate = ref('');
 const chartSeries = ref<{ name: string; data: number[] }[]>([{ name: 'Ventas', data: [] }]);
 const chartOptions = ref({
   chart: {
-    type: 'area',
+    type: 'area' as const,
     height: 250,
     fontFamily: 'Inter, sans-serif',
     toolbar: { show: false },
@@ -23,7 +23,7 @@ const chartOptions = ref({
   },
   colors: ['#2563EB'], // Blue-600
   fill: {
-    type: 'gradient',
+    type: 'gradient' as const,
     gradient: {
       shadeIntensity: 1,
       opacityFrom: 0.4,
@@ -32,7 +32,7 @@ const chartOptions = ref({
     }
   },
   dataLabels: { enabled: false },
-  stroke: { curve: 'smooth', width: 3 },
+  stroke: { curve: 'smooth' as const, width: 3 },
   xaxis: {
     categories: [] as string[],
     tooltip: { enabled: false },

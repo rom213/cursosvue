@@ -20,7 +20,7 @@ export default [
   component: () => import('../courses/courseInfoPage/course.info.page.vue'),
   beforeEnter: (
     to: RouteLocationNormalized,
-    from: RouteLocationNormalized,
+    _from: RouteLocationNormalized,
     next: NavigationGuardNext
   ) => {
     import('../services/AuthServices').then(({ default: AuthService }) => {

@@ -71,7 +71,7 @@ export function usePayU() {
       const input = document.createElement('input');
       input.type = 'hidden';
       input.name = key;
-      input.value = value;
+      input.value = value === undefined || value === null ? '' : String(value);
       form.appendChild(input);
     });
 

@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { onMounted, ref, watch, computed } from 'vue';
-import type { IRefund } from '../../../../types/Refund';
 import RefundComponentEmergent from './refund.admin.component.emergent.vue';
 import { AdminRefundService } from '../../../../services/AdminService';
 import type { IRecordItemRefund } from '../../../../types/admin/ReferAdmin';
@@ -18,7 +17,7 @@ const totalRecords = ref(0);
 const totalPages = ref(0);
 
 // Debounce timer para la búsqueda
-let searchTimeout: NodeJS.Timeout | null = null;
+let searchTimeout: ReturnType<typeof setTimeout> | null = null;
 
 // --- Computed ---
 const periodText = computed(() => `From ${fechaInicio.value} to ${fechaFin.value}`);

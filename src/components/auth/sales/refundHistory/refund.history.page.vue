@@ -19,7 +19,7 @@ const totalPages = ref(0);
 const authstore = authStore();
 
 // Debounce timer para la búsqueda
-let searchTimeout: NodeJS.Timeout | null = null;
+let searchTimeout: ReturnType<typeof setTimeout> | null = null;
 
 // --- Computed ---
 const periodText = computed(() => `From ${fechaInicio.value} to ${fechaFin.value}`);
@@ -129,11 +129,6 @@ const prevPage = () => {
     currentPage.value--;
     fetchRefunds();
   }
-};
-
-const changePerPage = () => {
-  currentPage.value = 1;
-  fetchRefunds();
 };
 
 // --- Ciclo de vida ---

@@ -64,6 +64,7 @@ export class AdminRefundService {
         message: "",
         records: [],
         status: "ERROR",
+        pagination: null,
       };
       console.error(
         "Error obteniendo los reintegros por usuario y fecha:",
@@ -176,7 +177,7 @@ export class AdminRefundService {
     } catch (error) {
       const res: IApiResponseAccount = {
         message: "",
-        records: [],
+        records: { 0: [] },
         status: "ERROR",
         pagination: null,
       };
@@ -200,7 +201,7 @@ export class AdminRefundService {
     } catch (error) {
       const res: IApiResponsePendingRefunds = {
         message: "",
-        records: [],
+        records: { 0: [] },
         status: "error",
         pagination: null,
       };

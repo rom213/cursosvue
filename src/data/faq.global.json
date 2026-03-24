@@ -1,0 +1,132 @@
+{
+    "contenido": [
+        {
+            "preguntas_frecuentes": [
+                {
+                    "categoria": "COMO ACCEDO A LOS CURSOS",
+                    "palabras_clave": ["acceso", "gmail", "drive", "mis cursos", "correo", "comprar"],
+                    "preguntas_frecuentes": [
+                        {
+                            "pregunta": "¿Pagué pero no me ha llegado nada? / ¿Dónde están mis cursos?",
+                            "respuesta": "¡No te preocupes, tu acceso está seguro! Todo nuestro material se entrega directamente a tu cuenta de Google (Gmail) y la informacion esta en Google Drive (no se necesita tener espacio disponible). Tienes dos opciones súper fáciles para encontrarlo:\n\nOpción 1: Entra a tu gmail con el cual compraste el curso, hay habra correo donde se te da acceso a un grupo de Google groups sigue el enlace que te redirigira a Google Drive. Ahí verás las carpetas de tu paquete.\n\nOpción 2: Ve a tu perfil en nuestra página web (en la parte superior), entra a la sección \"Mis cursos\" y ahí estará el link que te redirigirá a tu cuenta de Drive mostrándote la carpeta con todos los archivos.\n\n💡 Tip extra: Haz clic derecho sobre la carpeta del curso, selecciona la opción \"Organizar\" y luego \"Crear acceso directo a Mi unidad\". ¡Con esto ya no se te volverá a perder!\n\nSi después de intentar esto no te aparece, por favor escríbele a nuestro WhatsApp oficial y confírmale al asesor el correo exacto con el que hiciste la compra para verificarlo en el sistema y darte solución de inmediato."
+                        }
+                    ]
+                },
+                {
+                    "categoria": "TUTORIALES PARA VER CURSOS EN OTRAS APPS (PC, ANDROID, iOS)",
+                    "palabras_clave": ["vlc", "android", "ios", "mac", "windows", "file manager", "streaming", "acceso directo"],
+                    "preguntas_frecuentes": [
+                        {
+                            "pregunta": "¿Cómo puedo ver los cursos usando aplicaciones externas o reproductores como VLC?",
+                            "respuesta": "PASO 1 (UNIVERSAL Y OBLIGATORIO): ACTIVAR EL ACCESO EN DRIVE\nPara que los cursos aparezcan en todas tus aplicaciones externas, primero debes crear un acceso directo en tu nube:\n1. Ve a tu correo de gmail ahi te enviamos el enlace de acceso, o en la seccion mis cursos de nuestra web clic en el curso comprado, te redijira a Google Drive.\n2. Haz clic derecho (o toca los 3 puntos) y selecciona: Organizar > Añadir acceso directo > Mi unidad. ¡Listo! Ahora la carpeta aparecerá en tu unidad principal.\n\nPASO 2: CONFIGURACIÓN SEGÚN TU DISPOSITIVO\n\n💻 Si usas Computadora (PC/Mac):\n1. Instala: Descarga \"Google Drive para ordenadores https://support.google.com/a/users/answer/13022292?hl=es \" y el reproductor de video \"VLC https://images.videolan.org/vlc/index.es.html \".\n2. Conecta: Inicia sesión en la app de Drive para ordenadores .\n3. Ver: Abre el explorador de archivos de tu PC, verás una nueva unidad de Google Drive. Entra ahí, busca la carpeta de tus cursos y reproduce los videos directamente con VLC.\n\n📱 Si usas teléfono Android:\n1. Instala: Descarga las apps \"File Manager + https://play.google.com/store/apps/details?id=com.alphainventor.filemanager \" y \"VLC https://play.google.com/store/apps/details?id=org.videolan.vlc&pcampaignid=web_share\" desde la Play Store.\n2. Conecta: Abre la app File Manager +, toca el ícono de Nube (Cloud) > selecciona Google Drive y conecta tu cuenta.\n3. Ver: Navega dentro de la app hasta la carpeta de tus cursos y reproduce el contenido cómodamente con VLC.\n\n🍏 Si usas iPhone / iPad (iOS):\n1. Instala: Descarga la app \"FileBrowserGO https://apps.apple.com/co/app/filebrowsergo/id335493278 \" desde la App Store.\n2. Conecta: Abre la app, selecciona \"Añadir ubicación\" o \"Nube\" > selecciona Google Drive e inicia sesión con tu cuenta.\n3. Ver: Navega dentro de la aplicación hasta encontrar la carpeta de tus cursos y reproduce los videos desde allí."
+                        }
+                    ]
+                },
+                {
+                    "categoria": "PROBLEMAS DE ACCESO Y ENTREGA",
+                    "preguntas_frecuentes": [
+                        {
+                            "pregunta": "¿Pagué pero no me ha llegado nada? / ¿Dónde están mis cursos?",
+                            "respuesta": "¡No te preocupes, tu acceso está seguro! Todo nuestro material se entrega directamente a tu cuenta de Google (Gmail). Tienes dos opciones súper fáciles para encontrarlo:\n\nOpción 1: Entra a tu gmail y ve en notificaciones, hay habra un grupo de Google groups sigue el enlace que te redirigira a Google Drive. Ahí verás las carpetas de tu paquete.\n\nOpción 2: Ve a tu perfil en nuestra página web (en la parte superior), entra a la sección \"Mis compras\" y ahí estará el link que te redirigirá a tu cuenta de Drive mostrándote la carpeta con todos los archivos.\n\n💡 Tip extra: Haz clic derecho sobre la carpeta del curso, selecciona la opción \"Organizar\" y luego \"Crear acceso directo a Mi unidad\". ¡Con esto ya no se te volverá a perder!\n\nSi después de intentar esto no te aparece, por favor escríbele a nuestro WhatsApp oficial y confírmale al asesor el correo exacto con el que hiciste la compra para verificarlo en el sistema y darte solución de inmediato."
+                        }
+                    ]
+                },
+                {
+                    "categoria": "MEDIOS DE PAGOS, SEGURIDAD, GARANTIAS",
+                    "palabras_clave": ["pago", "payu", "paypal", "pse", "nequi", "tarjeta", "efecty", "seguridad", "garantía", "reembolso"],
+                    "preguntas_frecuentes": [
+                        {
+                            "pregunta": "¿Qué garantías tengo al comprar?",
+                            "respuesta": "✅ Garantía de satisfacción: 7 días para pedir devolución si no es lo que esperabas.\n✅ Seguridad: Pasarelas de pago certificadas (PayU y PayPal) y sitio con cifrado HTTPS.\n✅ Calidad: Archivos libres de virus y soporte vía WhatsApp.\n✅ Transparencia: Puedes ver una vista previa antes de comprar",
+                            "palabras_clave": ["garantías", "devolución", "payu", "paypal", "https", "virus", "vista previa"]
+                        },
+                        {
+                            "pregunta": "¿Cómo puedo pagar - metodos de pago?",
+                            "respuesta": "Tu inversión está 100% protegida. Te ofrecemos múltiples opciones para que elijas la más cómoda para ti:\n\n📱 Billeteras Digitales y Pagos Móviles: Nequi, DaviPlata, Google Pay y códigos QR (Bre-B).\n\n💳 Tarjetas de Crédito y Débito: Visa, Mastercard, American Express, Diners Club y Codensa.\n\n🏦 Transferencias Bancarias: Pagos rápidos y seguros a través de PSE o directamente desde tu banco.\n\n💵 Efectivo en Oficinas de Pago: Acércate a puntos físicos como Efecty, PagaTodo, La Perla, Su Red, Gana, y muchos más a nivel nacional.\n\nTu seguridad es primero: Procesamos tu pago con encriptación bancaria y protección antifraude, asegurando que tus datos financieros nunca sean revelados.",
+                            "palabras_clave": ["nequi", "pse", "visa", "mastercard", "efecty", "billetera", "transferencia", "efectivo"]
+                        }
+                    ]
+                },
+                {
+                    "categoria": "PROBLEMAS TÉCNICOS (GOOGLE DRIVE)",
+                    "preguntas_frecuentes": [
+                        {
+                            "pregunta": "El video no carga / Me sale error al reproducir",
+                            "respuesta": "A veces el reproductor web de Google Drive se satura. Tienes dos soluciones rápidas:\n1) Descargar el video a tu computadora/celular para verlo sin internet y en máxima calidad.\n2) Usar reproductores de streaming de terceros conectando tu Drive, tenemos un tutorial en la seccion plataformas."
+                        },
+                        {
+                            "pregunta": "Google Drive no me deja descargar, dice que se superó el límite",
+                            "respuesta": "¡Esto es muy normal! Como nuestros archivos son de alta calidad y muchos alumnos entran al mismo tiempo, Google Drive pone una pausa de seguridad de 24 horas. Truco VIP: Si te urge descargar, dale clic derecho al archivo, selecciona \"Hacer una copia\" (Make a copy). Esa copia se guardará en tu unidad principal y podrás descargarla inmediatamente sin esperar."
+                        }
+                    ]
+                },
+                {
+                    "categoria": "CERTIFICADOS Y LOGÍSTICA",
+                    "preguntas_frecuentes": [
+                        {
+                            "pregunta": "Ya terminé de estudiar, ¿cómo pido mi certificado?",
+                            "respuesta": "¡Muchísimas felicidades por ese logro! Para emitir tu certificado digital, por favor escríbenos a nuestra línea oficial de WhatsApp. Allí el equipo validará tu correo en la base de alumnos, te haremos un par de preguntas rápidas sobre lo aprendido y te enviaremos tu certificado en alta resolución."
+                        },
+                        {
+                            "pregunta": "¿Cómo puedo ver los cursos usando aplicaciones externas o reproductores como VLC? y ¿Puedo ver los cursos desde mi celular o computador?",
+                            "respuesta": "PASO 1 (UNIVERSAL Y OBLIGATORIO): ACTIVAR EL ACCESO EN DRIVE\nPara que los cursos aparezcan en todas tus aplicaciones externas, primero debes crear un acceso directo en tu nube:\n1. Ve a tu correo de gmail ahi te enviamos el enlace de acceso, o en la seccion mis cursos de nuestra web clic en el curso comprado, te redijira a Google Drive.\n2. Haz clic derecho (o toca los 3 puntos) y selecciona: Organizar > Añadir acceso directo > Mi unidad. ¡Listo! Ahora la carpeta aparecerá en tu unidad principal.\n\nPASO 2: CONFIGURACIÓN SEGÚN TU DISPOSITIVO\n\n💻 Si usas Computadora (PC/Mac):\n1. Instala: Descarga \"Google Drive para ordenadores https://support.google.com/a/users/answer/13022292?hl=es \" y el reproductor de video \"VLC https://images.videolan.org/vlc/index.es.html \".\n2. Conecta: Inicia sesión en la app de Drive para ordenadores .\n3. Ver: Abre el explorador de archivos de tu PC, verás una nueva unidad de Google Drive. Entra ahí, busca la carpeta de tus cursos y reproduce los videos directamente con VLC.\n\n📱 Si usas teléfono Android:\n1. Instala: Descarga las apps \"File Manager + https://play.google.com/store/apps/details?id=com.alphainventor.filemanager \" y \"VLC https://play.google.com/store/apps/details?id=org.videolan.vlc&pcampaignid=web_share\" desde la Play Store.\n2. Conecta: Abre la app File Manager +, toca el ícono de Nube (Cloud) > selecciona Google Drive y conecta tu cuenta.\n3. Ver: Navega dentro de la app hasta la carpeta de tus cursos y reproduce el contenido cómodamente con VLC.\n\n🍏 Si usas iPhone / iPad (iOS):\n1. Instala: Descarga la app \"FileBrowserGO https://apps.apple.com/co/app/filebrowsergo/id335493278 \" desde la App Store.\n2. Conecta: Abre la app, selecciona \"Añadir ubicación\" o \"Nube\" > selecciona Google Drive e inicia sesión con tu cuenta.\n3. Ver: Navega dentro de la aplicación hasta encontrar la carpeta de tus cursos y reproduce los videos desde allí."
+                        }
+                    ]
+                },
+                {
+                    "categoria": "GARANTÍAS Y REEMBOLSOS",
+                    "preguntas_frecuentes": [
+                        {
+                            "pregunta": "Quiero pedir un reembolso / El curso no era lo que esperaba",
+                            "respuesta": "Lamento mucho que el contenido no haya cumplido tus expectativas. Queremos que estés 100% satisfecho. Tienes 7 días de garantía de satisfacción desde el momento de tu compra. Para procesar tu devolución de forma rápida y segura, escríbenos a nuestro WhatsApp o correo de soporte con tu número de pedido y procesaremos el reintegro a tu método de pago sin hacerte preguntas incómodas."
+                        }
+                    ]
+                },
+                {
+                    "categoria": "GESTIÓN DE CUENTAS, CORREOS Y ESPACIO EN EL DRIVE",
+                    "preguntas_frecuentes": [
+                        {
+                            "pregunta": "¿Los cursos van a llenar mi Google Drive? / No tengo espacio en mi cuenta",
+                            "respuesta": "¡Cero preocupaciones! Como el material te lo compartimos en tu Drive, no consumirá ni un solo megabyte de tus 15GB gratuitos de Google Drive. Todo el peso está alojado en nuestros servidores corporativos. Tu cuenta solo funciona como una llave para entrar a verlos."
+                        },
+                        {
+                            "pregunta": "¿Puedo comprar con otro correo que no sea Gmail (Hotmail, Outlook, Yahoo)?",
+                            "respuesta": "Para garantizar que tengas acceso inmediato, seguro y de por vida a nuestro material en la nube, nuestro sistema requiere exclusivamente un correo de Gmail (Google). No es posible usar otros correos. Si no tienes uno, es 100% gratis y te tomará un minuto crearlo:\n- Ve a la página oficial: accounts.google.com/signup (o busca \"Crear cuenta Gmail\" en Google).\n- Ingresa tu nombre, elige una dirección de correo nueva y crea una contraseña.\n- ¡Listo! Usa ese nuevo correo de Gmail al momento de hacer tu compra con nosotros y tus cursos llegarán allí al instante."
+                        },
+                        {
+                            "pregunta": "Me equivoqué al escribir mi correo cuando compré / Escribí mal mi Gmail",
+                            "respuesta": "¡Suele pasar, no te preocupes! Como el sistema es automatizado, necesitamos corregir ese error manualmente para que no pierdas tu acceso. Por favor, escríbenos directamente a nuestra línea oficial de WhatsApp. Envíale al asesor tu nombre completo, el comprobante de pago y el correo de Gmail correcto. ¡Él te lo solucionará en minutos!"
+                        }
+                    ]
+                },
+                {
+                    "categoria": "ARCHIVOS COMPRIMIDOS Y ACTUALIZACIONES",
+                    "preguntas_frecuentes": [
+                        {
+                            "pregunta": "Descargué los archivos pero terminan en .ZIP o .RAR y no abren",
+                            "respuesta": "Algunos de nuestros paquetes más grandes están comprimidos para que la descarga sea más rápida y segura.\n\nSi estás en PC/Mac: Solo necesitas hacer clic derecho sobre el archivo descargado y darle a \"Extraer aquí\" (necesitas un programa gratuito como WinRAR o 7-Zip).\n\nSi estás en Celular: Ve a la tienda de aplicaciones, descarga la app gratuita \"RAR\" o \"Files de Google\", toca el archivo descargado y dale a \"Extraer\". ¡Ahí aparecerán todos tus videos y PDFs!"
+                        },
+                        {
+                            "pregunta": "¿Cómo recibo las actualizaciones futuras gratuitas?",
+                            "respuesta": "¡La magia de la nube! No tienes que hacer absolutamente nada. Cada vez que nuestro equipo sube un curso nuevo o actualiza un material, aparecerá mágicamente en la carpeta de Google Drive que ya tienes compartida. Siempre tendrás la versión más reciente en tiempo real."
+                        }
+                    ]
+                },
+                {
+                    "categoria": "REPRODUCCIÓN Y PLANTILLAS (DRIVE)",
+                    "preguntas_frecuentes": [
+                        {
+                            "pregunta": "Los videos se ven borrosos o en baja calidad",
+                            "respuesta": "¡Tus videos están grabados en alta definición (HD)! Si los ves borrosos desde el reproductor web de Google Drive, suele ser porque Google ajusta la calidad automáticamente según tu velocidad de internet en ese momento (como hace YouTube). Para verlos en su calidad original 1080p, haz clic en la tuerquita (configuración) del video y selecciona la calidad más alta, o simplemente descarga el video a tu dispositivo."
+                        },
+                        {
+                            "pregunta": "Quiero usar una plantilla/documento pero me dice 'Solicitar acceso de edición'",
+                            "respuesta": "Por seguridad, los archivos originales son de \"Solo lectura\" para que ningún alumno los modifique por accidente. Para usar cualquier plantilla, archivo de Excel o documento, NO pidas acceso de edición. Simplemente haz clic en \"Archivo\" > \"Hacer una copia\" (o \"Descargar\"). Así tendrás tu propia copia privada para editarla como quieras."
+                        }
+                    ]
+                }
+            ]
+        }
+       
+    ]
+}

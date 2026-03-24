@@ -1,9 +1,4 @@
-interface User {
-  google_id: string;
-}
-
-  
-  export interface IPaymentResponsePayu {
+export interface IPaymentResponsePayu {
     signature: string;
     reference_code: string;
     price: number;

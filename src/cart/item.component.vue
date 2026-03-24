@@ -48,7 +48,7 @@ defineProps<{
                 </div>
                 <div class="mt-3 flex items-center justify-between gap-2">
                     <div class="text-lg font-extrabold text-slate-900">
-                        {{ item.precio }}
+                        {{ formatCurrency(item.precio) }}
                     </div>
                     <button class="rounded-xl bg-[#CDFF00] px-3 py-2 text-xs font-bold text-slate-900 transition hover:brightness-95">
                         Ver cursos

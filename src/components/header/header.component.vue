@@ -143,7 +143,7 @@ const hadleShowCart = () => {
                                    :class="{'scale-x-100': positionNavigate === 1}"></span>
                         </RouterLink>
 
-                        <RouterLink :to="{ name: 'courses' }"
+                        <RouterLink :to="{ name: 'monetizar' }"
                              class="group flex flex-col items-center py-1 px-2 relative font-medium text-gray-600 hover:text-blue-600 transition-colors"
                              :class="{ 'text-blue-600': positionNavigate === 2 }">
                              <span class="" v-html="icons.monetizar"></span>

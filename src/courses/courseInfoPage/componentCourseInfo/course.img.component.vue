@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue';
+import { ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { categoryStore } from '../../../store/CategoryStore';
 import type { ICategory } from '../../../types/Categorie';
 import { cartStore } from '../../../store/CartStore';
 import { authStore } from '../../../store/AuthStore';
 
-import AuthService from '../../../services/AuthServices';
 import AffiliatyMessageComponent from '../../../components/auth/affiliaty.message.component.vue';
 const router = useRouter();
 

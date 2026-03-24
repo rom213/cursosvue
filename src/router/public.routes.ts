@@ -18,6 +18,12 @@ export default [
       meta: { showHeader: true }
     },
     {
+      path: '/monetizar',
+      name: 'monetizar',
+      component: () => import('../monetizar/monetizar.page.vue'),
+      meta: { showHeader: true }
+    },
+    {
       path: '/:pathMach(.*)*',
       component: () => import('../components/notfound.vue'),
       meta: { showHeader: true }

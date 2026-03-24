@@ -12,6 +12,7 @@ import { categoryStore } from "../../store/CategoryStore";
 import EmergentBuyComponent from "../emergent.buy.component.vue";
 import AuthService from "../../services/AuthServices";
 import CategoryService from "../../services/CategorieService";
+import CourseFaqSection from "./CourseFaqSection.vue";
 
 const cartSt = cartStore();
 const storeemergentBuy = emergentBuyStore();
@@ -419,18 +420,7 @@ watch(
             </div>
 
           <div v-if="navegacion === Navegacion.Preguntas" class="space-y-4">
-            <h2 class="text-2xl font-bold text-gray-900 mb-6">Preguntas Frecuentes</h2>
-            <div v-if="category?.pregunta_respuesta?.length" class="space-y-4">
-              <div v-for="(qa, i) in category.pregunta_respuesta" :key="i" class="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-                <h3 class="font-bold text-gray-900 text-lg flex items-start gap-2">
-                  <span class="text-blue-600">Q.</span> {{ qa.pregunta }}
-                </h3>
-                <p class="mt-3 text-gray-600 ml-6">{{ qa.respuesta }}</p>
-              </div>
-            </div>
-            <div v-else class="bg-white rounded-xl p-10 text-center border border-gray-200">
-              <p class="text-gray-500">No hay preguntas frecuentes por el momento.</p>
-            </div>
+            <CourseFaqSection />
           </div>
 
           <div v-if="navegacion === Navegacion.Comentarios">

@@ -1,33 +1,59 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 import FooterComponent from '../components/footer/footer.component.vue';
+import CourseFaqSection from '../courses/courseInfoPage/CourseFaqSection.vue';
 import { icons } from './section_one/section.one.data';
-import TechnologyIcon from '../assets/home/Technology.png';
-import GraduadoIcon from '../assets/home/graduado.png';
-import SeguridadIcon from '../assets/home/seguridad.png';
 
 const logosAnimationDuration = 40;
+const logosMarqueeRef = ref<HTMLElement | null>(null);
+const logosDragging = ref(false);
+const logosHoveredIdx = ref<number | null>(null);
+let logosStartX = 0;
+let logosBaseOffset = 0;
+let logosDragOffset = 0;
 
-const faqCards = [
-  {
-    title: 'Acceso y plataforma',
-    text: 'El acceso se te otorga a tu cuenta de Gmail (google), los cursos estan alojados en Google Drive . te contamos como verlos.',
-    image: TechnologyIcon,
-    alt: 'Icono de Tecnología',
-  },
-  {
-    title: 'Estudio y certificacion',
-    text: 'Dominar un area requiere de diversos conocimientos, por ello te damos todas las herramientas, porsupuesto que te certificamos. 👇',
-    image: GraduadoIcon,
-    alt: 'Icono de Graduado',
-  },
-  {
-    title: 'Pagos y seguridad',
-    text: 'contamos con diferentes metodos de pago, garantias del servicio y una opcion de trabajar con nosotros desde cualquier lugar. 👇',
-    image: SeguridadIcon,
-    alt: 'Icono de Seguridad',
-  },
-];
+function getTranslateX(el: HTMLElement): number {
+  return new DOMMatrix(window.getComputedStyle(el).transform).m41;
+}
+
+function onLogosMouseDown(e: MouseEvent) {
+  const el = logosMarqueeRef.value;
+  if (!el) return;
+  e.preventDefault();
+  logosDragging.value = true;
+  logosStartX = e.clientX;
+  // Captura posición actual ANTES de desactivar la animación
+  logosBaseOffset = getTranslateX(el);
+  logosDragOffset = logosBaseOffset;
+  // Desactiva la animación por completo: el CSS animation sobreescribe
+  // el style.transform inline aunque esté pausada, por eso usamos 'none'
+  el.style.animation = 'none';
+  el.style.transform = `translateX(${logosBaseOffset}px)`;
+}
+
+function onLogosMouseMove(e: MouseEvent) {
+  if (!logosDragging.value || !logosMarqueeRef.value) return;
+  logosDragOffset = logosBaseOffset + (e.clientX - logosStartX);
+  logosMarqueeRef.value.style.transform = `translateX(${logosDragOffset}px)`;
+}
+
+function onLogosMouseUp() {
+  const el = logosMarqueeRef.value;
+  if (!el || !logosDragging.value) return;
+  logosDragging.value = false;
+
+  // Normaliza el offset dentro del rango del loop (-50% del ancho total)
+  const halfWidth = el.scrollWidth / 2;
+  let normalized = logosDragOffset % halfWidth;
+  if (normalized > 0) normalized -= halfWidth;
+  if (normalized < -halfWidth) normalized += halfWidth;
+
+  const progress = Math.abs(normalized) / halfWidth;
+  // Aplica el delay antes de restaurar la animación CSS para evitar flash
+  el.style.animationDelay = `${-(progress * logosAnimationDuration)}s`;
+  el.style.transform = '';
+  el.style.animation = ''; // La clase CSS retoma el control con el delay aplicado
+}
 
 const testimonialAnimationDuration = 50;
 const testimonialScrollRef = ref<HTMLElement | null>(null);
@@ -61,178 +87,653 @@ onMounted(() => {
   if (el) {
     el.innerHTML += el.innerHTML;
   }
+  window.addEventListener('mousemove', onLogosMouseMove);
+  window.addEventListener('mouseup', onLogosMouseUp);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('mousemove', onLogosMouseMove);
+  window.removeEventListener('mouseup', onLogosMouseUp);
 });
 </script>
 
 <template>
-  <div>
-    <!-- Hero + valor (antes section_one) -->
-    <div class="grid">
-      <div class="flex flex-col xl:flex-row items-center gap-4 p-4 xl:p-0">
-        <div class="w-full xl:w-auto flex justify-center">
-          <img
-            src="../assets/home/mujercursos.png"
-            alt=""
-            class="max-w-[80%] xl:max-w-full h-auto"
-          />
-        </div>
-        <div class="flex flex-wrap justify-center gap-6 xl:gap-10 w-full">
-          <div class="border border-solid border-black p-4 rounded-xl flex flex-col justify-center items-center w-[250px] gap-6">
-            <div class="w-fit" v-html="icons.accesoVitalicio" />
-            <div class="font-bold text-2xl">Acceso Vitalicio</div>
-            <div class="break-words text-xl text-center">Pago unico Actualizaciones gratis</div>
-          </div>
-          <div class="border border-solid border-black p-4 rounded-xl flex flex-col justify-center items-center w-[250px] gap-6">
-            <div class="w-fit" v-html="icons.descargable" />
-            <div class="font-bold text-2xl">100% Descargable</div>
-            <div class="break-words text-xl text-center">Estudia offline y a tu ritmo.</div>
-          </div>
-          <div class="border border-solid border-black p-4 rounded-xl flex flex-col justify-center items-center w-[250px] gap-6">
-            <div class="w-fit" v-html="icons.clubDescuentos" />
-            <div class="font-bold text-2xl text-center">Club de Descuentos</div>
-            <div class="break-words text-xl text-center">50% OFF en próximas compras.</div>
-          </div>
-          <div class="border border-solid border-black p-4 rounded-xl flex flex-col justify-center items-center w-[250px] gap-6">
-            <div class="w-fit" v-html="icons.trabajaYGana" />
-            <div class="font-bold text-2xl text-center">Trabaja y Gana</div>
-            <div class="break-words text-xl text-center">Comisiones del 60% por venta.</div>
-          </div>
+  <div class="home-root">
+
+    <!-- ═══════════════════════════════════════════
+         HERO — Wave CSS "agujero negro"
+    ════════════════════════════════════════════ -->
+    <section class="hero-section">
+      <!-- Fondo de olas (CSS puro, sin JS) -->
+      <div class="hero-wave" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+
+      <!-- Modelo: capa intermedia — z5, detrás del texto pero delante de las olas -->
+      <div class="hero-model" aria-hidden="true">
+        <img
+          src="../assets/home/mujercursos.png"
+          alt=""
+          class="hero-model-img"
+        />
+      </div>
+
+      <!-- Texto: z10, encima de todo -->
+      <div class="hero-layout">
+        <div class="hero-text">
+          <span class="hero-label">✦ Plataforma educativa premium</span>
+          <h1 class="hero-title">
+            No te damos<br>
+            <em class="hero-title-em">un curso,</em><br>
+            te damos <strong class="hero-title-strong">miles</strong><br>
+            de cursos.
+          </h1>
+          <p class="hero-sub">Acceso vitalicio · Descarga offline · Certifícate</p>
         </div>
       </div>
 
-      <!-- Carrusel de marcas (antes section_two) -->
-      <div
-        class="relative w-screen overflow-hidden py-4 before:content-[''] before:absolute before:left-0 before:top-0 before:w-32 before:h-full before:bg-gradient-to-r before:from-white before:to-transparent before:z-10 after:content-[''] after:absolute after:right-0 after:top-0 after:w-32 after:h-full after:bg-gradient-to-l after:from-white after:to-transparent after:z-10"
-      >
+      <!-- Tarjetas glass en la base del hero -->
+      <div class="hero-cards">
+        <div class="glass-card">
+          <div class="card-icon" v-html="icons.accesoVitalicio" />
+          <h3 class="card-title">Acceso Vitalicio</h3>
+          <p class="card-text">Pago único. Actualizaciones gratis para siempre.</p>
+        </div>
+        <div class="glass-card">
+          <div class="card-icon" v-html="icons.descargable" />
+          <h3 class="card-title">100% Descargable</h3>
+          <p class="card-text">Estudia offline y a tu propio ritmo.</p>
+        </div>
+        <div class="glass-card">
+          <div class="card-icon" v-html="icons.clubDescuentos" />
+          <h3 class="card-title">Club de Descuentos</h3>
+          <p class="card-text">50% OFF en todas tus próximas compras.</p>
+        </div>
+        <div class="glass-card">
+          <div class="card-icon" v-html="icons.trabajaYGana" />
+          <h3 class="card-title">Trabaja y Gana</h3>
+          <p class="card-text">Comisiones del 60% por cada venta referida.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         CARRUSEL DE MARCAS
+    ════════════════════════════════════════════ -->
+    <div class="logos-section">
+      <p class="logos-label">Contenido certificado de las mejores plataformas</p>
+      <div class="logos-track-outer">
         <div
-          class="flex gap-20 items-center home-logos-marquee"
+          ref="logosMarqueeRef"
+          class="home-logos-marquee logos-track"
+          :class="logosDragging ? 'cursor-grabbing' : 'cursor-grab'"
           :style="{ '--home-logos-duration': logosAnimationDuration + 's' }"
+          @mousedown="onLogosMouseDown"
         >
           <template v-for="n in 3" :key="n">
-            <div class="flex-shrink-0 opacity-100 transition-opacity">
-              <img class="h-7 md:h-8 object-contain" src="../assets/home/coursera.png" alt="Coursera" />
+            <div
+              class="logo-item"
+              :class="logosHoveredIdx !== null && logosHoveredIdx !== 0 ? 'logo-dim' : ''"
+              @mouseenter="logosHoveredIdx = 0"
+              @mouseleave="logosHoveredIdx = null"
+            >
+              <img class="logo-img pointer-events-none select-none" src="../assets/home/coursera.png" alt="Coursera" draggable="false" />
             </div>
-            <div class="flex-shrink-0">
-              <img class="h-7 md:h-8 object-contain" src="../assets/home/edx.png" alt="edX" />
+            <div
+              class="logo-item"
+              :class="logosHoveredIdx !== null && logosHoveredIdx !== 1 ? 'logo-dim' : ''"
+              @mouseenter="logosHoveredIdx = 1"
+              @mouseleave="logosHoveredIdx = null"
+            >
+              <img class="logo-img pointer-events-none select-none" src="../assets/home/edx.png" alt="edX" draggable="false" />
             </div>
-            <div class="flex-shrink-0">
-              <img class="h-7 md:h-8 object-contain" src="../assets/home/hotmart.png" alt="Hotmart" />
+            <div
+              class="logo-item"
+              :class="logosHoveredIdx !== null && logosHoveredIdx !== 2 ? 'logo-dim' : ''"
+              @mouseenter="logosHoveredIdx = 2"
+              @mouseleave="logosHoveredIdx = null"
+            >
+              <img class="logo-img pointer-events-none select-none" src="../assets/home/hotmart.png" alt="Hotmart" draggable="false" />
             </div>
-            <div class="flex-shrink-0">
-              <img class="h-7 md:h-8 object-contain" src="../assets/home/platzi.png" alt="Platzi" />
+            <div
+              class="logo-item"
+              :class="logosHoveredIdx !== null && logosHoveredIdx !== 3 ? 'logo-dim' : ''"
+              @mouseenter="logosHoveredIdx = 3"
+              @mouseleave="logosHoveredIdx = null"
+            >
+              <img class="logo-img pointer-events-none select-none" src="../assets/home/platzi.png" alt="Platzi" draggable="false" />
             </div>
           </template>
         </div>
       </div>
     </div>
 
-    <!-- FAQ tarjetas (antes section_four) -->
-    <div class="mt-20 px-4 md:px-8 lg:px-20">
-      <div class="text-center text-3xl font-bold text-yellow-500 mb-10">PREGUNTAS FRECUENTES</div>
-      <div class="flex flex-col lg:flex-row justify-center items-center lg:items-stretch gap-6 lg:gap-10 py-4">
-        <div
-          v-for="(card, index) in faqCards"
-          :key="index"
-          class="flex flex-col items-center w-full max-w-sm p-6 text-center bg-white border border-gray-100 shadow-lg rounded-2xl transition-transform hover:-translate-y-1 duration-300"
-        >
-          <div class="mb-4 p-4 bg-gray-50 rounded-full">
-            <img :src="card.image" :alt="card.alt" class="object-contain" />
-          </div>
-          <h3 class="mb-3 text-2xl font-bold text-gray-900">{{ card.title }}</h3>
-          <p class="mb-6 text-lg text-gray-600 leading-relaxed flex-grow">{{ card.text }}</p>
-          <button
-            type="button"
-            class="px-8 py-2 text-lg font-medium transition-all duration-300 border-2 border-black rounded-full hover:bg-black hover:text-white focus:ring-2 focus:ring-offset-2 focus:ring-black"
-          >
-            Leer respuesta
-          </button>
-        </div>
+    <!-- ═══════════════════════════════════════════
+         FAQ
+    ════════════════════════════════════════════ -->
+    <section class="faq-section">
+      <div class="faq-header">
+        <span class="faq-label">Centro de ayuda</span>
+        <h2 class="faq-title">Preguntas frecuentes</h2>
+        <p class="faq-sub">Todo lo que necesitas saber antes de empezar.</p>
       </div>
-    </div>
-
-    <br />
-
-    <!-- Testimonios (antes section_seven) -->
-    <div class="home-testimonials-root h-[280px] w-full rounded-t-lg">
-      <div class="text-center">
-        <h3 class="text-xl font-semibold">TESTIMONIOS</h3>
-        <p class="text-sm">Encuesta realizada por WhatsApp</p>
-        <p class="font-semibold">¿Cómo te han parecido los cursos y la atención?</p>
+      <div class="faq-inner">
+        <CourseFaqSection />
       </div>
-      <div class="overflow-hidden whitespace-nowrap overflow-x-auto mt-4">
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         TESTIMONIOS
+    ════════════════════════════════════════════ -->
+    <section class="testimonials-section">
+      <div class="testimonials-header">
+        <span class="testimonials-label">Testimonios reales</span>
+        <h2 class="testimonials-title">Lo que dicen nuestros estudiantes</h2>
+        <p class="testimonials-sub">Encuesta directa por WhatsApp · Respuestas sin editar</p>
+      </div>
+      <div class="testimonials-track-outer">
         <div
           ref="testimonialScrollRef"
-          class="home-testimonials-marquee flex"
+          class="home-testimonials-marquee testimonials-track"
           :style="{ '--home-testimonials-duration': testimonialAnimationDuration + 's' }"
           @mouseenter="pauseTestimonialScroll"
           @mouseleave="resumeTestimonialScroll"
         >
-          <div class="flex gap-6">
+          <div class="testimonials-row">
             <div
               v-for="(item, index) in testimonialImages"
               :key="index"
-              class="border-2 border-white rounded-lg p-2 shadow-lg"
+              class="testimonial-card"
             >
-              <img class="home-testimonial-img h-[150px] rounded-md" :src="item.url" alt="Imagen del testimonio" />
+              <img :src="item.url" alt="Testimonio de estudiante" class="testimonial-img" />
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
     <FooterComponent />
   </div>
 </template>
 
 <style>
-@keyframes homeLogosScroll {
-  0% {
-    transform: translateX(0%);
-  }
-  100% {
-    transform: translateX(-50%);
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap');
+
+/* ═══════════════════════════════════════════════════════════
+   TOKENS CORPORATIVOS
+   --navy:   #0d1b2a  titulares, texto principal
+   --blue:   #1e40af  acento primario (corporate blue)
+   --sky:    #3b82f6  acento secundario (highlight)
+   --bg:     #f0f4ff  tinte base del gradiente hero
+   --slate:  #64748b  texto secundario
+═══════════════════════════════════════════════════════════ */
+
+/* ─── BASE ───────────────────────────────────────────────── */
+.home-root {
+  font-family: 'Inter', system-ui, sans-serif;
+  color: #0d1b2a;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   HERO
+═══════════════════════════════════════════════════════════ */
+.hero-section {
+  position: relative;
+  overflow: hidden;
+  min-height: 78vh;
+  /* Gradiente corporativo: azul tenue en la esquina sup-izq → blanco */
+  background: linear-gradient(130deg, #dbeafe 0%, #eff6ff 30%, #ffffff 62%);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* ── Olas: decoración de fondo, z1, baja opacidad ─────── */
+.hero-wave {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+  pointer-events: none;
+  z-index: 1;
+}
+.hero-wave span {
+  position: absolute;
+  width: 400vh;
+  height: 400vh;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -85%);
+}
+.hero-wave span:nth-child(1) {
+  border-radius: 45%;
+  background: rgba(30, 64, 175, 0.07);
+  animation: heroWave 25s linear infinite;
+}
+.hero-wave span:nth-child(2) {
+  border-radius: 40%;
+  background: rgba(59, 130, 246, 0.05);
+  animation: heroWave 40s linear infinite;
+}
+.hero-wave span:nth-child(3) {
+  border-radius: 42.5%;
+  background: rgba(30, 64, 175, 0.04);
+  animation: heroWave 55s linear infinite;
+}
+@keyframes heroWave {
+  from { transform: translate(-50%, -85%) rotate(0deg); }
+  to   { transform: translate(-50%, -85%) rotate(360deg); }
+}
+
+/* ── Modelo: z10, encima de todo, derecha absoluta ──────── */
+.hero-model {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 46%;
+  z-index: 10;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+}
+@media (max-width: 1023px) {
+  .hero-model { display: none; }
+}
+.hero-model-img {
+  height: 97%;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: bottom center;
+  /* Fusión suave solo en el borde inferior */
+  mask-image: linear-gradient(to bottom, black 68%, transparent 97%);
+  -webkit-mask-image: linear-gradient(to bottom, black 68%, transparent 97%);
+  /* Sombra fría que ancla la figura al gradiente del hero */
+  filter: drop-shadow(-16px 0 48px rgba(30, 64, 175, 0.14));
+}
+
+/* ── Layout texto: ocupa el 55 % izquierdo ─────────────── */
+.hero-layout {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+  padding: 1.5rem 1.5rem 0;
+}
+@media (min-width: 1024px) {
+  .hero-layout {
+    align-items: flex-start;
+    padding: 2rem 0 0 5rem;
+    max-width: 56%;
   }
 }
 
+/* ── Titular ────────────────────────────────────────────── */
+.hero-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+@media (min-width: 1024px) {
+  .hero-text {
+    align-items: flex-start;
+    text-align: left;
+  }
+}
+
+.hero-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #1e40af;
+  background: rgba(30, 64, 175, 0.08);
+  border: 1px solid rgba(30, 64, 175, 0.14);
+  border-radius: 999px;
+  padding: 0.25rem 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.hero-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: clamp(2rem, 3.6vw, 3.4rem);
+  font-weight: 900;
+  color: #0d1b2a;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+.hero-title-em {
+  font-style: italic;
+  font-weight: 300;
+  color: #1e40af;
+}
+.hero-title-strong {
+  font-weight: 900;
+  background: linear-gradient(90deg, #1e40af 0%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-sub {
+  margin-top: 0.9rem;
+  font-size: 0.82rem;
+  color: #64748b;
+  letter-spacing: 0.03em;
+}
+
+/* ── Tarjetas ───────────────────────────────────────────── */
+.hero-cards {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.8rem 1.25rem 1.4rem;
+}
+
+.glass-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 186px;
+  padding: 1rem 0.9rem;
+  gap: 0.45rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(30, 64, 175, 0.09);
+  box-shadow: 0 2px 14px rgba(30, 64, 175, 0.08), 0 1px 3px rgba(0,0,0,0.04);
+  transition: transform 0.28s ease, box-shadow 0.28s ease;
+}
+.glass-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 32px rgba(30, 64, 175, 0.14), 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 11px;
+  background: rgba(30, 64, 175, 0.07);
+}
+
+.card-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0d1b2a;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.card-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.7rem;
+  color: #64748b;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SECCIÓN LOGOS
+═══════════════════════════════════════════════════════════ */
+.logos-section {
+  background: #ffffff;
+  padding: 1.2rem 0 1rem;
+  border-top: 1px solid rgba(30, 64, 175, 0.06);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.logos-label {
+  text-align: center;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin-bottom: 0.85rem;
+}
+
+.logos-track-outer {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+.logos-track-outer::before,
+.logos-track-outer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 8rem;
+  height: 100%;
+  z-index: 10;
+  pointer-events: none;
+}
+.logos-track-outer::before {
+  left: 0;
+  background: linear-gradient(to right, #ffffff, transparent);
+}
+.logos-track-outer::after {
+  right: 0;
+  background: linear-gradient(to left, #ffffff, transparent);
+}
+
+.logos-track {
+  display: flex;
+  gap: 4rem;
+  align-items: center;
+  padding: 0.4rem 0;
+}
+
+.logo-item {
+  flex-shrink: 0;
+  transition: opacity 0.5s ease;
+}
+.logo-dim { opacity: 0.12; }
+
+.logo-img {
+  height: 1.6rem;
+  object-fit: contain;
+  filter: grayscale(100%);
+  opacity: 0.55;
+  transition: filter 0.4s ease, opacity 0.4s ease;
+}
+.logo-item:not(.logo-dim) .logo-img,
+.logo-item:hover .logo-img {
+  filter: grayscale(0%);
+  opacity: 1;
+}
+
+/* ── Marquee ─────────────────────────────── */
+@keyframes homeLogosScroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
 .home-logos-marquee {
   animation: homeLogosScroll var(--home-logos-duration, 40s) linear infinite;
-  display: flex;
   width: max-content;
 }
 
+/* ═══════════════════════════════════════════════════════════
+   FAQ
+═══════════════════════════════════════════════════════════ */
+.faq-section {
+  background: #f0f4ff;
+  padding: 4rem 1.5rem 4.5rem;
+}
+
+.faq-header {
+  text-align: center;
+  max-width: 560px;
+  margin: 0 auto 2.5rem;
+}
+
+.faq-label {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #1e40af;
+  background: rgba(30, 64, 175, 0.09);
+  border: 1px solid rgba(30, 64, 175, 0.16);
+  border-radius: 999px;
+  padding: 0.24rem 0.8rem;
+  margin-bottom: 0.8rem;
+}
+
+.faq-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: clamp(1.7rem, 2.8vw, 2.4rem);
+  font-weight: 800;
+  color: #0d1b2a;
+  letter-spacing: -0.025em;
+  margin: 0 0 0.55rem;
+}
+
+.faq-sub {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.faq-inner {
+  max-width: 860px;
+  margin: 0 auto;
+}
+@media (min-width: 768px) {
+  .faq-section { padding: 4rem 2.5rem 4.5rem; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TESTIMONIOS
+═══════════════════════════════════════════════════════════ */
+.testimonials-section {
+  background: #0d1b2a;
+  padding: 4rem 0 4rem;
+  overflow: hidden;
+}
+
+.testimonials-header {
+  text-align: center;
+  padding: 0 1.5rem;
+  margin-bottom: 2.75rem;
+}
+
+.testimonials-label {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #60a5fa;
+  background: rgba(96, 165, 250, 0.1);
+  border: 1px solid rgba(96, 165, 250, 0.18);
+  border-radius: 999px;
+  padding: 0.24rem 0.8rem;
+  margin-bottom: 0.85rem;
+}
+
+.testimonials-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: clamp(1.7rem, 2.8vw, 2.4rem);
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.025em;
+  margin: 0 0 0.5rem;
+}
+
+.testimonials-sub {
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0;
+}
+
+.testimonials-track-outer {
+  position: relative;
+  overflow: hidden;
+}
+.testimonials-track-outer::before,
+.testimonials-track-outer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 7rem;
+  height: 100%;
+  z-index: 10;
+  pointer-events: none;
+}
+.testimonials-track-outer::before {
+  left: 0;
+  background: linear-gradient(to right, #0d1b2a, transparent);
+}
+.testimonials-track-outer::after {
+  right: 0;
+  background: linear-gradient(to left, #0d1b2a, transparent);
+}
+
+.testimonials-track {
+  display: flex;
+}
+
+.testimonials-row {
+  display: flex;
+  gap: 1rem;
+  padding: 0.5rem 0;
+}
+
+.testimonial-card {
+  flex-shrink: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.testimonial-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+}
+
+.testimonial-img {
+  height: 155px;
+  width: auto;
+  display: block;
+  object-fit: cover;
+}
+
+/* ── Scrollbar ───────────────────────────── */
 @media (pointer: fine) {
-  .overflow-hidden::-webkit-scrollbar {
-    display: none;
-  }
+  .logos-track-outer::-webkit-scrollbar { display: none; }
 }
 </style>
 
 <style scoped>
 @keyframes homeTestimonialsScroll {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
-
 .home-testimonials-marquee {
   width: max-content;
   animation: homeTestimonialsScroll var(--home-testimonials-duration, 50s) linear infinite;
-  display: flex;
-  white-space: nowrap;
-}
-
-.home-testimonials-root {
-  background-image: linear-gradient(to right, #38bdf8, #0ea5e9);
-}
-
-.home-testimonial-img {
-  transition: transform 0.3s ease-in-out;
-}
-
-.home-testimonial-img:hover {
-  transform: scale(1.05);
 }
 </style>

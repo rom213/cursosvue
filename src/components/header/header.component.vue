@@ -19,9 +19,7 @@ const showPoverMore = ref(false);
 const showCart = ref(false)
 
 const userStore = authStore()
-
 const carSto = cartStore()
-
 const router = useRouter();
 const route = useRoute();
 
@@ -38,187 +36,364 @@ watch(() => route.path, () => {
 });
 
 const hadleCartData = () => {
-    if (window.innerWidth > 768) {
-        hadleShowCart();
-        return;
-    }
-
+    if (window.innerWidth > 768) { hadleShowCart(); return; }
     router.push({ name: 'cart' })
 }
-
-const hadleShowCart = () => {
-    showCart.value = !showCart.value
-}
-
-
-
+const hadleShowCart = () => { showCart.value = !showCart.value }
 </script>
+
 <template>
-    <div class="fixed top-0 left-0 w-full z-50 bg-white shadow-md backdrop-blur-md bg-opacity-95 transition-all duration-300">
-        <!-- Top Bar -->
-        <div class="w-full">
-            <div class="flex justify-between items-center h-16 px-12">
-                <!-- Logo -->
-                <div class="flex items-center gap-2">
-                <RouterLink :to="{ name: 'home' }" class="flex items-center gap-4">
-                <img src="../../assets/home/logo_cursos.png" alt="Logo" class="h-10 w-auto">
+    <!-- ═══ BARRA ÚNICA ═══════════════════════════════════ -->
+    <header class="header-root">
+        <div class="header-inner">
 
-                <span class="font-bold text-xl md:text-2xl tracking-tight text-gray-900 hover:text-blue-600 transition-colors cursor-pointer">
-                    CURSOS ESTUDIA Y TRABAJA
-                </span>
+            <!-- ── Logo + Marca ──────────────────────────── -->
+            <RouterLink :to="{ name: 'home' }" class="header-brand">
+                <img src="../../assets/home/logo_cursos.png" alt="Logo" class="header-logo" />
+                <span class="header-brand-name">CURSOS ESTUDIA Y TRABAJA</span>
+            </RouterLink>
+
+            <!-- ── Navegación central ─────────────────────── -->
+            <nav class="header-nav">
+                <RouterLink :to="{ name: 'home' }" class="nav-link" :class="{ 'nav-active': positionNavigate === 0 }">
+                    <span class="nav-icon" v-html="icons.home" />
+                    <span>Inicio</span>
                 </RouterLink>
+                <RouterLink :to="{ name: 'courses' }" class="nav-link" :class="{ 'nav-active': positionNavigate === 1 }">
+                    <span class="nav-icon" v-html="icons.courses" />
+                    <span>Cursos</span>
+                </RouterLink>
+                <RouterLink :to="{ name: 'monetizar' }" class="nav-link" :class="{ 'nav-active': positionNavigate === 2 }">
+                    <span class="nav-icon" v-html="icons.monetizar" />
+                    <span>Monetizar</span>
+                </RouterLink>
+                <RouterLink
+                    v-if="userStore.getProfile()?.user?.is_bought"
+                    :to="{ name: 'mycourses' }"
+                    class="nav-link"
+                    :class="{ 'nav-active': positionNavigate === 3 }"
+                >
+                    <span class="nav-icon" v-html="icons.misCursos" />
+                    <span>Mis Cursos</span>
+                </RouterLink>
+            </nav>
+
+            <!-- ── Acciones derecha ───────────────────────── -->
+            <div class="header-right">
+                <!-- Buscador -->
+                <HeaderSearchComponent />
+
+                <!-- Auth: no logueado → botón Google integrado -->
+                <GoogleLogin v-if="userStore.getProfile() == null" :callback="handleLoginSuccess">
+                    <button class="btn-auth" type="button">
+                        <!-- G icon -->
+                        <svg width="15" height="15" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                            <path d="M17.64 9.205c0-.639-.057-1.252-.164-1.841H9v3.481h4.844a4.14 4.14 0 01-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
+                            <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853"/>
+                            <path d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+                            <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+                        </svg>
+                        Iniciar sesión
+                    </button>
+                </GoogleLogin>
+
+                <!-- Auth: logueado → avatar + dropdown -->
+                <div v-if="userStore.getProfile() != null" class="profile-wrap">
+                    <button
+                        class="profile-btn"
+                        type="button"
+                        @click="showPoverMore = !showPoverMore"
+                    >
+                        <img
+                            class="profile-avatar"
+                            :src="userStore.getProfile()?.user?.picture"
+                            alt="Perfil"
+                        />
+                        <span class="profile-name">{{ userStore.getProfile()?.user?.given_name }}</span>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <div v-if="showPoverMore" class="profile-menu">
+                        <div @click="showPoverMore = false" class="fixed inset-0 z-[-1]" />
+                        <div class="profile-menu-header">
+                            <p class="profile-menu-name">{{ userStore.getProfile()?.user?.name }}</p>
+                            <p class="profile-menu-email">{{ userStore.getProfile()?.user?.email }}</p>
+                        </div>
+                        <RouterLink :to="{ name: 'mycourses' }" class="profile-menu-item" @click="showPoverMore = false">
+                            <span class="w-4 h-4" v-html="icons.myCourses" />
+                            Mis Cursos
+                        </RouterLink>
+                        <RouterLink :to="{ name: 'config' }" class="profile-menu-item" @click="showPoverMore = false">
+                            <span class="w-4 h-4" v-html="icons.config" />
+                            Configuración
+                        </RouterLink>
+                    </div>
                 </div>
 
-                <!-- Right Side: User & Cart -->
-                <div class="flex items-center gap-4">
-                     <!-- Login Button -->
-                    <div v-if="userStore.getProfile() == null">
-                        <!-- @ts-ignore -->
-                        <GoogleLogin :callback="handleLoginSuccess" />
-                    </div>
-                    <!-- <RouterLink v-if="userStore.getProfile() == null" :to="{ name: 'login' }">
-                        <button class="bg-[#FFBF2B] hover:bg-[#ffcf5c] text-slate-900 font-medium py-2 px-4 rounded-full shadow-sm hover:shadow-md transition-all duration-200 text-sm md:text-base">
-                            INICIAR SESION
-                        </button>
-                    </RouterLink> -->
-
-                    <!-- User Profile Dropdown -->
-                    <div v-if="userStore.getProfile() != null" class="relative">
-                         <div 
-                            class="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-1.5 rounded-full transition-colors border border-transparent hover:border-gray-200"
-                            @click="() => { showPoverMore = !showPoverMore }">
-                             <img class="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover shadow-sm" :src="userStore.getProfile()?.user?.picture" alt="User Profile">
-                             <span class="hidden md:block font-medium text-gray-700 text-sm md:text-base pr-2 truncate max-w-[150px]">
-                                {{ userStore.getProfile()?.user?.given_name }}
-                             </span>
-                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500 hidden md:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                             </svg>
-                        </div>
-
-                         <!-- Popover Menu -->
-                        <div v-if="showPoverMore"
-                            class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl ring-1 ring-black ring-opacity-5 py-1 z-50 transform origin-top-right transition-all">
-                             <div @click="() => showPoverMore = false" class="fixed inset-0 z-[-1]" ></div> <!-- Click backdrop to close -->
-                            <div class="px-4 py-3 border-b border-gray-100">
-                                <p class="text-sm font-medium text-gray-900 truncate">{{userStore.getProfile()?.user?.name}}</p>
-                                <p class="text-xs text-gray-500 truncate">{{userStore.getProfile()?.user?.email}}</p>
-                            </div>
-                            <RouterLink :to="{ name: 'mycourses' }" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors gap-3" @click="showPoverMore = false">
-                                <div class="w-5 h-5 text-gray-500" v-html="icons.myCourses"></div>
-                                <span>Mis Cursos</span>
-                            </RouterLink>
-                            <RouterLink :to="{ name: 'config' }" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors gap-3" @click="showPoverMore = false">
-                                <div class="w-5 h-5 text-gray-500" v-html="icons.config"></div>
-                                <span>Configuración</span>
-                            </RouterLink>
-                             <!-- Add logout or other links here if needed -->
-                        </div>
-                    </div>
-                </div>
+                <!-- Carrito -->
+                <button class="cart-btn" type="button" aria-label="Carrito" @click="hadleCartData()">
+                    <span class="cart-icon" v-html="icons.cart" />
+                    <span v-if="carSto.countCart > 0" class="cart-badge">{{ carSto.countCart }}</span>
+                </button>
             </div>
         </div>
+    </header>
 
-        <!-- Navigation & Search Bar (Bottom Row) -->
-        <div class="border-t border-gray-100 bg-gray-50/50">
-             <div class="w-full px-12">
-                <div class="flex flex-col md:flex-row justify-between items-center py-2 gap-4 px-8">
-                     <!-- Navigation Links -->
-                    <div class="flex gap-6 md:gap-8 w-full md:w-auto justify-center md:justify-start">
-                        <RouterLink :to="{ name: 'home' }" 
-                            class="group flex flex-col items-center justify-center py-1 px-2 relative font-medium text-gray-600 hover:text-blue-600 transition-colors"
-                            :class="{ 'text-blue-600': positionNavigate === 0 }">
-                            <span class="" v-html="icons.home"></span>
-                            <span class="text-xs md:text-sm">Inicio</span>
-                             <span class="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 transform scale-x-0 transition-transform group-hover:scale-x-100"
-                                  :class="{'scale-x-100': positionNavigate === 0}"></span>
-                        </RouterLink>
+    <!-- Espaciador para la barra fija -->
+    <div style="height: 3.5rem;"></div>
 
-                        <RouterLink :to="{ name: 'courses' }"
-                             class="group flex flex-col items-center py-1 px-2 relative font-medium text-gray-600 hover:text-blue-600 transition-colors"
-                             :class="{ 'text-blue-600': positionNavigate === 1 }">
-                             <span class="" v-html="icons.courses"></span>
-                             <span class="text-xs md:text-sm">Cursos</span>
-                             <span class="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 transform scale-x-0 transition-transform group-hover:scale-x-100"
-                                   :class="{'scale-x-100': positionNavigate === 1}"></span>
-                        </RouterLink>
-
-                        <RouterLink :to="{ name: 'monetizar' }"
-                             class="group flex flex-col items-center py-1 px-2 relative font-medium text-gray-600 hover:text-blue-600 transition-colors"
-                             :class="{ 'text-blue-600': positionNavigate === 2 }">
-                             <span class="" v-html="icons.monetizar"></span>
-                             <span class="text-xs md:text-sm">Monetizar</span>
-                             <span class="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 transform scale-x-0 transition-transform group-hover:scale-x-100"
-                                   :class="{'scale-x-100': positionNavigate === 2}"></span>
-                        </RouterLink>
-                        <!-- work -->
-                        <RouterLink v-if="userStore.getProfile()?.user?.is_bought"  :to="{ name: 'mycourses' }"
-                             class="group flex flex-col items-center py-1 px-2 relative font-medium text-gray-600 hover:text-blue-600 transition-colors"
-                             :class="{ 'text-blue-600': positionNavigate === 3 }">
-                             <span class="" v-html="icons.misCursos"></span>
-                             <span class="text-xs md:text-sm">Mis Cursos</span>
-                             <span class="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 transform scale-x-0 transition-transform group-hover:scale-x-100"
-                                   :class="{'scale-x-100': positionNavigate === 3}"></span>
-                        </RouterLink>
-                    </div>
-
-                    <!-- Search & Cart & Register -->
-                    <div class="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
-                        
-                         <!-- Register Button (if not logged in) -->
-                         <div v-if="userStore.getProfile() === null" class="hidden md:block">
-                            <router-link :to="{ name: 'register' }">
-                                <button class="bg-[#FFBF2B] hover:bg-[#ffcf5c] text-slate-900 font-medium py-1.5 px-4 rounded-full shadow-sm hover:shadow-md transition-all text-sm">
-                                    REGISTRARME
-                                </button>
-                            </router-link>
-                        </div>
-                        
-                        <!-- Search Bar -->
-                        <div class="flex-grow md:flex-grow-0">
-                            <HeaderSearchComponent />
-                        </div>
-
-                         <!-- Cart Icon -->
-                         <div class="relative group cursor-pointer p-2 hover:bg-gray-200 rounded-full transition-colors" @click="hadleCartData()">
-                            <div class="w-6 h-6 text-gray-700" v-html="icons.cart"></div>
-                            <div v-if="carSto.countCart !== 0"
-                                class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-white shadow-sm">
-                                {{ carSto.countCart }}
-                            </div>
-                         </div>
-                    </div>
-                </div>
-             </div>
-        </div>
-    </div>
-    
-    <!-- Spacer to prevent content from being hidden behind fixed header -->
-    <div class="h-32 md:h-28"></div>
-
-    <!-- Cart Sidebar -->
-    <div v-if="showCart" class="fixed inset-0 z-[60] overflow-hidden" aria-labelledby="slide-over-title" role="dialog" aria-modal="true">
+    <!-- ═══ SIDEBAR CARRITO ══════════════════════════════ -->
+    <div v-if="showCart" class="fixed inset-0 z-[60] overflow-hidden" role="dialog" aria-modal="true">
         <div class="absolute inset-0 overflow-hidden">
-            <div class="absolute inset-0 bg-opacity-75 transition-opacity" @click="hadleShowCart()" aria-hidden="true"></div>
-            <div class="fixed inset-y-0 right-0 max-w-full flex">
-                <div class="w-screen max-w-md transform transition ease-in-out duration-500 sm:duration-700"
-                    :class="showCart ? 'translate-x-0' : 'translate-x-full'">
-                    <div class="h-full flex flex-col bg-white shadow-xl overflow-y-scroll">
-                        <div class="p-4 flex justify-between items-center border-b border-gray-200">
-                             <h2 class="text-lg font-medium text-gray-900">Tu Carrito</h2>
-                             <button @click="hadleShowCart()" class="text-gray-400 hover:text-gray-500 w-6 h-6">
-                                 <span class="sr-only">Cerrar panel</span>
-                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                 </svg>
-                             </button>
-                        </div>
-                        <div class="flex-1 p-4">
-                             <CartPage />
-                        </div>
+            <div class="absolute inset-0 bg-black/30" @click="hadleShowCart()" />
+            <div class="fixed inset-y-0 right-0 flex max-w-full">
+                <div class="w-screen max-w-md bg-white shadow-2xl flex flex-col h-full">
+                    <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+                        <h2 class="text-base font-semibold text-slate-900">Tu Carrito</h2>
+                        <button @click="hadleShowCart()" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-4">
+                        <CartPage />
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </template>
+
+<style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* ══ BARRA PRINCIPAL ══════════════════════════════════════ */
+.header-root {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    z-index: 50;
+    height: 3.5rem;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(30, 64, 175, 0.08);
+    box-shadow: 0 1px 12px rgba(13, 27, 42, 0.06);
+    font-family: 'Inter', system-ui, sans-serif;
+}
+
+.header-inner {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding: 0 1.5rem 0 1.25rem;
+    gap: 1.5rem;
+    max-width: 1440px;
+    margin: 0 auto;
+}
+
+/* ── Marca ─────────────────────────────────────────────── */
+.header-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    text-decoration: none;
+    flex-shrink: 0;
+}
+.header-logo { height: 1.9rem; width: auto; }
+.header-brand-name {
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: #0d1b2a;
+    white-space: nowrap;
+}
+@media (max-width: 768px) { .header-brand-name { display: none; } }
+
+/* ── Navegación ────────────────────────────────────────── */
+.header-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+    flex: 1;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.32rem;
+    padding: 0.32rem 0.6rem;
+    border-radius: 7px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #64748b;
+    text-decoration: none;
+    transition: color 0.18s, background 0.18s;
+    white-space: nowrap;
+}
+.nav-icon {
+    display: flex;
+    align-items: center;
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+}
+.nav-icon :deep(svg) { width: 15px; height: 15px; }
+
+.nav-link:hover { color: #1e40af; background: rgba(30, 64, 175, 0.06); }
+.nav-active     { color: #1e40af; font-weight: 600; background: rgba(30, 64, 175, 0.07); }
+
+/* ── Zona derecha ──────────────────────────────────────── */
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-shrink: 0;
+}
+
+/* ── Botón auth (Google integrado) ─────────────────────── */
+.btn-auth {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: #1e40af;
+    color: #ffffff;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.4rem 0.9rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    white-space: nowrap;
+    letter-spacing: 0.01em;
+    transition: background 0.18s, transform 0.15s, box-shadow 0.18s;
+    box-shadow: 0 2px 8px rgba(30, 64, 175, 0.28);
+}
+.btn-auth:hover {
+    background: #1e3a8a;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(30, 64, 175, 0.38);
+}
+.btn-auth:active { transform: translateY(0); }
+
+/* ── Perfil ─────────────────────────────────────────────── */
+.profile-wrap { position: relative; }
+
+.profile-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.25rem 0.55rem 0.25rem 0.3rem;
+    border-radius: 9999px;
+    border: 1px solid rgba(30, 64, 175, 0.12);
+    background: transparent;
+    cursor: pointer;
+    transition: background 0.18s, border-color 0.18s;
+    color: #475569;
+}
+.profile-btn:hover {
+    background: rgba(30, 64, 175, 0.05);
+    border-color: rgba(30, 64, 175, 0.22);
+}
+.profile-avatar {
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    object-fit: cover;
+}
+.profile-name {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #0d1b2a;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+@media (max-width: 768px) { .profile-name { display: none; } }
+
+.profile-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.4rem);
+    width: 220px;
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid rgba(30, 64, 175, 0.09);
+    box-shadow: 0 8px 32px rgba(13, 27, 42, 0.12), 0 2px 8px rgba(13, 27, 42, 0.06);
+    overflow: hidden;
+    z-index: 100;
+}
+.profile-menu-header {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid rgba(30, 64, 175, 0.06);
+    background: #f8faff;
+}
+.profile-menu-name  { font-size: 0.82rem; font-weight: 600; color: #0d1b2a; margin: 0; }
+.profile-menu-email { font-size: 0.72rem; color: #64748b; margin: 0.1rem 0 0; }
+
+.profile-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.65rem 1rem;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: #475569;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+}
+.profile-menu-item:hover { background: #f0f4ff; color: #1e40af; }
+
+/* ── Carrito ─────────────────────────────────────────────── */
+.cart-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 8px;
+    border: 1px solid rgba(30, 64, 175, 0.1);
+    background: transparent;
+    color: #475569;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.18s, color 0.18s, border-color 0.18s;
+}
+.cart-icon {
+    display: flex;
+    align-items: center;
+    width: 17px;
+    height: 17px;
+}
+.cart-icon :deep(svg) { width: 17px; height: 17px; }
+
+.cart-btn:hover {
+    background: rgba(30, 64, 175, 0.06);
+    color: #1e40af;
+    border-color: rgba(30, 64, 175, 0.2);
+}
+
+.cart-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #dc2626;
+    color: #fff;
+    font-size: 0.55rem;
+    font-weight: 700;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    border: 1.5px solid #fff;
+}
+</style>

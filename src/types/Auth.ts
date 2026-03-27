@@ -1,5 +1,7 @@
 export interface AuthResponse {
   success: boolean;
+  /** JWT del backend (solo en respuesta de verify-token; persistido en localStorage) */
+  token?: string;
   user?: {
     google_id: string;
     email: string;

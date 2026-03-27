@@ -197,8 +197,8 @@ const handleClickOutside = () => {
     position: absolute;
     top: calc(100% + 8px);
     left: 0;
-    width: 100%;
-    min-width: 380px;
+    right: 0;
+    width: auto;
     background: white;
     border-radius: 1rem;
     box-shadow:
@@ -207,5 +207,11 @@ const handleClickOutside = () => {
     border: 1px solid rgba(99,102,241,0.08);
     z-index: 50;
     overflow: hidden;
+}
+@media (min-width: 768px) {
+    .search-dropdown {
+        right: auto;
+        min-width: 380px;
+    }
 }
 </style>

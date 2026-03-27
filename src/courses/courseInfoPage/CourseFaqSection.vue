@@ -88,6 +88,17 @@ const totalPreguntasVisibles = computed(() =>
 
 const busquedaActiva = computed(() => searchTokens(searchTerm.value).length > 0);
 
+const showAll = ref(false);
+
+const categoriasVisibles = computed(() => {
+  if (busquedaActiva.value || showAll.value) return categoriasFiltradas.value;
+  return categoriasFiltradas.value.slice(0, 3);
+});
+
+const hayMas = computed(() =>
+  !busquedaActiva.value && !showAll.value && categoriasFiltradas.value.length > 3,
+);
+
 watch(searchTerm, () => {
   openCategoryIndex.value = null;
   openQuestionKey.value = null;
@@ -377,7 +388,7 @@ const sugerenciasBusqueda = [
     <!-- Lista de temas -->
     <div v-else class="space-y-3">
       <div
-        v-for="{ cat, index: catIndex } in categoriasFiltradas"
+        v-for="{ cat, index: catIndex } in categoriasVisibles"
         :key="cat.categoria + catIndex"
         class="group overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm ring-1 ring-slate-100/80 transition hover:shadow-md"
         :class="paletteForIndex(catIndex).ring"
@@ -685,6 +696,24 @@ const sugerenciasBusqueda = [
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Botón ver más / ver menos -->
+      <div v-if="hayMas || showAll" class="flex justify-center pt-1">
+        <button
+          type="button"
+          class="group flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 shadow-sm transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
+          @click="showAll = !showAll"
+        >
+          <span>{{ showAll ? 'Ver menos' : `Ver ${categoriasFiltradas.length - 3} temas más` }}</span>
+          <svg
+            class="h-4 w-4 transition-transform duration-300"
+            :class="{ 'rotate-180': showAll }"
+            fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
       </div>
     </div>
   </div>

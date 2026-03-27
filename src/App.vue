@@ -67,7 +67,7 @@ watch(() => store.profile, () => {
 <template>
   <div class="h-screen bg-[#F9F9F9]">
     <HeaderComponent v-if="$route.meta.showHeader" />
-    <div :class="{ 'pt-5': $route.meta.showHeader }">
+    <div :class="{ 'pt-0': $route.meta.showHeader }">
       <div class="opacity-0 absolute top-0 left-0" >
         <!-- @ts-ignore -->
         <GoogleLogin :callback="callback" prompt auto-login />

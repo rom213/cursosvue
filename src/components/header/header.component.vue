@@ -2,7 +2,7 @@
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 import { authStore } from '../../store/AuthStore';
 import { cartStore } from '../../store/CartStore';
-import { ref, watch } from 'vue';
+import { ref, computed } from 'vue';
 import HeaderSearchComponent from './header.search.component.vue';
 import CartPage from '../../cart/cart.page.vue';
 import { icons } from './headerIcons';
@@ -14,7 +14,6 @@ const handleLoginSuccess = async (response: any) => {
     userStore.setProfile(ser)
 }
 
-const positionNavigate = ref(0)
 const showPoverMore = ref(false);
 const showCart = ref(false)
 
@@ -23,16 +22,12 @@ const carSto = cartStore()
 const router = useRouter();
 const route = useRoute();
 
-watch(() => route.path, () => {
-    if (route.name === 'home' || route.path === '/') {
-        positionNavigate.value = 0;
-    } else if (route.name === 'courses' || route.path === '/courses') {
-        positionNavigate.value = 1;
-    } else if (route.name === 'monetizar' || route.path === '/monetizar') {
-        positionNavigate.value = 2;
-    } else if (route.name === 'mycourses') {
-        positionNavigate.value = 3;
-    }
+const positionNavigate = computed(() => {
+    if (route.name === 'home' || route.path === '/') return 0;
+    if (route.path.startsWith('/courses') || route.name === 'courses') return 1;
+    if (route.path.startsWith('/monetizar') || route.name === 'monetizar') return 2;
+    if (route.name === 'mycourses') return 3;
+    return -1;
 });
 
 const hadleCartData = () => {
@@ -43,7 +38,7 @@ const hadleShowCart = () => { showCart.value = !showCart.value }
 </script>
 
 <template>
-    <!-- ═══ BARRA ÚNICA ═══════════════════════════════════ -->
+    <!-- ═══ BARRA PRINCIPAL ═══════════════════════════════ -->
     <header class="header-root">
         <div class="header-inner">
 
@@ -57,15 +52,15 @@ const hadleShowCart = () => { showCart.value = !showCart.value }
             <nav class="header-nav">
                 <RouterLink :to="{ name: 'home' }" class="nav-link" :class="{ 'nav-active': positionNavigate === 0 }">
                     <span class="nav-icon" v-html="icons.home" />
-                    <span>Inicio</span>
+                    <span class="nav-label">Inicio</span>
                 </RouterLink>
                 <RouterLink :to="{ name: 'courses' }" class="nav-link" :class="{ 'nav-active': positionNavigate === 1 }">
                     <span class="nav-icon" v-html="icons.courses" />
-                    <span>Cursos</span>
+                    <span class="nav-label">Cursos</span>
                 </RouterLink>
                 <RouterLink :to="{ name: 'monetizar' }" class="nav-link" :class="{ 'nav-active': positionNavigate === 2 }">
                     <span class="nav-icon" v-html="icons.monetizar" />
-                    <span>Monetizar</span>
+                    <span class="nav-label">Monetizar</span>
                 </RouterLink>
                 <RouterLink
                     v-if="userStore.getProfile()?.user?.is_bought"
@@ -74,26 +69,27 @@ const hadleShowCart = () => { showCart.value = !showCart.value }
                     :class="{ 'nav-active': positionNavigate === 3 }"
                 >
                     <span class="nav-icon" v-html="icons.misCursos" />
-                    <span>Mis Cursos</span>
+                    <span class="nav-label">Mis Cursos</span>
                 </RouterLink>
             </nav>
 
             <!-- ── Acciones derecha ───────────────────────── -->
             <div class="header-right">
-                <!-- Buscador -->
-                <HeaderSearchComponent />
+                <!-- Buscador (solo en tablet/desktop) -->
+                <div class="search-desktop">
+                    <HeaderSearchComponent />
+                </div>
 
                 <!-- Auth: no logueado → botón Google integrado -->
                 <GoogleLogin v-if="userStore.getProfile() == null" :callback="handleLoginSuccess">
                     <button class="btn-auth" type="button">
-                        <!-- G icon -->
                         <svg width="15" height="15" viewBox="0 0 18 18" fill="none" aria-hidden="true">
                             <path d="M17.64 9.205c0-.639-.057-1.252-.164-1.841H9v3.481h4.844a4.14 4.14 0 01-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
                             <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853"/>
                             <path d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
                             <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
                         </svg>
-                        Iniciar sesión
+                        <span class="btn-auth-label">Iniciar sesión</span>
                     </button>
                 </GoogleLogin>
 
@@ -139,10 +135,15 @@ const hadleShowCart = () => { showCart.value = !showCart.value }
                 </button>
             </div>
         </div>
+
+        <!-- ── Buscador mobile (segunda fila, solo en < 768px) ── -->
+        <div class="mobile-search-bar">
+            <HeaderSearchComponent />
+        </div>
     </header>
 
     <!-- Espaciador para la barra fija -->
-    <div style="height: 3.5rem;"></div>
+    <div class="header-spacer"></div>
 
     <!-- ═══ SIDEBAR CARRITO ══════════════════════════════ -->
     <div v-if="showCart" class="fixed inset-0 z-[60] overflow-hidden" role="dialog" aria-modal="true">
@@ -176,7 +177,6 @@ const hadleShowCart = () => { showCart.value = !showCart.value }
     top: 0; left: 0;
     width: 100%;
     z-index: 50;
-    height: 3.5rem;
     background: rgba(255, 255, 255, 0.96);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
@@ -188,12 +188,15 @@ const hadleShowCart = () => { showCart.value = !showCart.value }
 .header-inner {
     display: flex;
     align-items: center;
-    height: 100%;
+    height: 3.5rem;
     padding: 0 1.5rem 0 1.25rem;
     gap: 1.5rem;
     max-width: 1440px;
     margin: 0 auto;
 }
+
+/* ── Espaciador ─────────────────────────────────────────── */
+.header-spacer { height: 3.5rem; }
 
 /* ── Marca ─────────────────────────────────────────────── */
 .header-brand {
@@ -211,7 +214,6 @@ const hadleShowCart = () => { showCart.value = !showCart.value }
     color: #0d1b2a;
     white-space: nowrap;
 }
-@media (max-width: 768px) { .header-brand-name { display: none; } }
 
 /* ── Navegación ────────────────────────────────────────── */
 .header-nav {
@@ -252,9 +254,10 @@ const hadleShowCart = () => { showCart.value = !showCart.value }
     align-items: center;
     gap: 0.65rem;
     flex-shrink: 0;
+    margin-left: auto;
 }
 
-/* ── Botón auth (Google integrado) ─────────────────────── */
+/* ── Botón auth ─────────────────────────────────────────── */
 .btn-auth {
     display: flex;
     align-items: center;
@@ -314,7 +317,6 @@ const hadleShowCart = () => { showCart.value = !showCart.value }
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-@media (max-width: 768px) { .profile-name { display: none; } }
 
 .profile-menu {
     position: absolute;
@@ -368,10 +370,10 @@ const hadleShowCart = () => { showCart.value = !showCart.value }
 .cart-icon {
     display: flex;
     align-items: center;
-    width: 17px;
-    height: 17px;
+    width: 15px;
+    height: 15px;
 }
-.cart-icon :deep(svg) { width: 17px; height: 17px; }
+.cart-icon :deep(svg) { width: 15px; height: 15px; }
 
 .cart-btn:hover {
     background: rgba(30, 64, 175, 0.06);
@@ -395,5 +397,43 @@ const hadleShowCart = () => { showCart.value = !showCart.value }
     justify-content: center;
     line-height: 1;
     border: 1.5px solid #fff;
+}
+
+/* ── Buscador mobile (segunda fila) ─────────────────────── */
+.mobile-search-bar {
+    display: none;
+    padding: 0.4rem 0.75rem 0.5rem;
+    border-top: 1px solid rgba(30, 64, 175, 0.06);
+}
+
+/* ══ RESPONSIVE ═══════════════════════════════════════════ */
+
+/* Mobile (< 768px) */
+@media (max-width: 767px) {
+    .header-inner      { padding: 0 0.75rem; gap: 0.4rem; }
+    .header-nav        { flex: 1; gap: 0; }
+    .nav-label         { display: none; }
+    .nav-link          { padding: 0.5rem 0.6rem; }
+    .nav-icon            { width: 22px; height: 22px; }
+    .nav-icon :deep(svg) { width: 22px; height: 22px; }
+    .cart-icon           { width: 22px; height: 22px; }
+    .cart-icon :deep(svg){ width: 22px; height: 22px; }
+    .search-desktop    { display: none; }
+    .mobile-search-bar { display: block; }
+    .header-brand-name { display: none; }
+    .profile-name      { display: none; }
+    .btn-auth-label    { display: none; }
+    .btn-auth          { padding: 0.4rem 0.55rem; }
+    .header-spacer     { height: 7rem; }
+}
+
+/* Tablet (768px – 1023px): nav con íconos solamente */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .nav-label         { display: none; }
+    .header-brand-name { display: none; }
+    .profile-name      { display: none; }
+    .header-inner      { gap: 0.75rem; }
+    .header-nav        { gap: 0; }
+    .nav-link          { padding: 0.4rem 0.55rem; }
 }
 </style>

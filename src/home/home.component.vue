@@ -2,6 +2,7 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import FooterComponent from '../components/footer/footer.component.vue';
 import CourseFaqSection from '../courses/courseInfoPage/CourseFaqSection.vue';
+import HomeCta from '../components/cta/HomeCta.vue';
 import { icons } from './section_one/section.one.data';
 
 const logosAnimationDuration = 40;
@@ -55,8 +56,10 @@ function onLogosMouseUp() {
   el.style.animation = ''; // La clase CSS retoma el control con el delay aplicado
 }
 
-const testimonialAnimationDuration = 50;
+// ── Testimonials: CSS animation + drag override (igual que marcas) ─
+const testimonialAnimationDuration = 30;
 const testimonialScrollRef = ref<HTMLElement | null>(null);
+const testimonialDragging  = ref(false);
 
 const testimonialImages = [
   { url: 'https://firebasestorage.googleapis.com/v0/b/blog-46e71.appspot.com/o/study_and_work%2Fimage_2.jpg?alt=media&token=22bca7ef-47a6-42e4-adb2-3193a321fc86' },
@@ -70,30 +73,79 @@ const testimonialImages = [
   { url: 'https://firebasestorage.googleapis.com/v0/b/blog-46e71.appspot.com/o/study_and_work%2Fimage_9.png?alt=media&token=a8159439-8cd1-46fd-8f13-aa5032b6a6d1' },
 ];
 
-const pauseTestimonialScroll = () => {
-  if (testimonialScrollRef.value) {
-    testimonialScrollRef.value.style.animationPlayState = 'paused';
-  }
-};
+let testimonialStartX    = 0;
+let testimonialBaseOffset = 0;
+let testimonialDragOffset = 0;
 
-const resumeTestimonialScroll = () => {
-  if (testimonialScrollRef.value) {
-    testimonialScrollRef.value.style.animationPlayState = 'running';
-  }
-};
+// ── Mouse ──────────────────────────────────────────────
+function onTestimonialsMouseDown(e: MouseEvent) {
+  const el = testimonialScrollRef.value;
+  if (!el) return;
+  e.preventDefault();
+  testimonialDragging.value = true;
+  testimonialStartX     = e.clientX;
+  testimonialBaseOffset = getTranslateX(el);
+  testimonialDragOffset = testimonialBaseOffset;
+  el.style.animation = 'none';
+  el.style.transform = `translateX(${testimonialBaseOffset}px)`;
+}
+
+function onTestimonialsMouseMove(e: MouseEvent) {
+  if (!testimonialDragging.value || !testimonialScrollRef.value) return;
+  testimonialDragOffset = testimonialBaseOffset + (e.clientX - testimonialStartX);
+  testimonialScrollRef.value.style.transform = `translateX(${testimonialDragOffset}px)`;
+}
+
+function onTestimonialsMouseUp() {
+  const el = testimonialScrollRef.value;
+  if (!el || !testimonialDragging.value) return;
+  testimonialDragging.value = false;
+
+  const halfWidth = el.scrollWidth / 2;
+  let normalized  = testimonialDragOffset % halfWidth;
+  if (normalized > 0)          normalized -= halfWidth;
+  if (normalized < -halfWidth) normalized += halfWidth;
+
+  const progress = Math.abs(normalized) / halfWidth;
+  const delay    = -(progress * testimonialAnimationDuration);
+  el.style.transform = '';
+  // Escribir el animation completo de una vez evita que el browser resetee
+  // el delay cuando se restaura la clase CSS (bug de cascade en Chrome/Safari)
+  el.style.animation = `testimonialsScroll ${testimonialAnimationDuration}s ${delay}s linear infinite`;
+}
+
+// ── Touch ──────────────────────────────────────────────
+function onTestimonialsTouchStart(e: TouchEvent) {
+  const el = testimonialScrollRef.value;
+  if (!el) return;
+  testimonialDragging.value = true;
+  testimonialStartX     = e.touches[0].clientX;
+  testimonialBaseOffset = getTranslateX(el);
+  testimonialDragOffset = testimonialBaseOffset;
+  el.style.animation = 'none';
+  el.style.transform = `translateX(${testimonialBaseOffset}px)`;
+}
+
+function onTestimonialsTouchMove(e: TouchEvent) {
+  if (!testimonialDragging.value || !testimonialScrollRef.value) return;
+  testimonialDragOffset = testimonialBaseOffset + (e.touches[0].clientX - testimonialStartX);
+  testimonialScrollRef.value.style.transform = `translateX(${testimonialDragOffset}px)`;
+}
+
+function onTestimonialsTouchEnd() { onTestimonialsMouseUp(); }
 
 onMounted(() => {
-  const el = testimonialScrollRef.value;
-  if (el) {
-    el.innerHTML += el.innerHTML;
-  }
   window.addEventListener('mousemove', onLogosMouseMove);
-  window.addEventListener('mouseup', onLogosMouseUp);
+  window.addEventListener('mouseup',   onLogosMouseUp);
+  window.addEventListener('mousemove', onTestimonialsMouseMove);
+  window.addEventListener('mouseup',   onTestimonialsMouseUp);
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener('mousemove', onLogosMouseMove);
-  window.removeEventListener('mouseup', onLogosMouseUp);
+  window.removeEventListener('mouseup',   onLogosMouseUp);
+  window.removeEventListener('mousemove', onTestimonialsMouseMove);
+  window.removeEventListener('mouseup',   onTestimonialsMouseUp);
 });
 </script>
 
@@ -125,7 +177,7 @@ onBeforeUnmount(() => {
         <div class="hero-text">
           <span class="hero-label">✦ Plataforma educativa premium</span>
           <h1 class="hero-title">
-            No te damos<br>
+            No te damos
             <em class="hero-title-em">un curso,</em><br>
             te damos <strong class="hero-title-strong">miles</strong><br>
             de cursos.
@@ -211,6 +263,11 @@ onBeforeUnmount(() => {
     </div>
 
     <!-- ═══════════════════════════════════════════
+         CTA
+    ════════════════════════════════════════════ -->
+    <HomeCta />
+
+    <!-- ═══════════════════════════════════════════
          FAQ
     ════════════════════════════════════════════ -->
     <section class="faq-section">
@@ -228,30 +285,47 @@ onBeforeUnmount(() => {
          TESTIMONIOS
     ════════════════════════════════════════════ -->
     <section class="testimonials-section">
+
+      <!-- Olas decorativas -->
+      <div class="testimonials-wave" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+
+      <!-- Encabezado -->
       <div class="testimonials-header">
-        <span class="testimonials-label">Testimonios reales</span>
+        <span class="testimonials-label">✦ Testimonios reales</span>
         <h2 class="testimonials-title">Lo que dicen nuestros estudiantes</h2>
         <p class="testimonials-sub">Encuesta directa por WhatsApp · Respuestas sin editar</p>
       </div>
+
+      <!-- Carrusel draggable -->
       <div class="testimonials-track-outer">
         <div
           ref="testimonialScrollRef"
-          class="home-testimonials-marquee testimonials-track"
-          :style="{ '--home-testimonials-duration': testimonialAnimationDuration + 's' }"
-          @mouseenter="pauseTestimonialScroll"
-          @mouseleave="resumeTestimonialScroll"
+          class="testimonials-track home-testimonials-marquee"
+          :class="testimonialDragging ? 'cursor-grabbing' : 'cursor-grab'"
+          :style="{ '--testimonials-duration': testimonialAnimationDuration + 's' }"
+          @mousedown="onTestimonialsMouseDown"
+          @touchstart.passive="onTestimonialsTouchStart"
+          @touchmove.prevent="onTestimonialsTouchMove"
+          @touchend="onTestimonialsTouchEnd"
         >
-          <div class="testimonials-row">
-            <div
-              v-for="(item, index) in testimonialImages"
-              :key="index"
-              class="testimonial-card"
-            >
-              <img :src="item.url" alt="Testimonio de estudiante" class="testimonial-img" />
+          <template v-for="n in 2" :key="n">
+            <div class="testimonials-row">
+              <div
+                v-for="(item, index) in testimonialImages"
+                :key="index"
+                class="testimonial-card"
+              >
+                <img :src="item.url" alt="Testimonio de estudiante" class="testimonial-img" draggable="false" />
+              </div>
             </div>
-          </div>
+          </template>
         </div>
       </div>
+
     </section>
 
     <FooterComponent />
@@ -628,15 +702,53 @@ onBeforeUnmount(() => {
    TESTIMONIOS
 ═══════════════════════════════════════════════════════════ */
 .testimonials-section {
-  background: #0d1b2a;
-  padding: 4rem 0 4rem;
+  position: relative;
   overflow: hidden;
+  background: linear-gradient(160deg, #dbeafe 0%, #bfdbfe 40%, #93c5fd 100%);
+  padding: 3rem 0 3rem;
 }
 
+/* ── Olas ──────────────────────────────────────────────── */
+.testimonials-wave {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+.testimonials-wave span {
+  position: absolute;
+  width: 400vh;
+  height: 400vh;
+  top: -350px;
+  left: 50%;
+}
+.testimonials-wave span:nth-child(1) {
+  border-radius: 45%;
+  background: rgba(30, 64, 175, 0.08);
+  animation: testimonialsWave 30s linear infinite;
+}
+.testimonials-wave span:nth-child(2) {
+  border-radius: 40%;
+  background: rgba(255, 255, 255, 0.12);
+  animation: testimonialsWave 48s linear infinite reverse;
+}
+.testimonials-wave span:nth-child(3) {
+  border-radius: 42%;
+  background: rgba(30, 64, 175, 0.05);
+  animation: testimonialsWave 64s linear infinite;
+}
+@keyframes testimonialsWave {
+  from { transform: translate(-50%, -82%) rotate(0deg); }
+  to   { transform: translate(-50%, -82%) rotate(360deg); }
+}
+
+/* ── Encabezado ────────────────────────────────────────── */
 .testimonials-header {
+  position: relative;
+  z-index: 1;
   text-align: center;
   padding: 0 1.5rem;
-  margin-bottom: 2.75rem;
+  margin-bottom: 3rem;
 }
 
 .testimonials-label {
@@ -645,31 +757,34 @@ onBeforeUnmount(() => {
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #60a5fa;
-  background: rgba(96, 165, 250, 0.1);
-  border: 1px solid rgba(96, 165, 250, 0.18);
+  color: #1e40af;
+  background: rgba(30, 64, 175, 0.08);
+  border: 1px solid rgba(30, 64, 175, 0.14);
   border-radius: 999px;
-  padding: 0.24rem 0.8rem;
-  margin-bottom: 0.85rem;
+  padding: 0.24rem 0.9rem;
+  margin-bottom: 0.9rem;
 }
 
 .testimonials-title {
   font-family: 'Poppins', sans-serif;
   font-size: clamp(1.7rem, 2.8vw, 2.4rem);
   font-weight: 800;
-  color: #ffffff;
+  color: #0d1b2a;
   letter-spacing: -0.025em;
   margin: 0 0 0.5rem;
 }
 
 .testimonials-sub {
-  font-size: 0.82rem;
-  color: rgba(255, 255, 255, 0.4);
-  margin: 0;
+  font-size: 0.85rem;
+  color: #64748b;
+  margin: 0 0 0.85rem;
 }
 
+
+/* ── Carrusel ──────────────────────────────────────────── */
 .testimonials-track-outer {
   position: relative;
+  z-index: 1;
   overflow: hidden;
 }
 .testimonials-track-outer::before,
@@ -677,48 +792,68 @@ onBeforeUnmount(() => {
   content: '';
   position: absolute;
   top: 0;
-  width: 7rem;
+  width: 8rem;
   height: 100%;
   z-index: 10;
   pointer-events: none;
 }
 .testimonials-track-outer::before {
   left: 0;
-  background: linear-gradient(to right, #0d1b2a, transparent);
+  background: linear-gradient(to right, #dbeafe, transparent);
 }
 .testimonials-track-outer::after {
   right: 0;
-  background: linear-gradient(to left, #0d1b2a, transparent);
+  background: linear-gradient(to left, #93c5fd, transparent);
+}
+
+@keyframes testimonialsScroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.home-testimonials-marquee {
+  animation: testimonialsScroll var(--testimonials-duration, 30s) linear infinite;
+  will-change: transform;
 }
 
 .testimonials-track {
   display: flex;
+  width: max-content;
+  user-select: none;
+  touch-action: none;   /* cede el control total del gesto al JS en móvil */
+  -webkit-user-select: none;
 }
 
 .testimonials-row {
   display: flex;
+  flex-shrink: 0;       /* evita compresión del ítem dentro del flex-track */
   gap: 1rem;
-  padding: 0.5rem 0;
+  padding: 1rem 1rem 1.25rem 0; /* padding-right = gap, para que el seam sea igual */
 }
 
 .testimonial-card {
   flex-shrink: 0;
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(30, 64, 175, 0.1);
+  box-shadow:
+    0 2px 8px rgba(30, 64, 175, 0.07),
+    0 8px 28px rgba(30, 64, 175, 0.06);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background: #fff;
 }
 .testimonial-card:hover {
-  transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+  transform: translateY(-5px) scale(1.015);
+  box-shadow:
+    0 6px 20px rgba(30, 64, 175, 0.12),
+    0 18px 48px rgba(30, 64, 175, 0.1);
 }
 
 .testimonial-img {
-  height: 155px;
+  height: 170px;
   width: auto;
   display: block;
   object-fit: cover;
+  pointer-events: none;
 }
 
 /* ── Scrollbar ───────────────────────────── */
@@ -728,12 +863,6 @@ onBeforeUnmount(() => {
 </style>
 
 <style scoped>
-@keyframes homeTestimonialsScroll {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-.home-testimonials-marquee {
-  width: max-content;
-  animation: homeTestimonialsScroll var(--home-testimonials-duration, 50s) linear infinite;
-}
+.cursor-grab     { cursor: grab; }
+.cursor-grabbing { cursor: grabbing; }
 </style>

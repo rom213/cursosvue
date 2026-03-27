@@ -1,4 +1,5 @@
 import axios, { type AxiosInstance, type AxiosResponse } from "axios";
+import { AUTH_ACCESS_TOKEN_KEY } from "../constants/storageKeys";
 
 
 class ApiService {
@@ -12,10 +13,22 @@ class ApiService {
             },
             withCredentials: true,
         });
+        this.api.interceptors.request.use((config) => {
+            if (typeof localStorage !== "undefined") {
+                const token = localStorage.getItem(AUTH_ACCESS_TOKEN_KEY);
+                if (token) {
+                    config.headers.Authorization = `Bearer ${token}`;
+                }
+            }
+            return config;
+        });
         this.api.interceptors.response.use(
             (response) => response,
             (error) => {
                 console.error("API Error:", error);
+                if (error?.response?.status === 401 && typeof localStorage !== "undefined") {
+                    localStorage.removeItem(AUTH_ACCESS_TOKEN_KEY);
+                }
                 return Promise.reject(error);
             }
         );
@@ -46,5 +59,5 @@ class ApiService {
     }
 }
 
-export default new ApiService('http://localhost:5002')
+export default new ApiService('http://192.168.1.7:5002')
 

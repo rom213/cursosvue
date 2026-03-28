@@ -3,6 +3,7 @@ import { onBeforeUnmount, onMounted, ref } from 'vue';
 import FooterComponent from '../components/footer/footer.component.vue';
 import CourseFaqSection from '../courses/courseInfoPage/CourseFaqSection.vue';
 import HomeCta from '../components/cta/HomeCta.vue';
+import PricingLevels from './PricingLevels.vue';
 import { icons } from './section_one/section.one.data';
 
 const logosAnimationDuration = 40;
@@ -266,6 +267,11 @@ onBeforeUnmount(() => {
          CTA
     ════════════════════════════════════════════ -->
     <HomeCta />
+
+    <!-- ═══════════════════════════════════════════
+         PRICING LEVELS
+    ════════════════════════════════════════════ -->
+    <PricingLevels />
 
     <!-- ═══════════════════════════════════════════
          FAQ

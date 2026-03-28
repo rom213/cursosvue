@@ -45,6 +45,54 @@ export interface ProModule {
   lessonTitles: string[];
 }
 
+export interface CalculatorCategory {
+  id: string;
+  name: string;
+  precioReal: number;
+  precioFinal: number;
+  costoPayU: number;
+  comision: number;
+}
+
+export const calculatorSectionTitle = "CALCULADORA DE PROYECCIÓN";
+export const calculatorSectionLead =
+  "Ingresa tu meta de ingresos mensuales y descubre cuántas ventas necesitas para alcanzarla. ¡Los números no mienten!";
+
+export const calculatorCategories: CalculatorCategory[] = [
+  {
+    id: "tema",
+    name: "Tema Individual",
+    precioReal: 19600,
+    precioFinal: 17640,
+    costoPayU: 1803,
+    comision: 10584,
+  },
+  {
+    id: "pilar",
+    name: "Un Pilar Completo",
+    precioReal: 48500,
+    precioFinal: 43650,
+    costoPayU: 2883,
+    comision: 26190,
+  },
+  {
+    id: "combinacion",
+    name: "Combinación (2 Pilares)",
+    precioReal: 75700,
+    precioFinal: 68130,
+    costoPayU: 3900,
+    comision: 40878,
+  },
+  {
+    id: "tienda",
+    name: "Tienda Completa",
+    precioReal: 80000,
+    precioFinal: 72000,
+    costoPayU: 4061,
+    comision: 43200,
+  },
+];
+
 export const heroTitle =
   "¿Cómo puedo pagar? Tu inversión está 100% protegida.";
 

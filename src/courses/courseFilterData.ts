@@ -151,6 +151,24 @@ export function getCategoryBorderClass(id: number): string {
   return 'border border-gray-100'
 }
 
+/**
+ * Devuelve el ID de la categoría upsell sugerida para un producto dado.
+ * Tema → su Pilar padre, Pilar/Combo → Toda la Tienda, Toda la Tienda → null.
+ */
+export function getUpsellTargetId(id: number): number | null {
+  const type = classifyCategoryId(id)
+  if (type === 'temas') {
+    const pilar = getPilarForThemeId(id)
+    if (pilar) {
+      const def = PILARES.find((p) => p.key === pilar)
+      return def?.pilarId ?? null
+    }
+    return null
+  }
+  if (type === 'pilares' || type === 'combos') return TODA_LA_TIENDA_ID
+  return null // toda-la-tienda no tiene upsell
+}
+
 export function getCategoryGlowClass(id: number): string {
   if (id === TODA_LA_TIENDA_ID) return 'ring-2 ring-amber-300 shadow-lg shadow-amber-200/50'
   if ([100200, 100300, 200300].includes(id)) return 'ring-2 ring-purple-300 shadow-lg shadow-purple-200/50'

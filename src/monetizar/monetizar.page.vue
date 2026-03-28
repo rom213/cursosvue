@@ -217,7 +217,7 @@ function onFaqKeydown(e: KeyboardEvent, catIndex: number, itemIndex: number) {
                 <dd class="font-medium text-gray-700">{{ formatCOP(p.precioFinal) }}</dd>
               </div>
               <div class="flex justify-between">
-                <dt class="font-light text-gray-500">Costo PayU</dt>
+                <dt class="font-light text-gray-500">Costo Pasarela de pago</dt>
                 <dd class="font-medium text-gray-700">{{ formatCOP(p.costoPayU) }}</dd>
               </div>
               <div class="flex justify-between">

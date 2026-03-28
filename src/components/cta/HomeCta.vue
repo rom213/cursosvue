@@ -1,5 +1,96 @@
 <script setup lang="ts">
-import { RouterLink } from 'vue-router';
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
+import { RouterLink } from 'vue-router'
+
+// ── Stats data ──────────────────────────────────────────────
+interface StatConfig {
+  label: string
+  targetValue: number
+  prefix: string
+  suffix: string
+  divisor: number
+  decimals: number
+  current: number
+  done: boolean
+}
+
+const stats = reactive<StatConfig[]>([
+  { label: 'Estudiantes', targetValue: 4500, prefix: '+', suffix: ' K', divisor: 1000, decimals: 1, current: 0, done: false },
+  { label: 'Cursos', targetValue: 9421, prefix: '+', suffix: '', divisor: 1, decimals: 0, current: 0, done: false },
+  { label: 'Plataformas/Autores', targetValue: 945, prefix: '', suffix: '', divisor: 1, decimals: 0, current: 0, done: false },
+])
+
+const statsRef = ref<HTMLElement | null>(null)
+const isVisible = ref(false)
+let observer: IntersectionObserver | null = null
+
+// ── Easing: easeOutExpo ─────────────────────────────────────
+function easeOutExpo(t: number): number {
+  return t === 1 ? 1 : 1 - Math.pow(2, -10 * t)
+}
+
+// ── Format display value ────────────────────────────────────
+function formatStat(stat: StatConfig): string {
+  const displayVal = stat.current / stat.divisor
+  const formatted = stat.decimals > 0
+    ? displayVal.toFixed(stat.decimals)
+    : Math.floor(displayVal).toLocaleString('es')
+  return `${stat.prefix}${formatted}${stat.suffix}`
+}
+
+// ── Animate a single counter ────────────────────────────────
+function animateCounter(stat: StatConfig, duration: number, delay: number) {
+  setTimeout(() => {
+    const start = performance.now()
+
+    function tick(now: number) {
+      const elapsed = now - start
+      const progress = Math.min(elapsed / duration, 1)
+      const eased = easeOutExpo(progress)
+
+      stat.current = Math.round(eased * stat.targetValue)
+
+      if (progress < 1) {
+        requestAnimationFrame(tick)
+      } else {
+        stat.current = stat.targetValue
+        stat.done = true
+      }
+    }
+
+    requestAnimationFrame(tick)
+  }, delay)
+}
+
+// ── Start all counters with stagger ─────────────────────────
+function startCounters() {
+  const duration = 2500
+  stats.forEach((stat, i) => {
+    animateCounter(stat, duration, i * 200)
+  })
+}
+
+// ── Intersection Observer ───────────────────────────────────
+onMounted(() => {
+  observer = new IntersectionObserver(
+    (entries) => {
+      if (entries[0].isIntersecting) {
+        isVisible.value = true
+        startCounters()
+        observer?.disconnect()
+      }
+    },
+    { threshold: 0.3 }
+  )
+
+  if (statsRef.value) {
+    observer.observe(statsRef.value)
+  }
+})
+
+onUnmounted(() => {
+  observer?.disconnect()
+})
 </script>
 
 <template>
@@ -27,21 +118,32 @@ import { RouterLink } from 'vue-router';
             </p>
 
             <!-- Stats -->
-            <div class="cta-stats">
-                <div class="stat-item">
-                    <span class="stat-num">+12 K</span>
-                    <span class="stat-label">Estudiantes</span>
-                </div>
-                <div class="stat-divider" aria-hidden="true" />
-                <div class="stat-item">
-                    <span class="stat-num">+500</span>
-                    <span class="stat-label">Cursos</span>
-                </div>
-                <div class="stat-divider" aria-hidden="true" />
-                <div class="stat-item">
-                    <span class="stat-num">4</span>
-                    <span class="stat-label">Plataformas</span>
-                </div>
+            <div ref="statsRef" class="cta-stats">
+                <template v-for="(stat, i) in stats" :key="stat.label">
+                    <div
+                        class="stat-item"
+                        :class="{ 'stat-visible': isVisible, 'stat-done': stat.done }"
+                        :style="{ transitionDelay: `${i * 200}ms` }"
+                    >
+                        <span class="stat-num">
+                            <span class="stat-num-inner" :class="{ 'num-done': stat.done }">
+                                {{ formatStat(stat) }}
+                            </span>
+                            <!-- Sparkle particles -->
+                            <span v-if="stat.done" class="sparkle sparkle-1" />
+                            <span v-if="stat.done" class="sparkle sparkle-2" />
+                            <span v-if="stat.done" class="sparkle sparkle-3" />
+                        </span>
+                        <span class="stat-label">{{ stat.label }}</span>
+                    </div>
+                    <div
+                        v-if="i < stats.length - 1"
+                        class="stat-divider"
+                        :class="{ 'divider-visible': isVisible }"
+                        :style="{ transitionDelay: `${i * 200 + 100}ms` }"
+                        aria-hidden="true"
+                    />
+                </template>
             </div>
 
             <!-- Botones -->
@@ -166,30 +268,134 @@ import { RouterLink } from 'vue-router';
     border-radius: 14px;
     padding: 1rem 2rem;
 }
+
+/* ── Stat item: entrada animada ──────────────────────────── */
 .stat-item {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 0.1rem;
+    opacity: 0;
+    transform: translateY(24px);
+    filter: blur(8px);
+    transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+                filter 0.7s cubic-bezier(0.16, 1, 0.3, 1);
 }
+.stat-item.stat-visible {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+}
+
+/* ── Divider animado ─────────────────────────────────────── */
+.stat-divider {
+    width: 1px;
+    height: 2rem;
+    background: rgba(30, 64, 175, 0.1);
+    opacity: 0;
+    transform: scaleY(0);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.stat-divider.divider-visible {
+    opacity: 1;
+    transform: scaleY(1);
+}
+
+/* ── Numero ──────────────────────────────────────────────── */
 .stat-num {
+    position: relative;
     font-family: 'Poppins', sans-serif;
     font-size: clamp(1.4rem, 2.8vw, 1.9rem);
     font-weight: 800;
     color: #1e40af;
     line-height: 1;
 }
+
+.stat-num-inner {
+    display: inline-block;
+    transition: text-shadow 0.4s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ── Glow pulse + bounce al completar ────────────────────── */
+.stat-num-inner.num-done {
+    animation: numComplete 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+@keyframes numComplete {
+    0% {
+        text-shadow: 0 0 0 rgba(30, 64, 175, 0);
+        transform: scale(1);
+    }
+    40% {
+        text-shadow: 0 0 20px rgba(30, 64, 175, 0.5),
+                     0 0 40px rgba(59, 130, 246, 0.3);
+        transform: scale(1.08);
+    }
+    70% {
+        transform: scale(0.97);
+    }
+    100% {
+        text-shadow: 0 0 0 rgba(30, 64, 175, 0);
+        transform: scale(1);
+    }
+}
+
+/* ── Sparkle particles ───────────────────────────────────── */
+.sparkle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #3b82f6;
+    pointer-events: none;
+    animation: sparkleOut 0.8s ease-out forwards;
+}
+.sparkle-1 {
+    top: -4px;
+    right: -6px;
+    animation-delay: 0s;
+}
+.sparkle-2 {
+    bottom: -2px;
+    left: -8px;
+    animation-delay: 0.1s;
+    background: #1e40af;
+    width: 4px;
+    height: 4px;
+}
+.sparkle-3 {
+    top: 50%;
+    right: -12px;
+    animation-delay: 0.2s;
+    background: #60a5fa;
+    width: 5px;
+    height: 5px;
+}
+
+@keyframes sparkleOut {
+    0% {
+        opacity: 1;
+        transform: scale(0) translate(0, 0);
+    }
+    30% {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.5) translate(var(--sx, 12px), var(--sy, -14px));
+    }
+}
+.sparkle-1 { --sx: 14px; --sy: -16px; }
+.sparkle-2 { --sx: -16px; --sy: 10px; }
+.sparkle-3 { --sx: 18px; --sy: 6px; }
+
 .stat-label {
     font-size: 0.7rem;
     font-weight: 500;
     color: #94a3b8;
     letter-spacing: 0.05em;
     text-transform: uppercase;
-}
-.stat-divider {
-    width: 1px;
-    height: 2rem;
-    background: rgba(30, 64, 175, 0.1);
 }
 
 /* ── Botones ─────────────────────────────────────────────── */

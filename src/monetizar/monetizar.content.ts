@@ -139,13 +139,13 @@ export const monetizationLead =
 export const monetizationOptions: MonetizationOption[] = [
   {
     id: "embajador",
-    title: "Opción 1: Embajador digital (gana el 50% libre de comisiones)",
+    title: "Opción 1: Embajador digital (gana el 60% de comision, consulta la calculadora para mas)",
     intro:
       "Es la forma más rápida. Comparte tu enlace único o tu código promocional y nosotros nos encargamos del resto.",
     bullets: [
       {
         label: "Tu ganancia",
-        text: "Por cada venta ejemplo de un pack de $47.500, recibes ",
+        text: "Por cada venta ejemplo de un pack de $48.500, recibes ",
         highlightAmount: "$28.500 COP",
         textAfter: " directos a tu cuenta.",
       },
@@ -161,12 +161,12 @@ export const monetizationOptions: MonetizationOption[] = [
     id: "reseller",
     title: "Opción 2: Modelo reseller (tú pones las reglas)",
     intro:
-      "¿Quieres ser el dueño total del flujo? Compra los packs con un 50% libre de comisiones de descuento directo y revéndelos por tu cuenta al precio que tú decidas.",
+      "¿Quieres ser el dueño total del flujo? Compra los packs con un 60% libre de comisiones de descuento directo y revéndelos por tu cuenta al precio que tú decidas.",
     bullets: [
       {
         label: "Cómo funciona",
-        text: "Si el pack cuesta $47.500, tú solo nos pagas ",
-        highlightAmount: "$19.000 COP",
+        text: "Si el pack cuesta $19.600, tú solo nos pagas ",
+        highlightAmount: "$7.800 COP",
         textAfter: ".",
       },
       {
@@ -239,7 +239,7 @@ export const proModules: ProModule[] = [
       "Deja de ser un promotor y conviértete en el dueño de tu propio flujo de dinero. Aprende a comprar al por mayor y a escalar tus ventas usando publicidad pagada.",
     estadoLabel: "Solo Afiliados PRO",
     lessonTitles: [
-      "Lección 1: Cómo funciona el pago del 50%",
+      "Lección 1: Cómo funciona el pago del 60%",
       "Lección 2: Escalamiento con Facebook Ads",
       "Lección 3: Crea tu propia base de datos",
     ],

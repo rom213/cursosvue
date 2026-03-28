@@ -183,31 +183,54 @@ onBeforeUnmount(() => {
             te damos <strong class="hero-title-strong">miles</strong><br>
             de cursos.
           </h1>
-          <p class="hero-sub">Acceso vitalicio · Descarga offline · Certifícate</p>
+          <p class="hero-sub has-tooltip">
+            · Cursos alojados en Google Drive
+            <span class="tooltip tooltip-up">
+              Todos los cursos se almacenan en Google Drive con material completo y organizado.
+              Accede desde cualquier dispositivo, sin necesidad de espacio en tu equipo.
+              Solo necesitas conexión a internet para visualizarlos.
+            </span>
+          </p>
         </div>
       </div>
 
       <!-- Tarjetas glass en la base del hero -->
       <div class="hero-cards">
-        <div class="glass-card">
+        <div class="glass-card has-tooltip">
           <div class="card-icon" v-html="icons.accesoVitalicio" />
           <h3 class="card-title">Acceso Vitalicio</h3>
           <p class="card-text">Pago único. Actualizaciones gratis para siempre.</p>
+          <span class="tooltip tooltip-up">
+            Odiamos las suscripciones. Un solo pago y el contenido es tuyo para siempre,
+            con actualizaciones incluidas. Estudia hoy, mañana o dentro de un año.
+          </span>
         </div>
-        <div class="glass-card">
+        <div class="glass-card has-tooltip">
           <div class="card-icon" v-html="icons.descargable" />
           <h3 class="card-title">100% Descargable</h3>
           <p class="card-text">Estudia offline y a tu propio ritmo.</p>
+          <span class="tooltip tooltip-up">
+            Descarga cualquier curso a tu dispositivo y estudia sin depender de internet.
+            Tú decides cuándo, dónde y cómo aprender. El control es completamente tuyo.
+          </span>
         </div>
-        <div class="glass-card">
+        <div class="glass-card has-tooltip">
           <div class="card-icon" v-html="icons.clubDescuentos" />
           <h3 class="card-title">Club de Descuentos</h3>
-          <p class="card-text">50% OFF en todas tus próximas compras.</p>
+          <p class="card-text">70% OFF en todas tus próximas compras.</p>
+          <span class="tooltip tooltip-up">
+            Al adquirir un paquete de $48.500 o superior, desbloqueas el Club de Descuentos
+            y el modo Revendedor. Descuentos exclusivos en todo el catálogo y ganancias del 60% por cada venta.
+          </span>
         </div>
-        <div class="glass-card">
+        <div class="glass-card has-tooltip">
           <div class="card-icon" v-html="icons.trabajaYGana" />
           <h3 class="card-title">Trabaja y Gana</h3>
           <p class="card-text">Comisiones del 60% por cada venta referida.</p>
+          <span class="tooltip tooltip-up">
+            Gana comisiones reales por cada venta que refieras. Visita la sección de
+            Monetización en el menú superior para conocer todos los detalles del programa.
+          </span>
         </div>
       </div>
     </section>
@@ -512,6 +535,30 @@ onBeforeUnmount(() => {
   font-size: 0.82rem;
   color: #64748b;
   letter-spacing: 0.03em;
+  cursor: default;
+  transition: color 0.35s ease;
+  position: relative;
+  display: inline-block;
+}
+.hero-sub::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -2px;
+  width: 0;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, #1e40af, transparent);
+  transition: width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  border-radius: 1px;
+}
+.hero-sub:hover {
+  color: #1e40af;
+  z-index: 50;
+}
+.hero-sub:hover::after {
+  width: 100%;
+  left: 0;
 }
 
 /* ── Tarjetas ───────────────────────────────────────────── */
@@ -539,11 +586,19 @@ onBeforeUnmount(() => {
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(30, 64, 175, 0.09);
   box-shadow: 0 2px 14px rgba(30, 64, 175, 0.08), 0 1px 3px rgba(0,0,0,0.04);
-  transition: transform 0.28s ease, box-shadow 0.28s ease;
+  transition: transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.38s ease,
+              border-color 0.38s ease,
+              background 0.38s ease;
 }
 .glass-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 32px rgba(30, 64, 175, 0.14), 0 2px 6px rgba(0,0,0,0.05);
+  transform: translateY(-6px);
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(30, 64, 175, 0.18);
+  box-shadow:
+    0 8px 24px rgba(30, 64, 175, 0.12),
+    0 20px 48px rgba(30, 64, 175, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 .card-icon {
@@ -554,6 +609,11 @@ onBeforeUnmount(() => {
   height: 44px;
   border-radius: 11px;
   background: rgba(30, 64, 175, 0.07);
+  transition: background 0.38s ease, transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.glass-card:hover .card-icon {
+  background: rgba(30, 64, 175, 0.12);
+  transform: scale(1.08);
 }
 
 .card-title {
@@ -563,6 +623,10 @@ onBeforeUnmount(() => {
   color: #0d1b2a;
   line-height: 1.3;
   margin: 0;
+  transition: color 0.3s ease;
+}
+.glass-card:hover .card-title {
+  color: #1e40af;
 }
 
 .card-text {
@@ -571,6 +635,95 @@ onBeforeUnmount(() => {
   color: #64748b;
   line-height: 1.5;
   margin: 0;
+}
+
+/* ── Tooltips ───────────────────────────────────────────── */
+.has-tooltip {
+  position: relative;
+}
+
+.tooltip {
+  position: absolute;
+  z-index: 100;
+  width: 280px;
+  padding: 0.85rem 1rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.65;
+  color: #334155;
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(30, 64, 175, 0.12);
+  border-radius: 12px;
+  box-shadow:
+    0 4px 16px rgba(30, 64, 175, 0.10),
+    0 12px 40px rgba(30, 64, 175, 0.08);
+  /* Posición por defecto: debajo del elemento */
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) translateY(6px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              visibility 0.3s;
+}
+
+/* Flecha del tooltip (abajo = apunta hacia arriba) */
+.tooltip::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 10px;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.97);
+  border-top: 1px solid rgba(30, 64, 175, 0.12);
+  border-left: 1px solid rgba(30, 64, 175, 0.12);
+}
+
+/* Tooltip hacia arriba (para las cards en la base del hero) */
+.tooltip-up {
+  top: auto;
+  bottom: calc(100% + 10px);
+  transform: translateX(-50%) translateY(-6px);
+}
+.tooltip-up::before {
+  top: auto;
+  bottom: -6px;
+  border-top: none;
+  border-left: none;
+  border-bottom: 1px solid rgba(30, 64, 175, 0.12);
+  border-right: 1px solid rgba(30, 64, 175, 0.12);
+}
+
+/* Mostrar tooltip en hover */
+.has-tooltip:hover > .tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+/* Línea decorativa azul en la parte superior del tooltip */
+.tooltip::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 12px;
+  right: 12px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #1e40af, #3b82f6, transparent);
+  border-radius: 2px;
+  opacity: 0.5;
+}
+.tooltip-up::after {
+  top: auto;
+  bottom: 0;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -865,6 +1018,38 @@ onBeforeUnmount(() => {
 /* ── Scrollbar ───────────────────────────── */
 @media (pointer: fine) {
   .logos-track-outer::-webkit-scrollbar { display: none; }
+}
+
+/* ── Tooltips: ocultar en táctil/mobile ─────────────────── */
+@media (max-width: 768px) {
+  .tooltip { display: none; }
+}
+
+/* ── Tooltips: ajustar cards de los extremos para no salirse ── */
+.hero-cards .glass-card:first-child .tooltip-up {
+  left: 0;
+  transform: translateX(0) translateY(-6px);
+}
+.hero-cards .glass-card:first-child .tooltip-up::before {
+  left: 24px;
+  transform: translateX(0) rotate(45deg);
+}
+.hero-cards .glass-card:first-child:hover > .tooltip-up {
+  transform: translateX(0) translateY(0);
+}
+
+.hero-cards .glass-card:last-child .tooltip-up {
+  left: auto;
+  right: 0;
+  transform: translateX(0) translateY(-6px);
+}
+.hero-cards .glass-card:last-child .tooltip-up::before {
+  left: auto;
+  right: 24px;
+  transform: translateX(0) rotate(45deg);
+}
+.hero-cards .glass-card:last-child:hover > .tooltip-up {
+  transform: translateX(0) translateY(0);
 }
 </style>
 

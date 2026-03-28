@@ -292,59 +292,79 @@ const handleUpsellExplore = () => {
 </script>
 
 <template>
-  <div class="cip-root">
+  <div class="bg-[#f8faff] min-h-screen text-[#0d1b2a]">
 
     <!-- ═══ HERO HEADER ═══ -->
-    <section class="cip-hero">
-      <!-- Olas decorativas -->
-      <div class="cip-wave" aria-hidden="true">
-        <span></span>
-        <span></span>
-        <span></span>
-      </div>
+    <section class="relative z-[1] pt-8 pb-6">
 
       <!-- Banner afiliado -->
-      <div v-if="userAuth.nameAffiliaty" class="cip-affiliate-banner">
-        <span>🎟️</span>
+      <div
+        v-if="userAuth.nameAffiliaty"
+        class="max-w-7xl mx-auto bg-blue-50 border border-blue-100 rounded-lg mx-4 md:mx-8 mb-6 px-4 py-2 text-sm text-blue-700 font-medium flex items-center gap-2"
+      >
+        <span class="text-blue-400">🎟️</span>
         Comprando con el descuento especial de <strong>{{ userAuth.nameAffiliaty }}</strong>
       </div>
 
-      <div class="cip-hero-inner">
+      <div class="max-w-7xl mx-auto px-4 md:px-8 lg:px-12">
         <!-- Tags del producto -->
         <div class="flex flex-wrap gap-2 mb-4">
-          <span class="cip-pill" :class="[tierInfo.pillBg, tierInfo.pillText]">
+          <!-- Etiqueta Tema Individual para temas basicos -->
+          <span
+            v-if="tierInfo.tier === 'basic'"
+            class="inline-flex items-center rounded-full text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-600"
+          >
+            📌 Tema Individual
+          </span>
+          <span
+            class="inline-flex items-center rounded-full text-xs font-semibold px-2.5 py-1"
+            :class="[tierInfo.pillBg, tierInfo.pillText]"
+          >
             {{ tierInfo.label }}
           </span>
-          <span v-if="tierInfo.isPremium" class="cip-pill cip-pill--premium">
+          <span
+            v-if="tierInfo.isPremium"
+            class="inline-flex items-center gap-1 px-4 py-1.5 rounded-full text-sm font-extrabold bg-gradient-to-r from-amber-400 to-yellow-300 text-amber-900 shadow-sm shadow-amber-200/50"
+          >
             👑 Mejor Valor
           </span>
-          <span v-if="tierInfo.includesResale" class="cip-pill bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/10">
+          <span
+            v-if="tierInfo.includesResale"
+            class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/10"
+          >
             🤝 Incluye Reventa
           </span>
-          <span v-if="tierInfo.includesDiscount" class="cip-pill bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/10">
+          <span
+            v-if="tierInfo.includesDiscount"
+            class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/10"
+          >
             🎟️ 70% Dto. en toda la tienda
           </span>
         </div>
 
-        <h1 class="cip-hero-title">{{ category?.titulo }}</h1>
+        <h1 class="font-[Poppins] text-3xl md:text-4xl lg:text-5xl font-black text-[#0d1b2a] tracking-tight leading-tight mb-3 max-w-3xl">
+          {{ category?.titulo }}
+        </h1>
 
-        <p v-if="category?.frase_1" class="cip-hero-sub">{{ category.frase_1 }}</p>
+        <p v-if="category?.frase_1" class="text-base lg:text-lg text-slate-500 leading-relaxed mb-2 max-w-2xl">
+          {{ category.frase_1 }}
+        </p>
 
-        <p v-if="category?.frase_2" class="cip-hero-frase">
+        <p v-if="category?.frase_2" class="text-sm text-slate-400 italic border-l-2 border-blue-200 pl-3 max-w-xl">
           "{{ category.frase_2 }}"
         </p>
       </div>
     </section>
 
     <!-- ═══ MAIN CONTENT ═══ -->
-    <div class="cip-main">
-      <div class="cip-grid">
+    <div class="max-w-7xl mx-auto px-4 md:px-8 lg:px-12 pt-6 pb-24 lg:pb-8">
+      <div class="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 lg:gap-8 items-start">
 
         <!-- ── COLUMNA IZQUIERDA: CONTENIDO ── -->
-        <div class="cip-content-col">
+        <div class="order-2 lg:order-1">
 
           <!-- Tab Navigation -->
-          <div class="cip-tabs">
+          <div class="flex flex-wrap gap-1 p-1 bg-white/90 backdrop-blur-sm border border-slate-100/80 rounded-2xl shadow-md mb-4 sticky top-16 max-md:top-28 z-10">
             <button
               v-for="(tab, key) in [
                 { id: Navegacion.Contenido, label: 'Contenido', icon: courseInfoIcons.contenido },
@@ -354,8 +374,10 @@ const handleUpsellExplore = () => {
               ]"
               :key="key"
               @click="navegacion = tab.id"
-              class="cip-tab"
-              :class="navegacion === tab.id ? 'cip-tab--active' : ''"
+              class="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-semibold transition-all duration-200 border-none cursor-pointer"
+              :class="navegacion === tab.id
+                ? 'bg-[#1e40af] text-white shadow-md'
+                : 'text-slate-500 hover:bg-slate-50 hover:text-[#0d1b2a] bg-transparent'"
             >
               <div class="w-4 h-4" v-html="tab.icon"></div>
               {{ tab.label }}
@@ -364,24 +386,27 @@ const handleUpsellExplore = () => {
 
           <!-- TAB: Contenido -->
           <div v-if="navegacion === Navegacion.Contenido" class="space-y-5">
-            <h2 class="cip-section-title">Temario del curso</h2>
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-1 h-8 rounded-full shrink-0" :class="tierInfo.accentColor" />
+              <h2 class="font-[Poppins] text-xl md:text-2xl font-bold text-[#0d1b2a] tracking-tight">Temario del curso</h2>
+            </div>
 
             <!-- Plataformas -->
-            <div v-if="category?.seccion_plataformas?.plataformas?.length" class="cip-accordion">
-              <button class="cip-accordion-header" @click="toggleFolder('section-plataformas')">
-                <span class="cip-accordion-title">Plataformas Integradas</span>
+            <div v-if="category?.seccion_plataformas?.plataformas?.length" class="bg-white rounded-2xl border border-slate-100/80 shadow-md overflow-hidden transition-shadow hover:shadow-lg">
+              <button class="w-full flex items-center justify-between p-4 lg:px-6 bg-transparent border-none cursor-pointer transition-colors hover:bg-slate-50/60" @click="toggleFolder('section-plataformas')">
+                <span class="font-[Poppins] text-base font-bold text-[#0d1b2a]">Plataformas Integradas</span>
                 <span class="flex items-center gap-3">
-                  <span class="cip-accordion-badge">
+                  <span class="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full">
                     {{ category?.seccion_plataformas?.cantidad_plataformas ?? category?.seccion_plataformas?.plataformas?.length ?? 0 }} clases
                   </span>
                   <svg class="w-5 h-5 text-slate-400 transition-transform duration-300" :class="{ 'rotate-180': isFolderOpen('section-plataformas') }" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                 </span>
               </button>
-              <div v-show="isFolderOpen('section-plataformas')" class="cip-accordion-body">
+              <div v-show="isFolderOpen('section-plataformas')" class="accordion-body border-t border-slate-100 p-4 lg:px-6 max-h-[600px] overflow-y-auto bg-slate-50/40">
                 <div v-if="!(category?.seccion_plataformas?.plataformas?.length)" class="text-sm text-slate-500 py-4 text-center">Sin elementos</div>
 
-                <div v-for="plataforma in paginatedPlataformas" :key="plataforma.originalIndex" class="cip-folder-item">
-                  <div class="cip-folder-header" @click="toggleFolder(`plat-${plataforma.originalIndex}`)">
+                <div v-for="plataforma in paginatedPlataformas" :key="plataforma.originalIndex" class="mb-2 bg-white rounded-xl border border-slate-100 overflow-hidden transition-colors hover:border-slate-200">
+                  <div class="flex items-center justify-between px-4 py-2.5 cursor-pointer transition-colors hover:bg-blue-50/30" @click="toggleFolder(`plat-${plataforma.originalIndex}`)">
                     <div class="flex items-center gap-3">
                       <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"></path></svg>
                       <span class="font-semibold text-[#0d1b2a]">{{ plataforma.titulo_plataforma || "Modulo" }}</span>
@@ -391,13 +416,13 @@ const handleUpsellExplore = () => {
                       <svg class="w-4 h-4 text-slate-400 transition-transform" :class="{ 'rotate-180': isFolderOpen(`plat-${plataforma.originalIndex}`) }" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                     </div>
                   </div>
-                  <div v-show="isFolderOpen(`plat-${plataforma.originalIndex}`)" class="cip-folder-content">
-                    <div v-for="(curso, cIndex) in plataforma.cursos || []" :key="cIndex" class="cip-lesson-item">
+                  <div v-show="isFolderOpen(`plat-${plataforma.originalIndex}`)" class="border-t border-slate-50 bg-[#fafbfd] px-4 py-3">
+                    <div v-for="(curso, cIndex) in plataforma.cursos || []" :key="cIndex" class="ml-4 pl-4 border-l-2 border-slate-200 py-2">
                       <div class="flex items-center justify-between">
                         <span class="text-sm font-medium text-slate-700 hover:text-blue-600 cursor-pointer" @click="toggleFolder(`plat-${plataforma.originalIndex}-cur-${cIndex}`)">
                           {{ cIndex + 1 }}. {{ curso.name_del_curso || "Leccion" }}
                         </span>
-                        <button v-if="curso.info_tecnica?.url" class="cip-resource-btn" @click.stop="openInNewTab(curso.info_tecnica?.url)">Recursos</button>
+                        <button v-if="curso.info_tecnica?.url" class="text-[0.65rem] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border-none cursor-pointer transition-colors hover:bg-blue-100" @click.stop="openInNewTab(curso.info_tecnica?.url)">Recursos</button>
                       </div>
                       <ul v-show="isFolderOpen(`plat-${plataforma.originalIndex}-cur-${cIndex}`)" class="mt-2 space-y-1 text-xs text-slate-500 list-disc ml-4">
                         <li v-for="(item, iIndex) in curso.contenido || []" :key="iIndex">{{ item }}</li>
@@ -406,12 +431,12 @@ const handleUpsellExplore = () => {
                   </div>
                 </div>
 
-                <div v-if="totalPagesPlataformas > 1" class="cip-paginator">
-                  <button @click="currentPages.plataformas--" :disabled="currentPages.plataformas === 1" class="cip-paginator-btn">
+                <div v-if="totalPagesPlataformas > 1" class="flex items-center justify-center gap-4 mt-4 pt-3">
+                  <button @click="currentPages.plataformas--" :disabled="currentPages.plataformas === 1" class="p-1.5 rounded-full bg-transparent border-none text-slate-500 cursor-pointer transition-all hover:bg-slate-100 hover:text-[#0d1b2a] disabled:opacity-35 disabled:cursor-not-allowed">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
                   </button>
-                  <span class="cip-paginator-text">Pagina {{ currentPages.plataformas }} de {{ totalPagesPlataformas }}</span>
-                  <button @click="currentPages.plataformas++" :disabled="currentPages.plataformas === totalPagesPlataformas" class="cip-paginator-btn">
+                  <span class="text-xs font-semibold text-slate-500">Pagina {{ currentPages.plataformas }} de {{ totalPagesPlataformas }}</span>
+                  <button @click="currentPages.plataformas++" :disabled="currentPages.plataformas === totalPagesPlataformas" class="p-1.5 rounded-full bg-transparent border-none text-slate-500 cursor-pointer transition-all hover:bg-slate-100 hover:text-[#0d1b2a] disabled:opacity-35 disabled:cursor-not-allowed">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
                   </button>
                 </div>
@@ -419,20 +444,20 @@ const handleUpsellExplore = () => {
             </div>
 
             <!-- Temas -->
-            <div v-if="category?.seccion_temas?.temas?.length" class="cip-accordion">
-              <button class="cip-accordion-header" @click="toggleFolder('section-temas')">
-                <span class="cip-accordion-title">Temas</span>
+            <div v-if="category?.seccion_temas?.temas?.length" class="bg-white rounded-2xl border border-slate-100/80 shadow-md overflow-hidden transition-shadow hover:shadow-lg">
+              <button class="w-full flex items-center justify-between p-4 lg:px-6 bg-transparent border-none cursor-pointer transition-colors hover:bg-slate-50/60" @click="toggleFolder('section-temas')">
+                <span class="font-[Poppins] text-base font-bold text-[#0d1b2a]">Temas</span>
                 <span class="flex items-center gap-3">
-                  <span class="cip-accordion-badge">
+                  <span class="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full">
                     {{ category?.seccion_temas?.cantidad_temas ?? category?.seccion_temas?.temas?.length ?? 0 }} temas
                   </span>
                   <svg class="w-5 h-5 text-slate-400 transition-transform duration-300" :class="{ 'rotate-180': isFolderOpen('section-temas') }" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                 </span>
               </button>
-              <div v-show="isFolderOpen('section-temas')" class="cip-accordion-body">
+              <div v-show="isFolderOpen('section-temas')" class="accordion-body border-t border-slate-100 p-4 lg:px-6 max-h-[600px] overflow-y-auto bg-slate-50/40">
                 <div v-if="!(category?.seccion_temas?.temas?.length)" class="text-sm text-slate-500 py-4 text-center">Sin elementos</div>
-                <div v-for="tema in paginatedTemas" :key="tema.originalIndex" class="cip-folder-item">
-                  <div class="cip-folder-header" @click="toggleFolder(`tema-${tema.originalIndex}`)">
+                <div v-for="tema in paginatedTemas" :key="tema.originalIndex" class="mb-2 bg-white rounded-xl border border-slate-100 overflow-hidden transition-colors hover:border-slate-200">
+                  <div class="flex items-center justify-between px-4 py-2.5 cursor-pointer transition-colors hover:bg-blue-50/30" @click="toggleFolder(`tema-${tema.originalIndex}`)">
                     <div class="flex items-center gap-3">
                       <svg class="w-5 h-5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a2 2 0 012-2h5a1 1 0 010 2H4v5.586l6.293-6.293a1 1 0 011.414 0l6.293 6.293V5a1 1 0 112 0v5a1 1 0 01-.293.707z" clip-rule="evenodd"></path></svg>
                       <span class="font-semibold text-[#0d1b2a]">{{ tema.titulo_tema || "Tema" }}</span>
@@ -442,13 +467,13 @@ const handleUpsellExplore = () => {
                       <svg class="w-4 h-4 text-slate-400 transition-transform" :class="{ 'rotate-180': isFolderOpen(`tema-${tema.originalIndex}`) }" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                     </div>
                   </div>
-                  <div v-show="isFolderOpen(`tema-${tema.originalIndex}`)" class="cip-folder-content">
-                    <div v-for="(curso, cIndex) in tema.cursos || []" :key="cIndex" class="cip-lesson-item">
+                  <div v-show="isFolderOpen(`tema-${tema.originalIndex}`)" class="border-t border-slate-50 bg-[#fafbfd] px-4 py-3">
+                    <div v-for="(curso, cIndex) in tema.cursos || []" :key="cIndex" class="ml-4 pl-4 border-l-2 border-slate-200 py-2">
                       <div class="flex items-center justify-between">
                         <span class="text-sm font-medium text-slate-700 hover:text-blue-600 cursor-pointer" @click="toggleFolder(`tema-${tema.originalIndex}-cur-${cIndex}`)">
                           {{ cIndex + 1 }}. {{ curso.name_del_curso || "Leccion" }}
                         </span>
-                        <button v-if="curso.info_tecnica?.url" class="cip-resource-btn" @click.stop="openInNewTab(curso.info_tecnica?.url)">Recursos</button>
+                        <button v-if="curso.info_tecnica?.url" class="text-[0.65rem] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border-none cursor-pointer transition-colors hover:bg-blue-100" @click.stop="openInNewTab(curso.info_tecnica?.url)">Recursos</button>
                       </div>
                       <ul v-show="isFolderOpen(`tema-${tema.originalIndex}-cur-${cIndex}`)" class="mt-2 space-y-1 text-xs text-slate-500 list-disc ml-4">
                         <li v-for="(item, iIndex) in curso.contenido || []" :key="iIndex">{{ item }}</li>
@@ -457,12 +482,12 @@ const handleUpsellExplore = () => {
                   </div>
                 </div>
 
-                <div v-if="totalPagesTemas > 1" class="cip-paginator">
-                  <button @click="currentPages.temas--" :disabled="currentPages.temas === 1" class="cip-paginator-btn">
+                <div v-if="totalPagesTemas > 1" class="flex items-center justify-center gap-4 mt-4 pt-3">
+                  <button @click="currentPages.temas--" :disabled="currentPages.temas === 1" class="p-1.5 rounded-full bg-transparent border-none text-slate-500 cursor-pointer transition-all hover:bg-slate-100 hover:text-[#0d1b2a] disabled:opacity-35 disabled:cursor-not-allowed">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
                   </button>
-                  <span class="cip-paginator-text">Pagina {{ currentPages.temas }} de {{ totalPagesTemas }}</span>
-                  <button @click="currentPages.temas++" :disabled="currentPages.temas === totalPagesTemas" class="cip-paginator-btn">
+                  <span class="text-xs font-semibold text-slate-500">Pagina {{ currentPages.temas }} de {{ totalPagesTemas }}</span>
+                  <button @click="currentPages.temas++" :disabled="currentPages.temas === totalPagesTemas" class="p-1.5 rounded-full bg-transparent border-none text-slate-500 cursor-pointer transition-all hover:bg-slate-100 hover:text-[#0d1b2a] disabled:opacity-35 disabled:cursor-not-allowed">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
                   </button>
                 </div>
@@ -470,17 +495,17 @@ const handleUpsellExplore = () => {
             </div>
 
             <!-- Lista Completa -->
-            <div id="lista-completa-header" v-if="category?.seccion_lista_completa?.lista_completa?.length" class="cip-accordion">
-              <button class="cip-accordion-header" @click="toggleFolder('section-lista-completa')">
-                <span class="cip-accordion-title">Lista Completa</span>
+            <div id="lista-completa-header" v-if="category?.seccion_lista_completa?.lista_completa?.length" class="bg-white rounded-2xl border border-slate-100/80 shadow-md overflow-hidden transition-shadow hover:shadow-lg">
+              <button class="w-full flex items-center justify-between p-4 lg:px-6 bg-transparent border-none cursor-pointer transition-colors hover:bg-slate-50/60" @click="toggleFolder('section-lista-completa')">
+                <span class="font-[Poppins] text-base font-bold text-[#0d1b2a]">Lista Completa</span>
                 <span class="flex items-center gap-3">
-                  <span class="cip-accordion-badge">
+                  <span class="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full">
                     {{ category?.seccion_lista_completa?.cantidad_cursos ?? category?.seccion_lista_completa?.lista_completa?.length ?? 0 }} cursos
                   </span>
                   <svg class="w-5 h-5 text-slate-400 transition-transform duration-300" :class="{ 'rotate-180': isFolderOpen('section-lista-completa') }" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                 </span>
               </button>
-              <div v-show="isFolderOpen('section-lista-completa')" class="cip-accordion-body">
+              <div v-show="isFolderOpen('section-lista-completa')" class="accordion-body border-t border-slate-100 p-4 lg:px-6 max-h-[600px] overflow-y-auto bg-slate-50/40">
                 <!-- Buscador -->
                 <div class="mb-5 relative w-full lg:w-2/3 mx-auto">
                   <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -490,9 +515,9 @@ const handleUpsellExplore = () => {
                     v-model="searchTermLista"
                     type="text"
                     placeholder="Buscar un curso especifico en este paquete..."
-                    class="cip-search-input"
+                    class="w-full py-3 pl-10 pr-10 border border-slate-200 rounded-xl text-sm bg-white text-[#0d1b2a] transition-all shadow-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10"
                   >
-                  <button v-if="searchTermLista" @click="searchTermLista = ''" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors">
+                  <button v-if="searchTermLista" @click="searchTermLista = ''" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors border-none bg-transparent cursor-pointer">
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                   </button>
                 </div>
@@ -502,30 +527,30 @@ const handleUpsellExplore = () => {
                   No se encontraron cursos que coincidan con "{{ searchTermLista }}"
                 </div>
 
-                <div v-for="curso in paginatedListaCompleta" :key="curso.originalIndex" class="cip-folder-item">
-                  <div class="cip-folder-header" @click="toggleFolder(`lista-cur-${curso.originalIndex}`)">
+                <div v-for="curso in paginatedListaCompleta" :key="curso.originalIndex" class="mb-2 bg-white rounded-xl border border-slate-100 overflow-hidden transition-colors hover:border-slate-200">
+                  <div class="flex items-center justify-between px-4 py-2.5 cursor-pointer transition-colors hover:bg-blue-50/30" @click="toggleFolder(`lista-cur-${curso.originalIndex}`)">
                     <div class="flex items-center gap-3">
                       <svg class="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path><path fill-rule="evenodd" d="M4 5a2 2 0 012-2h3a1 1 0 010 2H6a2 2 0 012 2v11a2 2 0 002 2h7a2 2 0 002-2V7a2 2 0 012-2h2a1 1 0 110 2h-2a2 2 0 012 2v11a4 4 0 01-4 4H8a4 4 0 01-4-4V5z" clip-rule="evenodd"></path></svg>
                       <span class="font-semibold text-[#0d1b2a]">{{ curso.name_del_curso || "Curso" }}</span>
                     </div>
                     <div class="flex items-center gap-3">
-                      <button v-if="curso.info_tecnica?.url" class="cip-resource-btn" @click.stop="openInNewTab(curso.info_tecnica?.url)">Recursos</button>
+                      <button v-if="curso.info_tecnica?.url" class="text-[0.65rem] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border-none cursor-pointer transition-colors hover:bg-blue-100" @click.stop="openInNewTab(curso.info_tecnica?.url)">Recursos</button>
                       <svg class="w-4 h-4 text-slate-400 transition-transform" :class="{ 'rotate-180': isFolderOpen(`lista-cur-${curso.originalIndex}`) }" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                     </div>
                   </div>
-                  <div v-show="isFolderOpen(`lista-cur-${curso.originalIndex}`)" class="cip-folder-content">
+                  <div v-show="isFolderOpen(`lista-cur-${curso.originalIndex}`)" class="border-t border-slate-50 bg-[#fafbfd] px-4 py-3">
                     <ul class="space-y-1 text-xs text-slate-500 list-disc ml-4">
                       <li v-for="(item, iIndex) in curso.contenido || []" :key="iIndex">{{ item }}</li>
                     </ul>
                   </div>
                 </div>
 
-                <div v-if="totalPagesListaCompleta > 1" class="cip-paginator">
-                  <button @click="currentPages.listaCompleta--" :disabled="currentPages.listaCompleta === 1" class="cip-paginator-btn">
+                <div v-if="totalPagesListaCompleta > 1" class="flex items-center justify-center gap-4 mt-4 pt-3">
+                  <button @click="currentPages.listaCompleta--" :disabled="currentPages.listaCompleta === 1" class="p-1.5 rounded-full bg-transparent border-none text-slate-500 cursor-pointer transition-all hover:bg-slate-100 hover:text-[#0d1b2a] disabled:opacity-35 disabled:cursor-not-allowed">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
                   </button>
-                  <span class="cip-paginator-text">Pagina {{ currentPages.listaCompleta }} de {{ totalPagesListaCompleta }}</span>
-                  <button @click="currentPages.listaCompleta++" :disabled="currentPages.listaCompleta === totalPagesListaCompleta" class="cip-paginator-btn">
+                  <span class="text-xs font-semibold text-slate-500">Pagina {{ currentPages.listaCompleta }} de {{ totalPagesListaCompleta }}</span>
+                  <button @click="currentPages.listaCompleta++" :disabled="currentPages.listaCompleta === totalPagesListaCompleta" class="p-1.5 rounded-full bg-transparent border-none text-slate-500 cursor-pointer transition-all hover:bg-slate-100 hover:text-[#0d1b2a] disabled:opacity-35 disabled:cursor-not-allowed">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
                   </button>
                 </div>
@@ -540,8 +565,11 @@ const handleUpsellExplore = () => {
 
           <!-- TAB: Comentarios -->
           <div v-if="navegacion === Navegacion.Comentarios">
-            <h2 class="cip-section-title mb-6">Lo que dicen nuestros estudiantes</h2>
-            <div class="cip-empty-state">
+            <div class="flex items-center gap-3 mb-6">
+              <div class="w-1 h-8 rounded-full shrink-0" :class="tierInfo.accentColor" />
+              <h2 class="font-[Poppins] text-xl md:text-2xl font-bold text-[#0d1b2a] tracking-tight">Lo que dicen nuestros estudiantes</h2>
+            </div>
+            <div class="bg-white rounded-2xl p-12 text-center border border-slate-100/80 shadow-md">
               <svg class="w-16 h-16 text-slate-300 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
               <h3 class="text-lg font-bold text-[#0d1b2a]">Comentarios proximamente</h3>
               <p class="text-slate-500 mt-2 text-sm">Se uno de los primeros en dejar tu opinion al terminar el curso.</p>
@@ -549,43 +577,131 @@ const handleUpsellExplore = () => {
           </div>
 
           <!-- TAB: Beneficios -->
-          <div v-if="navegacion === Navegacion.Beneficios">
-            <h2 class="cip-section-title mb-6">Lo que obtendras</h2>
-            <div class="cip-benefits-grid">
-              <div class="cip-benefit-card">
-                <div class="cip-benefit-icon">
-                  <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          <div v-if="navegacion === Navegacion.Beneficios" class="space-y-8">
+            <div class="flex items-center gap-3 mb-2">
+              <div class="w-1 h-8 rounded-full shrink-0" :class="tierInfo.accentColor" />
+              <h2 class="font-[Poppins] text-xl md:text-2xl font-bold text-[#0d1b2a] tracking-tight">Lo que obtendras</h2>
+            </div>
+
+            <!-- Beneficios incluidos -->
+            <div class="bg-white rounded-2xl border border-slate-100/80 shadow-md overflow-hidden">
+              <div class="bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-4">
+                <h3 class="text-white font-[Poppins] font-bold text-lg flex items-center gap-2">
+                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                  Incluido en este paquete
+                </h3>
+              </div>
+              <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="flex items-start gap-3 p-4 rounded-xl bg-emerald-50/50 border border-emerald-100/60">
+                  <div class="p-2 rounded-lg bg-emerald-100 text-emerald-600 shrink-0">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  </div>
+                  <div>
+                    <h4 class="font-bold text-[#0d1b2a] text-sm">Certificacion Oficial</h4>
+                    <p class="text-xs text-slate-500 mt-0.5">Certificado al concluir todos los modulos</p>
+                  </div>
                 </div>
-                <div>
-                  <h4 class="font-bold text-[#0d1b2a]">Certificacion Oficial</h4>
-                  <p class="text-sm text-slate-500 mt-1">Recibe un certificado al concluir todos los modulos.</p>
+                <div class="flex items-start gap-3 p-4 rounded-xl bg-emerald-50/50 border border-emerald-100/60">
+                  <div class="p-2 rounded-lg bg-emerald-100 text-emerald-600 shrink-0">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  </div>
+                  <div>
+                    <h4 class="font-bold text-[#0d1b2a] text-sm">A tu propio ritmo</h4>
+                    <p class="text-xs text-slate-500 mt-0.5">Acceso 24/7 al material. Estudia cuando quieras</p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3 p-4 rounded-xl bg-emerald-50/50 border border-emerald-100/60">
+                  <div class="p-2 rounded-lg bg-emerald-100 text-emerald-600 shrink-0">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                  </div>
+                  <div>
+                    <h4 class="font-bold text-[#0d1b2a] text-sm">100% Descargable</h4>
+                    <p class="text-xs text-slate-500 mt-0.5">Descarga el contenido y estudia sin conexion</p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3 p-4 rounded-xl bg-emerald-50/50 border border-emerald-100/60">
+                  <div class="p-2 rounded-lg bg-emerald-100 text-emerald-600 shrink-0">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                  </div>
+                  <div>
+                    <h4 class="font-bold text-[#0d1b2a] text-sm">Garantia de 7 dias</h4>
+                    <p class="text-xs text-slate-500 mt-0.5">Reembolso completo si no quedas satisfecho</p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3 p-4 rounded-xl bg-emerald-50/50 border border-emerald-100/60">
+                  <div class="p-2 rounded-lg bg-emerald-100 text-emerald-600 shrink-0">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                  </div>
+                  <div>
+                    <h4 class="font-bold text-[#0d1b2a] text-sm">Acceso vitalicio</h4>
+                    <p class="text-xs text-slate-500 mt-0.5">Pago unico sin suscripciones ni costos ocultos</p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3 p-4 rounded-xl bg-emerald-50/50 border border-emerald-100/60">
+                  <div class="p-2 rounded-lg bg-emerald-100 text-emerald-600 shrink-0">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                  </div>
+                  <div>
+                    <h4 class="font-bold text-[#0d1b2a] text-sm">Acceso en moviles y TV</h4>
+                    <p class="text-xs text-slate-500 mt-0.5">Estudia desde cualquier dispositivo</p>
+                  </div>
                 </div>
               </div>
-              <div class="cip-benefit-card">
-                <div class="cip-benefit-icon">
-                  <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                </div>
-                <div>
-                  <h4 class="font-bold text-[#0d1b2a]">A tu propio ritmo</h4>
-                  <p class="text-sm text-slate-500 mt-1">Acceso 24/7 al material. Estudia cuando quieras.</p>
-                </div>
+            </div>
+
+            <!-- Lo que NO incluye este paquete (solo si no tiene reventa/descuento y hay upsell) -->
+            <div v-if="!tierInfo.includesResale && upsellCategory" class="bg-white rounded-2xl border border-slate-100/80 shadow-md overflow-hidden">
+              <div class="bg-gradient-to-r from-slate-400 to-slate-500 px-6 py-4">
+                <h3 class="text-white font-[Poppins] font-bold text-lg flex items-center gap-2">
+                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
+                  No incluido en este paquete
+                </h3>
               </div>
-              <div class="cip-benefit-card">
-                <div class="cip-benefit-icon">
-                  <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+              <div class="p-6 space-y-3">
+                <div class="flex items-center gap-3 p-4 rounded-xl bg-red-50/50 border border-red-100/60">
+                  <div class="p-2 rounded-lg bg-red-100 text-red-500 shrink-0">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                  </div>
+                  <div>
+                    <h4 class="font-bold text-[#0d1b2a] text-sm">Reventa de cursos</h4>
+                    <p class="text-xs text-slate-500 mt-0.5">No podras revender los cursos y generar ingresos como afiliado</p>
+                  </div>
                 </div>
-                <div>
-                  <h4 class="font-bold text-[#0d1b2a]">100% Descargable</h4>
-                  <p class="text-sm text-slate-500 mt-1">Descarga todo el contenido y estudia sin conexion.</p>
+                <div class="flex items-center gap-3 p-4 rounded-xl bg-red-50/50 border border-red-100/60">
+                  <div class="p-2 rounded-lg bg-red-100 text-red-500 shrink-0">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                  </div>
+                  <div>
+                    <h4 class="font-bold text-[#0d1b2a] text-sm">70% Dto. en toda la tienda</h4>
+                    <p class="text-xs text-slate-500 mt-0.5">No tendras acceso al descuento exclusivo para futuras compras</p>
+                  </div>
                 </div>
-              </div>
-              <div class="cip-benefit-card">
-                <div class="cip-benefit-icon">
-                  <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                <div class="flex items-center gap-3 p-4 rounded-xl bg-red-50/50 border border-red-100/60">
+                  <div class="p-2 rounded-lg bg-red-100 text-red-500 shrink-0">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                  </div>
+                  <div>
+                    <h4 class="font-bold text-[#0d1b2a] text-sm">Contenido de otros pilares</h4>
+                    <p class="text-xs text-slate-500 mt-0.5">Solo incluye este tema, no el pilar completo ni los demas pilares</p>
+                  </div>
                 </div>
-                <div>
-                  <h4 class="font-bold text-[#0d1b2a]">Garantia de 7 dias</h4>
-                  <p class="text-sm text-slate-500 mt-1">Reembolso completo si no quedas satisfecho.</p>
+
+                <!-- CTA para ver el upsell -->
+                <div class="mt-4 p-4 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100/60">
+                  <div class="flex items-center justify-between gap-4">
+                    <div>
+                      <p class="text-sm font-bold text-[#0d1b2a]">¿Quieres todos los beneficios?</p>
+                      <p class="text-xs text-slate-500 mt-0.5">
+                        {{ upsellCategory.titulo }} incluye reventa, descuento y mucho mas contenido
+                      </p>
+                    </div>
+                    <button
+                      @click="handleUpsellExplore"
+                      class="shrink-0 px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold border-none cursor-pointer transition-all hover:bg-blue-700 hover:-translate-y-0.5 shadow-md shadow-blue-600/20"
+                    >
+                      Ver paquete
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -593,21 +709,26 @@ const handleUpsellExplore = () => {
         </div>
 
         <!-- ── COLUMNA DERECHA: SIDEBAR DE COMPRA ── -->
-        <div class="cip-sidebar-col">
-          <div class="cip-sidebar" :class="{ 'cip-sidebar--premium': tierInfo.isPremium }">
+        <div class="order-1 lg:order-2">
+          <div
+            class="bg-white rounded-2xl overflow-hidden transition-shadow hover:shadow-lg"
+            :class="tierInfo.isPremium
+              ? 'border-2 border-amber-200/60 shadow-xl lg:sticky lg:top-20'
+              : 'border border-slate-100/80 shadow-md lg:sticky lg:top-20'"
+          >
 
             <!-- Imagen preview -->
-            <div class="cip-sidebar-img-wrap" @click="category?.url ? openInNewTab(category.url) : null">
-              <img v-if="category?.imagen_url" class="cip-sidebar-img" :src="category.imagen_url" alt="Imagen del curso" />
-              <div class="cip-sidebar-img-overlay">
-                <div class="cip-play-btn">
+            <div class="relative w-full aspect-video bg-slate-100 cursor-pointer overflow-hidden group" @click="category?.url ? openInNewTab(category.url) : null">
+              <img v-if="category?.imagen_url" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" :src="category.imagen_url" alt="Imagen del curso" />
+              <div class="absolute inset-0 bg-black/25 flex items-center justify-center transition-colors group-hover:bg-black/15">
+                <div class="bg-white/90 backdrop-blur-sm rounded-full p-3.5 shadow-lg transition-transform group-hover:scale-110">
                   <div class="w-8 h-8 text-[#1e40af] flex items-center justify-center" v-html="courseIcons.preview"></div>
                 </div>
-                <span class="cip-preview-badge">Vista previa</span>
+                <span class="absolute bottom-2.5 right-2.5 bg-black/60 backdrop-blur-sm text-white text-[0.65rem] font-semibold px-2 py-0.5 rounded-md">Vista previa</span>
               </div>
             </div>
 
-            <div class="cip-sidebar-body">
+            <div class="p-5">
               <!-- Precio -->
               <div class="mb-3">
                 <div v-if="hasDiscount" class="flex items-center gap-2 mb-1">
@@ -619,15 +740,15 @@ const handleUpsellExplore = () => {
                   </span>
                 </div>
                 <div class="flex items-baseline gap-2">
-                  <span class="cip-price">${{ formatPrice(category?.precio) }}</span>
-                  <span class="text-base font-semibold text-slate-500">{{ currencySuffix }}</span>
+                  <span class="font-[Poppins] text-3xl sm:text-4xl font-extrabold text-[#0f172a] tracking-tight leading-none">${{ formatPrice(category?.precio) }}</span>
+                  <span class="text-sm sm:text-base font-semibold text-slate-500">{{ currencySuffix }}</span>
                 </div>
                 <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5">
                   <p class="text-emerald-600 text-xs font-semibold flex items-center gap-1">
                     <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
                     Pago unico · Acceso vitalicio
                   </p>
-                  <span class="cip-cert-badge">
+                  <span class="inline-flex items-center gap-1 text-[0.65rem] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full tracking-wide">
                     <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
                     Certificado
                   </span>
@@ -650,13 +771,15 @@ const handleUpsellExplore = () => {
                 <p v-if="isLowStock" class="text-red-500 text-[0.65rem] font-semibold mt-1">Quedan pocos cupos disponibles</p>
               </div>
 
-              <!-- ══ SELECTOR DE OPCIONES + CTA ÚNICO ══ -->
+              <!-- ══ SELECTOR DE OPCIONES + CTA UNICO ══ -->
               <div class="space-y-3">
 
                 <!-- Opcion 1: Producto actual (siempre visible) -->
                 <label
-                  class="upsell-option group cursor-pointer"
-                  :class="selectedOption === 'current' ? 'upsell-option--active' : 'upsell-option--idle'"
+                  class="block w-full rounded-xl px-4 py-3 border-2 cursor-pointer transition-all"
+                  :class="selectedOption === 'current'
+                    ? 'border-emerald-400 bg-emerald-50/50 shadow-sm'
+                    : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50'"
                 >
                   <input type="radio" v-model="selectedOption" value="current" class="sr-only" />
                   <div class="flex items-center gap-3 w-full">
@@ -668,9 +791,9 @@ const handleUpsellExplore = () => {
                     </div>
                     <div class="flex-1 min-w-0">
                       <p class="text-xs text-slate-500 font-medium">Este paquete</p>
-                      <p class="text-sm font-bold text-[#0d1b2a] truncate">{{ category?.titulo }}</p>
+                      <p class="text-xs sm:text-sm font-bold text-[#0d1b2a] truncate">{{ category?.titulo }}</p>
                     </div>
-                    <span class="text-base font-extrabold text-[#0d1b2a] whitespace-nowrap">
+                    <span class="text-sm sm:text-base font-extrabold text-[#0d1b2a] whitespace-nowrap shrink-0">
                       ${{ formatPrice(category?.precio) }}
                     </span>
                   </div>
@@ -679,8 +802,10 @@ const handleUpsellExplore = () => {
                 <!-- Opcion 2: Upsell (solo si hay upsell disponible) -->
                 <div v-if="upsellCategory && !tierInfo.isPremium">
                   <label
-                    class="upsell-option group cursor-pointer"
-                    :class="selectedOption === 'upsell' ? 'upsell-option--active upsell-option--upgrade' : 'upsell-option--idle'"
+                    class="block w-full rounded-xl px-4 py-3 border-2 cursor-pointer transition-all"
+                    :class="selectedOption === 'upsell'
+                      ? 'border-blue-400 bg-blue-50/50 shadow-sm'
+                      : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50'"
                   >
                     <input type="radio" v-model="selectedOption" value="upsell" class="sr-only" />
                     <div class="flex items-center gap-3 w-full">
@@ -691,15 +816,15 @@ const handleUpsellExplore = () => {
                         <div v-if="selectedOption === 'upsell'" class="w-1.5 h-1.5 rounded-full bg-white" />
                       </div>
                       <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-1.5">
+                        <div class="flex flex-wrap items-center gap-1.5">
                           <span class="text-[0.6rem] font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
                             {{ upsellTierLabel }}
                           </span>
-                          <span class="upsell-popular-tag">Popular</span>
+                          <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[0.55rem] font-extrabold uppercase tracking-wider text-amber-700 bg-gradient-to-r from-amber-100 to-yellow-100">Popular</span>
                         </div>
-                        <p class="text-sm font-bold text-[#0d1b2a] truncate mt-0.5">{{ upsellCategory.titulo }}</p>
+                        <p class="text-xs sm:text-sm font-bold text-[#0d1b2a] truncate mt-0.5">{{ upsellCategory.titulo }}</p>
                       </div>
-                      <span class="text-base font-extrabold text-blue-600 whitespace-nowrap">
+                      <span class="text-sm sm:text-base font-extrabold text-blue-600 whitespace-nowrap shrink-0">
                         ${{ formatPrice(upsellCategory.precio) }}
                       </span>
                     </div>
@@ -707,11 +832,11 @@ const handleUpsellExplore = () => {
                     <!-- Flechita de curiosidad -->
                     <button
                       type="button"
-                      class="mt-2 w-full flex items-center justify-center gap-1 text-[0.65rem] font-semibold transition-colors"
+                      class="mt-2 w-full flex items-center justify-center gap-1 text-[0.65rem] font-semibold transition-colors border-none bg-transparent cursor-pointer"
                       :class="showUpsellDetails ? 'text-blue-600' : 'text-slate-400 hover:text-blue-500'"
                       @click.prevent.stop="showUpsellDetails = !showUpsellDetails"
                     >
-                      <span>{{ showUpsellDetails ? 'Ocultar detalles' : '¿Qué incluye este paquete?' }}</span>
+                      <span>{{ showUpsellDetails ? 'Ocultar detalles' : '¿Que incluye este paquete?' }}</span>
                       <svg
                         class="w-3 h-3 transition-transform duration-200"
                         :class="showUpsellDetails ? 'rotate-180' : ''"
@@ -747,7 +872,7 @@ const handleUpsellExplore = () => {
                         </ul>
                         <button
                           type="button"
-                          class="text-[0.65rem] font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+                          class="text-[0.65rem] font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-colors border-none bg-transparent cursor-pointer"
                           @click="handleUpsellExplore"
                         >
                           Ver todos los detalles →
@@ -757,13 +882,14 @@ const handleUpsellExplore = () => {
                   </Transition>
                 </div>
 
-                <!-- BOTON ÚNICO DE COMPRA -->
+                <!-- BOTON UNICO DE COMPRA -->
                 <button
                   @click="handleBuySelected"
-                  class="cip-btn-primary"
+                  class="w-full py-3.5 px-4 rounded-xl border-none text-sm sm:text-base font-bold text-white cursor-pointer transition-all duration-200 hover:-translate-y-0.5 text-center"
                   :class="{
-                    'cip-btn-primary--premium': tierInfo.isPremium,
-                    'cip-btn-primary--upsell': selectedOption === 'upsell' && !tierInfo.isPremium,
+                    'btn-premium-gradient': tierInfo.isPremium,
+                    'bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30': selectedOption === 'upsell' && !tierInfo.isPremium,
+                    'bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-600/20 hover:shadow-emerald-600/30': selectedOption === 'current' && !tierInfo.isPremium,
                   }"
                 >
                   Comprar ahora — ${{ formatPrice(selectedCategory?.precio) }} {{ currencySuffix }}
@@ -771,7 +897,7 @@ const handleUpsellExplore = () => {
 
                 <button
                   @click="handleAddToCartSelected"
-                  class="cip-btn-secondary"
+                  class="w-full py-3 px-4 rounded-xl border-2 border-blue-700 bg-transparent text-sm font-bold text-blue-700 cursor-pointer transition-all hover:bg-blue-50/50 hover:border-blue-800"
                 >
                   Anadir al carrito
                 </button>
@@ -783,18 +909,18 @@ const handleUpsellExplore = () => {
               </div>
 
               <!-- Incluye -->
-              <div class="cip-includes">
+              <div class="mt-4 pt-4 border-t border-slate-100">
                 <h4 class="text-xs font-bold text-[#0d1b2a] uppercase tracking-wider mb-3">Este curso incluye</h4>
                 <ul class="space-y-2.5">
-                  <li class="cip-include-item">
+                  <li class="flex items-center gap-2.5 text-sm text-slate-600">
                     <svg class="w-4 h-4 text-[#1e40af]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
                     <span>Acceso de por vida</span>
                   </li>
-                  <li class="cip-include-item">
+                  <li class="flex items-center gap-2.5 text-sm text-slate-600">
                     <svg class="w-4 h-4 text-[#1e40af]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
                     <span>Acceso en moviles y TV</span>
                   </li>
-                  <li class="cip-include-item">
+                  <li class="flex items-center gap-2.5 text-sm text-slate-600">
                     <svg class="w-4 h-4 text-[#1e40af]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
                     <span>Garantia de reembolso de 7 dias</span>
                   </li>
@@ -816,21 +942,24 @@ const handleUpsellExplore = () => {
 
     <!-- ═══ BARRA FLOTANTE DE COMPRA ═══ -->
     <Teleport to="body">
-      <div class="cip-floating-bar">
-        <div class="cip-floating-bar-inner">
-          <div class="cip-floating-bar-price">
-            <span v-if="hasDiscount" class="cip-floating-bar-discount">
+      <div class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-[0_-4px_20px_rgba(15,23,42,0.08)] px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] lg:hidden">
+        <div class="max-w-xl mx-auto flex items-center justify-between gap-4">
+          <div class="flex items-baseline gap-1.5 shrink-0">
+            <span v-if="hasDiscount" class="text-[0.65rem] font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded-full self-center">
               {{ discountPercent }}% Dto.
             </span>
-            <span class="cip-floating-bar-amount">${{ formatPrice(selectedCategory?.precio) }}</span>
-            <span class="cip-floating-bar-currency">{{ currencySuffix }}</span>
+            <span class="font-[Poppins] text-xl font-extrabold text-[#0f172a] tracking-tight leading-none">
+              ${{ formatPrice(selectedCategory?.precio) }}
+            </span>
+            <span class="text-xs font-semibold text-slate-500">{{ currencySuffix }}</span>
           </div>
           <button
             @click="handleBuySelected"
-            class="cip-floating-bar-btn"
+            class="flex-1 max-w-[280px] py-3 px-5 rounded-xl border-none text-sm font-bold text-white cursor-pointer transition-all active:scale-[0.97] whitespace-nowrap"
             :class="{
-              'cip-floating-bar-btn--premium': tierInfo.isPremium,
-              'cip-floating-bar-btn--upsell': selectedOption === 'upsell' && !tierInfo.isPremium,
+              'btn-premium-gradient': tierInfo.isPremium,
+              'bg-blue-600 shadow-lg shadow-blue-600/25': selectedOption === 'upsell' && !tierInfo.isPremium,
+              'bg-emerald-600 shadow-lg shadow-emerald-600/25': selectedOption === 'current' && !tierInfo.isPremium,
             }"
           >
             Comprar ahora
@@ -846,742 +975,25 @@ const handleUpsellExplore = () => {
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap');
 
-/* ═══════════════════════════════════════════════════════════
-   ROOT
-═══════════════════════════════════════════════════════════ */
-.cip-root {
-  font-family: 'Inter', system-ui, sans-serif;
-  color: #0d1b2a;
-  background: #f8faff;
-  min-height: 100vh;
-}
-
-/* ═══════════════════════════════════════════════════════════
-   HERO
-═══════════════════════════════════════════════════════════ */
-.cip-hero {
-  position: relative;
-  overflow: hidden;
-  background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 30%, #ffffff 65%);
-  padding: 2rem 1.25rem 2rem;
-}
-@media (min-width: 1024px) {
-  .cip-hero { padding: 2.5rem 0 2.5rem; }
-}
-
-.cip-wave {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-}
-.cip-wave span {
-  position: absolute;
-  width: 400vh;
-  height: 400vh;
-  top: 0;
-  left: 50%;
-  transform: translate(-50%, -85%);
-}
-.cip-wave span:nth-child(1) { border-radius: 45%; background: rgba(30, 64, 175, 0.06); animation: cipWave 28s linear infinite; }
-.cip-wave span:nth-child(2) { border-radius: 40%; background: rgba(59, 130, 246, 0.04); animation: cipWave 42s linear infinite; }
-.cip-wave span:nth-child(3) { border-radius: 42.5%; background: rgba(30, 64, 175, 0.03); animation: cipWave 58s linear infinite; }
-@keyframes cipWave {
-  from { transform: translate(-50%, -85%) rotate(0deg); }
-  to   { transform: translate(-50%, -85%) rotate(360deg); }
-}
-
-.cip-affiliate-banner {
-  position: relative;
-  z-index: 1;
-  max-width: 1280px;
-  margin: 0 auto 1.5rem;
-  padding: 0.5rem 1rem;
-  background: rgba(245, 158, 11, 0.08);
-  border: 1px solid rgba(245, 158, 11, 0.15);
-  border-radius: 0.75rem;
-  font-size: 0.82rem;
-  color: #92400e;
-  font-weight: 500;
-  text-align: center;
-}
-
-.cip-hero-inner {
-  position: relative;
-  z-index: 1;
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0 1rem;
-}
-@media (min-width: 1024px) {
-  .cip-hero-inner {
-    padding: 0 2.5rem;
-    max-width: 1280px;
-    margin: 0 auto;
-  }
-}
-
-.cip-pill {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.25rem 0.65rem;
-  border-radius: 999px;
-  font-size: 0.72rem;
-  font-weight: 600;
-}
-.cip-pill--premium {
-  background: linear-gradient(135deg, #f59e0b, #facc15, #f59e0b);
-  color: #451a03;
-  font-weight: 800;
-  font-size: 0.78rem;
-  padding: 0.3rem 0.85rem;
-  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
-}
-
-.cip-hero-title {
-  font-family: 'Poppins', sans-serif;
-  font-size: clamp(1.8rem, 4vw, 3rem);
-  font-weight: 900;
-  color: #0d1b2a;
-  line-height: 1.1;
-  letter-spacing: -0.03em;
-  margin: 0 0 0.6rem;
-}
-
-.cip-hero-sub {
-  font-size: clamp(0.95rem, 1.6vw, 1.15rem);
-  color: #64748b;
-  line-height: 1.6;
-  margin: 0 0 0.5rem;
-  max-width: 600px;
-}
-
-.cip-hero-frase {
-  font-size: 0.9rem;
-  color: #94a3b8;
-  font-style: italic;
-  line-height: 1.5;
-  margin: 0;
-  padding-left: 0.75rem;
-  border-left: 2px solid rgba(30, 64, 175, 0.2);
-}
-
-/* ═══════════════════════════════════════════════════════════
-   MAIN CONTENT AREA
-═══════════════════════════════════════════════════════════ */
-.cip-main {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 1.5rem 1rem 6rem; /* extra bottom padding for floating bar */
-}
-@media (min-width: 1024px) {
-  .cip-main { padding: 1.5rem 2.5rem 2rem; }
-}
-
-.cip-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
-}
-@media (min-width: 1024px) {
-  .cip-grid {
-    grid-template-columns: 1fr 380px;
-    gap: 2rem;
-    align-items: start;
-  }
-}
-
-.cip-content-col { order: 2; }
-.cip-sidebar-col { order: 1; }
-@media (min-width: 1024px) {
-  .cip-content-col { order: 1; }
-  .cip-sidebar-col { order: 2; }
-}
-
-/* ═══════════════════════════════════════════════════════════
-   TABS
-═══════════════════════════════════════════════════════════ */
-.cip-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  padding: 0.35rem;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(30, 64, 175, 0.06);
-  border-radius: 0.875rem;
-  box-shadow: 0 1px 6px rgba(15, 23, 42, 0.04);
-  margin-bottom: 1rem;
-  position: sticky;
-  top: 4rem;
-  z-index: 10;
-}
-
-.cip-tab {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
-  padding: 0.65rem 0.75rem;
-  border-radius: 0.625rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #64748b;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-.cip-tab:hover:not(.cip-tab--active) {
-  background: rgba(241, 245, 249, 0.8);
-  color: #0d1b2a;
-}
-.cip-tab--active {
-  background: #1e40af;
-  color: #ffffff;
-  box-shadow: 0 2px 8px rgba(30, 64, 175, 0.25);
-}
-
-/* ═══════════════════════════════════════════════════════════
-   ACCORDION / CONTENT SECTIONS
-═══════════════════════════════════════════════════════════ */
-.cip-section-title {
-  font-family: 'Poppins', sans-serif;
-  font-size: 1.35rem;
-  font-weight: 800;
-  color: #0d1b2a;
-  letter-spacing: -0.02em;
-  margin: 0 0 1rem;
-}
-
-.cip-accordion {
-  border-radius: 1rem;
-  border: 1px solid rgba(226, 232, 240, 0.7);
-  background: #ffffff;
-  overflow: hidden;
-  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.03);
-  transition: box-shadow 0.2s ease;
-}
-.cip-accordion:hover {
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
-}
-
-.cip-accordion-header {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 1.5rem;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-.cip-accordion-header:hover { background: rgba(248, 250, 252, 0.6); }
-
-.cip-accordion-title {
-  font-family: 'Poppins', sans-serif;
-  font-size: 1rem;
-  font-weight: 700;
-  color: #0d1b2a;
-}
-
-.cip-accordion-badge {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: #64748b;
-  background: #f1f5f9;
-  padding: 0.2rem 0.6rem;
-  border-radius: 999px;
-}
-
-.cip-accordion-body {
-  border-top: 1px solid #f1f5f9;
-  padding: 1rem 1.5rem;
-  max-height: 600px;
-  overflow-y: auto;
-  background: rgba(248, 250, 252, 0.4);
-}
-
-.cip-folder-item {
-  margin-bottom: 0.6rem;
-  background: #ffffff;
-  border-radius: 0.75rem;
-  border: 1px solid #f1f5f9;
-  overflow: hidden;
-  transition: border-color 0.15s ease;
-}
-.cip-folder-item:hover { border-color: #e2e8f0; }
-
-.cip-folder-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.65rem 1rem;
-  cursor: pointer;
-  transition: background 0.12s ease;
-}
-.cip-folder-header:hover { background: rgba(30, 64, 175, 0.02); }
-
-.cip-folder-content {
-  border-top: 1px solid #f8fafc;
-  background: #fafbfd;
-  padding: 0.75rem 1rem;
-}
-
-.cip-lesson-item {
-  margin-left: 1rem;
-  padding-left: 1rem;
-  border-left: 2px solid #e2e8f0;
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
-}
-
-.cip-resource-btn {
-  font-size: 0.65rem;
-  font-weight: 600;
-  color: #1e40af;
-  background: rgba(30, 64, 175, 0.06);
-  padding: 0.2rem 0.5rem;
-  border-radius: 0.375rem;
-  border: none;
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-.cip-resource-btn:hover { background: rgba(30, 64, 175, 0.12); }
-
-.cip-search-input {
-  width: 100%;
-  padding: 0.7rem 2.5rem 0.7rem 2.5rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.75rem;
-  font-size: 0.85rem;
-  font-family: 'Inter', sans-serif;
-  background: #ffffff;
-  color: #0d1b2a;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
-}
-.cip-search-input:focus {
-  outline: none;
-  border-color: #1e40af;
-  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.08);
-}
-
-.cip-paginator {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  margin-top: 1rem;
-  padding-top: 0.75rem;
-}
-
-.cip-paginator-btn {
-  padding: 0.4rem;
-  border-radius: 999px;
-  background: transparent;
-  border: none;
-  color: #64748b;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-.cip-paginator-btn:hover:not(:disabled) { background: #f1f5f9; color: #0d1b2a; }
-.cip-paginator-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-
-.cip-paginator-text {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: #64748b;
-}
-
-/* ═══════════════════════════════════════════════════════════
-   EMPTY STATE & BENEFITS
-═══════════════════════════════════════════════════════════ */
-.cip-empty-state {
-  background: #ffffff;
-  border-radius: 1rem;
-  padding: 3rem 2rem;
-  text-align: center;
-  border: 1px solid rgba(226, 232, 240, 0.7);
-  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.03);
-}
-
-.cip-benefits-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
-}
-@media (min-width: 640px) {
-  .cip-benefits-grid { grid-template-columns: 1fr 1fr; }
-}
-
-.cip-benefit-card {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  padding: 1.25rem;
-  background: #ffffff;
-  border-radius: 0.875rem;
-  border: 1px solid rgba(226, 232, 240, 0.7);
-  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.03);
-  transition: all 0.2s ease;
-}
-.cip-benefit-card:hover {
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
-  transform: translateY(-2px);
-}
-
-.cip-benefit-icon {
-  padding: 0.65rem;
-  border-radius: 0.625rem;
-  background: rgba(30, 64, 175, 0.06);
-  color: #1e40af;
-  flex-shrink: 0;
-}
-
-/* ═══════════════════════════════════════════════════════════
-   SIDEBAR
-═══════════════════════════════════════════════════════════ */
-.cip-sidebar {
-  background: #ffffff;
-  border: 1px solid rgba(226, 232, 240, 0.7);
-  border-radius: 1rem;
-  overflow: hidden;
-  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.06), 0 1px 4px rgba(15, 23, 42, 0.03);
-  transition: box-shadow 0.3s ease;
-}
-@media (min-width: 1024px) {
-  .cip-sidebar {
-    position: sticky;
-    top: 5rem;
-    margin-top: -4rem;
-  }
-}
-.cip-sidebar:hover {
-  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.08), 0 2px 8px rgba(15, 23, 42, 0.04);
-}
-.cip-sidebar--premium {
-  border: 2px solid rgba(245, 158, 11, 0.3);
-  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.1), 0 4px 24px rgba(245, 158, 11, 0.08);
-  animation: sidebarGlow 3s ease-in-out infinite;
-}
-@keyframes sidebarGlow {
-  0%, 100% { box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.1), 0 4px 24px rgba(245, 158, 11, 0.08); }
-  50% { box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.25), 0 8px 32px rgba(245, 158, 11, 0.14); }
-}
-
-.cip-cert-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: 0.65rem;
-  font-weight: 700;
-  color: #1e40af;
-  background: rgba(30, 64, 175, 0.06);
-  padding: 0.2rem 0.5rem;
-  border-radius: 999px;
-  letter-spacing: 0.02em;
-}
-
-.cip-sidebar-img-wrap {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  background: #f1f5f9;
-  cursor: pointer;
-  overflow: hidden;
-}
-.cip-sidebar-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.4s ease;
-}
-.cip-sidebar-img-wrap:hover .cip-sidebar-img {
-  transform: scale(1.05);
-}
-
-.cip-sidebar-img-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.25);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s ease;
-}
-.cip-sidebar-img-wrap:hover .cip-sidebar-img-overlay {
-  background: rgba(0, 0, 0, 0.15);
-}
-
-.cip-play-btn {
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(4px);
-  border-radius: 999px;
-  padding: 0.85rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-  transition: transform 0.2s ease;
-}
-.cip-sidebar-img-wrap:hover .cip-play-btn {
-  transform: scale(1.1);
-}
-
-.cip-preview-badge {
-  position: absolute;
-  bottom: 0.6rem;
-  right: 0.6rem;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
-  color: #ffffff;
-  font-size: 0.65rem;
-  font-weight: 600;
-  padding: 0.2rem 0.5rem;
-  border-radius: 0.375rem;
-}
-
-.cip-sidebar-body { padding: 1.25rem; }
-
-.cip-price {
-  font-family: 'Poppins', sans-serif;
-  font-size: 2.2rem;
-  font-weight: 800;
-  color: #0f172a;
-  letter-spacing: -0.03em;
-  line-height: 1;
-}
-
-/* ── CTAs ───────────────────────────────────── */
-/* ── Upsell option selector ── */
-.upsell-option {
-  display: block;
-  width: 100%;
-  border-radius: 0.75rem;
-  padding: 0.75rem 1rem;
-  border: 2px solid transparent;
-  transition: all 0.2s ease;
-}
-.upsell-option--idle {
-  border-color: #e2e8f0;
-  background: #ffffff;
-}
-.upsell-option--idle:hover {
-  border-color: #cbd5e1;
-  background: #f8fafc;
-}
-.upsell-option--active {
-  border-color: #059669;
-  background: #f0fdf4;
-  box-shadow: 0 0 0 1px rgba(5, 150, 105, 0.1);
-}
-.upsell-option--active.upsell-option--upgrade {
-  border-color: #2563eb;
-  background: #eff6ff;
-  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.1);
-}
-.upsell-popular-tag {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.1rem 0.4rem;
-  border-radius: 9999px;
-  font-size: 0.55rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #b45309;
-  background: linear-gradient(135deg, #fef3c7, #fde68a);
-  animation: popularPulse 2s ease-in-out infinite;
-}
-@keyframes popularPulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
-}
-
-.cip-btn-primary--upsell {
-  background: #2563eb;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.2);
-}
-.cip-btn-primary--upsell:hover {
-  background: #1d4ed8;
-  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.3);
-}
-
-.cip-btn-primary {
-  width: 100%;
-  padding: 0.9rem 1rem;
-  border-radius: 0.75rem;
-  border: none;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #ffffff;
-  background: #059669;
-  cursor: pointer;
-  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.2);
-  transition: all 0.2s ease;
-}
-.cip-btn-primary:hover {
-  background: #047857;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(5, 150, 105, 0.3);
-}
-.cip-btn-primary--premium {
+/* Premium CTA gradient animation */
+.btn-premium-gradient {
   background: linear-gradient(135deg, #f59e0b 0%, #facc15 50%, #f59e0b 100%);
   background-size: 200% 200%;
   color: #451a03;
   box-shadow: 0 4px 14px rgba(245, 158, 11, 0.25);
-  animation: ctaPremiumGrad 3s ease infinite;
+  animation: premiumGrad 3s ease infinite;
 }
-.cip-btn-primary--premium:hover {
+.btn-premium-gradient:hover {
   box-shadow: 0 8px 24px rgba(245, 158, 11, 0.35);
 }
-@keyframes ctaPremiumGrad {
+@keyframes premiumGrad {
   0%, 100% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
 }
 
-.cip-btn-secondary {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border-radius: 0.75rem;
-  border: 2px solid #1e40af;
-  background: transparent;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: #1e40af;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-.cip-btn-secondary:hover {
-  background: rgba(30, 64, 175, 0.04);
-  border-color: #1e3a8a;
-}
-
-/* ── Includes list ──────────────────────────── */
-.cip-includes {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #f1f5f9;
-}
-
-.cip-include-item {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  font-size: 0.8rem;
-  color: #475569;
-}
-
-/* ═══════════════════════════════════════════════════════════
-   SCROLLBAR
-═══════════════════════════════════════════════════════════ */
-.cip-accordion-body::-webkit-scrollbar { width: 4px; }
-.cip-accordion-body::-webkit-scrollbar-track { background: transparent; }
-.cip-accordion-body::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 2px; }
-.cip-accordion-body::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
-
-/* ═══════════════════════════════════════════════════════════
-   RESPONSIVE
-═══════════════════════════════════════════════════════════ */
-@media (max-width: 767px) {
-  .cip-tabs { position: sticky; top: 7rem; }
-  .cip-metric-divider { display: none; }
-  .cip-hero-metrics { gap: 0.6rem; }
-}
-
-/* ═══════════════════════════════════════════════════════════
-   FLOATING BUY BAR
-═══════════════════════════════════════════════════════════ */
-.cip-floating-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 50;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-top: 1px solid rgba(226, 232, 240, 0.8);
-  box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.08);
-  padding: 0.75rem 1rem;
-  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
-}
-@media (min-width: 1024px) {
-  .cip-floating-bar { display: none; }
-}
-
-.cip-floating-bar-inner {
-  max-width: 640px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.cip-floating-bar-price {
-  display: flex;
-  align-items: baseline;
-  gap: 0.35rem;
-  flex-shrink: 0;
-}
-
-.cip-floating-bar-discount {
-  font-size: 0.65rem;
-  font-weight: 700;
-  color: #dc2626;
-  background: #fef2f2;
-  padding: 0.15rem 0.4rem;
-  border-radius: 999px;
-  align-self: center;
-}
-
-.cip-floating-bar-amount {
-  font-family: 'Poppins', sans-serif;
-  font-size: 1.35rem;
-  font-weight: 800;
-  color: #0f172a;
-  letter-spacing: -0.02em;
-  line-height: 1;
-}
-
-.cip-floating-bar-currency {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #64748b;
-}
-
-.cip-floating-bar-btn {
-  flex: 1;
-  max-width: 280px;
-  padding: 0.75rem 1.25rem;
-  border-radius: 0.75rem;
-  border: none;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #ffffff;
-  background: #059669;
-  cursor: pointer;
-  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.25);
-  transition: all 0.2s ease;
-  white-space: nowrap;
-}
-.cip-floating-bar-btn:active {
-  transform: scale(0.97);
-}
-.cip-floating-bar-btn--premium {
-  background: linear-gradient(135deg, #f59e0b 0%, #facc15 50%, #f59e0b 100%);
-  background-size: 200% 200%;
-  color: #451a03;
-  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.25);
-  animation: ctaPremiumGrad 3s ease infinite;
-}
-.cip-floating-bar-btn--upsell {
-  background: #2563eb;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
-}
+/* Custom scrollbar for accordion body */
+.accordion-body::-webkit-scrollbar { width: 4px; }
+.accordion-body::-webkit-scrollbar-track { background: transparent; }
+.accordion-body::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 2px; }
+.accordion-body::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
 </style>

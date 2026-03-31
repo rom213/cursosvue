@@ -341,7 +341,7 @@ onBeforeUnmount(() => {
           @touchmove.prevent="onTestimonialsTouchMove"
           @touchend="onTestimonialsTouchEnd"
         >
-          <template v-for="n in 2" :key="n">
+          <template v-for="_n in 2" :key="_n">
             <div class="testimonials-row">
               <div
                 v-for="(item, index) in testimonialImages"

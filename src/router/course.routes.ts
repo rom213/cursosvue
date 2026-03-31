@@ -1,4 +1,5 @@
 import type { NavigationGuardNext, RouteLocationNormalized } from 'vue-router';
+import AuthService from '../services/AuthServices';
 
 
 export default [
@@ -18,21 +19,18 @@ export default [
   path: '/:googleid/affiliaty/:id',
   name: 'affiliaty',
   component: () => import('../courses/courseInfoPage/course.info.page.vue'),
-  beforeEnter: (
+  beforeEnter: async (
     to: RouteLocationNormalized,
     _from: RouteLocationNormalized,
     next: NavigationGuardNext
   ) => {
-    import('../services/AuthServices').then(({ default: AuthService }) => {
-      AuthService.getProfile().then((res) => {
-        if (res == null) {
-          localStorage.setItem('path_referido', to.fullPath);
-          next({ name: 'register' });
-        } else {
-          next();
-        }
-      });
-    });
+    const res = await AuthService.getProfile();
+    if (res == null) {
+      localStorage.setItem('path_referido', to.fullPath);
+      next({ name: 'register' });
+    } else {
+      next();
+    }
   },
   meta: { showHeader: true }
 }

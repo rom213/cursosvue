@@ -1,4 +1,23 @@
-# Plan: Optimización de Rendimiento Móvil — cursosvue
+# Optimización Mobile (Rendimiento + UX) — `cursosvue` (+ PWA + backend)
+
+## Objetivo
+
+Mejorar la experiencia en **mobile real** (CPU lenta, red lenta, pantallas pequeñas, notch) y subir Lighthouse **Mobile** / Core Web Vitals sin alterar la UI/UX.
+
+## Métricas objetivo (producción)
+
+- **LCP** < 2.5s (Slow 4G / CPU 4×)
+- **INP** < 200ms (ideal < 150ms)
+- **CLS** < 0.1
+- **JS inicial** lo más bajo posible (objetivo práctico: < 200–300KB gz en home; el resto por ruta)
+
+## Principios (para no “optimizar mal”)
+
+- Optimizar **ruta crítica** (home + header + búsqueda) antes que pantallas de uso raro.
+- Priorizar **menos bytes** y **menos trabajo JS** antes que micro-optimizaciones de CSS.
+- En mobile el coste real suele ser: **parse/compile JS**, **imágenes sobredimensionadas**, **repaints**, **layout thrash**.
+
+---
 
 ## Context
 
@@ -70,7 +89,101 @@ Poppins es usada en `home.component.vue`, `PricingLevels.vue`, `HomeCta.vue`, `c
 
 ---
 
+## Optimización Mobile UX (IU/UX) — lo que suele faltar
+
+> Estas mejoras no siempre suben Lighthouse, pero sí mejoran conversión y reducen frustración en móviles (errores de tap, scroll-jank, teclado mal configurado).
+
+### 1) UX táctil (tap targets y “misclicks”)
+
+- **Hit target** mínimo: 44×44px en botones, icon-buttons, chips y acciones dentro de cards.
+- Evitar acciones importantes en zonas muy cercanas (especialmente “comprar/eliminar”).
+- Asegurar feedback táctil: `:active` visible y no depender de `:hover`.
+
+Checklist:
+- [ ] Icon-buttons y chips ≥ 44×44px reales (no solo visuales)
+- [ ] Estados `:active` visibles en mobile
+- [ ] Acciones en cards con suficiente padding/separación
+
+### 2) Scroll performance (evitar “jank”)
+
+- Evitar trabajo pesado en `scroll`/`touchmove`.
+- Donde aplique, usar listeners `passive`.
+- En listados: limitar animaciones en entradas/salidas y evitar reflows (transiciones de `max-height`).
+
+Checklist:
+- [ ] No hay lógica costosa en scroll
+- [ ] Transiciones no dependen de `max-height` si hay alternativas
+
+### 3) Safe areas (notch / barras de sistema)
+
+Si hay header/footer pegados al borde en iOS con notch, usar safe-area:
+
+```css
+.safeTop { padding-top: env(safe-area-inset-top); }
+.safeBottom { padding-bottom: env(safe-area-inset-bottom); }
+```
+
+Checklist:
+- [ ] Header/CTA/floating buttons respetan `safe-area-inset-*`
+
+### 4) Accesibilidad (A11y) orientada a mobile
+
+- Icon-buttons con `aria-label`.
+- Imágenes: `alt` significativo o `alt=""` si es decorativa.
+- Respetar `prefers-reduced-motion` (especialmente animaciones infinitas).
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+```
+
+Checklist:
+- [ ] Icon-buttons tienen `aria-label`
+- [ ] Hay foco visible (`:focus-visible`) para navegación con teclado
+- [ ] Animaciones se reducen si el usuario lo pide
+
+### 5) Formularios y teclado (búsqueda/login)
+
+En mobile, el teclado correcto acelera tareas y reduce errores:
+
+```html
+<input inputmode="search" enterkeyhint="search" autocomplete="off" />
+```
+
+Checklist:
+- [ ] `inputmode` correcto (search/email/numeric)
+- [ ] `enterkeyhint` correcto (search/go/next/done)
+
+---
+
 ## Plan de Implementación
+
+### 0. PWA (Mobile-first) — Instalación, offline y caching
+
+> Objetivo: mejorar carga en visitas repetidas, permitir instalación y ofrecer degradación aceptable sin conexión.
+
+**Componentes:**
+- **Manifest** (`manifest.webmanifest`): `name`, `short_name`, `icons` (192/512 + `maskable`), `theme_color`, `background_color`, `display`.
+- **Service Worker** (Workbox / plugin PWA de Vite): precache + runtime caching.
+- **Estrategia de updates**: evitar que el SW quede “pegado” con una versión vieja.
+
+**Runtime caching recomendado (alto impacto en mobile):**
+- **API categorías/catálogos**: `stale-while-revalidate` (rápido + se actualiza solo).
+- **Imágenes**: `cache-first` con expiración (límite de entradas y edad).
+
+**Checklist PWA:**
+- [ ] `manifest.webmanifest` presente y validado
+- [ ] Íconos correctos (incluye `maskable`)
+- [ ] SW registra y cachea “app shell”
+- [ ] Cache de API y de imágenes con expiración
+- [ ] UX de actualización (toast “hay nueva versión” y recarga controlada)
+- [ ] Prueba offline: home abre y muestra estado razonable
 
 ### 1. Vite Config — Chunking Inteligente
 **Archivo:** `vite.config.ts`
@@ -281,6 +394,47 @@ await storeCatergory.fetchCategories() // force: false (default)
 
 ---
 
+## Backend (FastAPI) — optimizaciones que ayudan especialmente en mobile
+
+> Aunque el foco sea frontend, en mobile el backend define mucho: bytes, latencia, cache, paginación y payload “limpio”.
+
+**Referencias para implementar en backend:**
+- `cursos-server/src/main.py` (middlewares / headers)
+- `cursos-server/src/routes/**` (endpoints de catálogo/categorías/usuarios, según uso en home)
+
+### 1) Compresión (Brotli/Gzip)
+
+- Idealmente en **reverse proxy** (Nginx/Caddy) por eficiencia y soporte.
+- Alternativa: middleware en FastAPI (ojo con CPU y streaming).
+
+Checklist:
+- [ ] Respuestas JSON comprimidas en producción
+- [ ] Medir tamaño real (transfer) en mobile con Slow 4G
+
+### 2) Cache HTTP (ETag / Cache-Control)
+
+Aplicar sobre recursos semi-estáticos:\n- categorías\n- catálogos\n- configuración pública\n
+
+Checklist:
+- [ ] `Cache-Control` adecuado para endpoints cacheables
+- [ ] `ETag` y soporte de `If-None-Match` para devolver 304
+- [ ] Considerar `stale-while-revalidate` cuando tenga sentido
+
+### 3) Paginación + filtros (control de payload)
+
+Checklist:
+- [ ] Listados paginados (limit/offset o cursor)
+- [ ] Campos opcionales (evitar relaciones/payload grande si no se usan)
+- [ ] Respuestas consistentes y livianas para mobile
+
+### 4) Imágenes server-side (opcional, alto impacto)
+
+Si hoy se suben/consumen imágenes grandes, un proxy/transform puede ahorrar mucho en mobile:\n- `?w=400&q=75&format=webp`\n- caching del resultado\n
+
+Checklist:
+- [ ] Thumbnails optimizados por ancho (`w`) y calidad (`q`)
+- [ ] Headers de cache para resultados transformados
+
 ## Prioridad de Implementación
 
 | # | Cambio | Impacto Lighthouse | Esfuerzo |
@@ -312,6 +466,44 @@ await storeCatergory.fetchCategories() // force: false (default)
    - Búsqueda no dispara más de 1 request por término
 4. **Chrome DevTools > Performance**: Confirmar que no hay frames largos (>50ms) durante el filtrado de cursos
 5. **CLS check**: Usar Web Vitals extension, navegar al home y esperar carga de imágenes → CLS debe ser < 0.1
+
+### Verificación ampliada (mobile real + PWA + backend)
+
+#### A) Pruebas mobile UX (manuales, 10 min)
+
+- **Tap targets**: botones/íconos “tocables” sin errores (>= 44×44px).
+- **Teclado**: búsqueda con `enterkeyhint="search"` y `inputmode` correcto.
+- **Preferencias del usuario**: `prefers-reduced-motion` reduce animaciones.
+- **Safe area**: header/CTA no chocan con notch/barras.
+
+Checklist:
+- [ ] Tap targets OK
+- [ ] Teclado OK en búsqueda/login
+- [ ] Reduced motion OK
+- [ ] Safe area OK
+
+#### B) PWA
+
+- **Instalación**: el navegador detecta manifest + SW.
+- **Offline**: simular “Offline” y validar experiencia mínima.
+- **Update**: desplegar cambio y validar que el SW actualiza (sin quedar pegado).
+
+Checklist:
+- [ ] App instalable
+- [ ] Offline: home muestra estado razonable
+- [ ] Update del SW controlado (hay señal al usuario)
+
+#### C) Backend (bytes + cache)
+
+- Medir **Transfer size** en red lenta.
+- Validar que endpoints cacheables devuelven `Cache-Control` / `ETag` y responden 304 cuando aplica.
+- Validar paginación en listados para evitar payload gigante.
+
+Checklist:
+- [ ] JSON comprimido en producción (si aplica)
+- [ ] Cache headers presentes en catálogo/categorías
+- [ ] 304 funciona con `If-None-Match`
+- [ ] Listados paginados
 
 ---
 

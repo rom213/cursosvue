@@ -199,8 +199,6 @@ const tierInfo = computed(() => {
   return { tier: 'basic' as const, label: `${pilarKey ? PILAR_EMOJI[pilarKey] : '📌'} ${pilar?.shortLabel ?? 'Tema Individual'}`, includesResale: false, includesDiscount: false, isPremium: false, accentColor: `bg-${colorName}-500`, pillBg: `bg-${colorName}-100`, pillText: `text-${colorName}-700` };
 });
 
-const themesCount = computed(() => category.value?.seccion_temas?.cantidad_temas ?? 0);
-const cursosCount = computed(() => category.value?.cantidad_cursos ?? 122);
 const cuposCount = computed(() => category.value?.num_per ?? 23);
 const cuposMax = 200;
 const cuposPercent = computed(() => Math.min(100, Math.round((cuposCount.value / cuposMax) * 100)));

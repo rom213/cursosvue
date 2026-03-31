@@ -10,35 +10,20 @@ import {
   faqSectionTitle,
   footerDisclaimer,
   footerSupportLine,
-  heroIntro,
-  heroTitle,
   monetizationLead,
   monetizationOptions,
   monetizationTitle,
-  paymentMethods,
   proModules,
   proModulesSectionTitle,
-  securityBox,
 } from "./monetizar.content";
 import {
-  iconBank,
-  iconCard,
-  iconCash,
   iconLock,
-  iconWallet,
 } from "./monetizar.icons";
 import { authStore } from "../store/AuthStore";
 import ProLessonViewer from "./ProLessonViewer.vue";
 
 const store = authStore();
 const isPro = computed(() => store.profile?.user?.is_bought ?? false);
-
-const paymentIconSvg: Record<string, string> = {
-  wallets: iconWallet,
-  cards: iconCard,
-  transfer: iconBank,
-  cash: iconCash,
-};
 
 
 

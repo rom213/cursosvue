@@ -352,7 +352,7 @@ const sugerenciasBusqueda = [
 
       <p class="mt-3 flex flex-wrap items-center gap-x-1.5 gap-y-1.5 text-xs text-slate-500">
         <span class="font-medium text-slate-600">Sugerencias:</span>
-        <template v-for="(kw, i) in sugerenciasBusqueda" :key="kw">
+        <template v-for="(kw) in sugerenciasBusqueda" :key="kw">
           <button
             type="button"
             class="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 shadow-sm transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-800"

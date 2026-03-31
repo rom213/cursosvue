@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import type { ICategory } from '../types/Categorie';
+import CategoryService from '../services/CategorieService';
 
 const CACHE_NAME = 'curso-api-cache-v1';
 const CACHE_URL = '/static-cache/categories';
@@ -55,7 +56,6 @@ export const categoryStore = defineStore('category', () => {
             
             // fetch fresh data if no cache or expired
             if (!useCache) {
-                const { default: CategoryService } = await import('../services/CategorieService');
                 const freshCategories = await CategoryService.getAllCategories();
                 setCategories(freshCategories);
             }

@@ -2,17 +2,14 @@
 import AuthService from '../services/AuthServices';
 import { authStore } from '../store/AuthStore';
 import { emergentBuyStore } from '../store/EmergentBuyStore';
-import { categoryStore } from '../store/CategoryStore';
 import { OptionsEmergentBuy, OptionBuyPay } from '../types/Payment';
 import AlertNotification from '../components/common/AlertNotification.vue';
-import { useRouter } from 'vue-router';
+
 
 import { ref, watch, computed } from 'vue';
 
 const storeemergentBuy = emergentBuyStore();
 const userAuth = authStore();
-const storeCategory = categoryStore();
-const router = useRouter();
 
 const emailVerified = ref(false);
 const tieneCupon = ref(false);
@@ -58,70 +55,10 @@ const isOnlyPaypal = computed(() => {
     return country !== 'CO';
 });
 
-const normalizeId = (rawId: number | string | undefined): number | null => {
-    if (rawId === undefined || rawId === null) return null;
-    const parsed = Number(rawId);
-    return Number.isFinite(parsed) ? parsed : null;
-};
 
-const getCategoryLevel = (categoryId: number): number => {
-    if (categoryId === 100200300) return 3;
-    if ([100200, 100300, 200300].includes(categoryId)) return 2;
-    if ([100, 200, 300].includes(categoryId)) return 1;
-    return 0;
-};
 
-const normalizedCategoryRelations = (category: { cat_rel?: Array<number | string> }): number[] => {
-    return (category.cat_rel || [])
-        .map((item) => normalizeId(item))
-        .filter((item): item is number => item !== null);
-};
 
-const premiumTargetCategory = computed(() => {
-    const currentCategory = storeemergentBuy.getCategoryEmergent();
-    if (!currentCategory) return null;
 
-    const allCategories = storeCategory.getCategories();
-    if (!allCategories || allCategories.length === 0) return null;
-
-    const currentId = normalizeId(currentCategory.id);
-    if (currentId === null) return null;
-
-    // Regla especial: bases 100/200/300 siempre suben al pack total.
-    if ([100, 200, 300].includes(currentId)) {
-        return allCategories.find((item) => item.id === 100200300) || null;
-    }
-
-    // Regla especial: agrupaciones intermedias siempre suben al pack total.
-    if ([100200, 100300, 200300].includes(currentId)) {
-        return allCategories.find((item) => item.id === 100200300) || null;
-    }
-
-    const currentLevel = getCategoryLevel(currentId);
-    const candidates = allCategories
-        .filter((item) => item.id !== currentId)
-        .filter((item) => normalizedCategoryRelations(item).includes(currentId))
-        .map((item) => ({
-            category: item,
-            level: getCategoryLevel(item.id),
-            levelDistance: getCategoryLevel(item.id) - currentLevel
-        }))
-        .filter((item) => item.levelDistance > 0)
-        .sort((a, b) => {
-            if (a.levelDistance !== b.levelDistance) return a.levelDistance - b.levelDistance;
-            if (a.level !== b.level) return a.level - b.level;
-            return a.category.id - b.category.id;
-        });
-
-    return candidates.length > 0 ? candidates[0].category : null;
-});
-
-const goToPremiumTarget = () => {
-    console.log("entro3", premiumTargetCategory.value);
-    const targetCategory = premiumTargetCategory.value;
-    if (!targetCategory) return;
-    router.push({ name: 'courses-description', params: { id: targetCategory.id } });
-};
 
 
 const showAlert = (type: string, message: string) => {

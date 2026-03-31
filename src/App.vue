@@ -19,6 +19,7 @@ const callback = async (response: any) => {
 
 onMounted(async () => {
   const profile = await AuthService.getProfile();
+  console.log(profile);
   await catStore.fetchCategories();
   console.log("Categories loaded in App.vue");
     

@@ -1,4 +1,12 @@
 <script lang="ts" setup>
+import { ref } from 'vue'
+import { RouterLink } from 'vue-router'
+
+const openContact = ref<string | null>(null)
+
+function toggleContact(key: string) {
+    openContact.value = openContact.value === key ? null : key
+}
 </script>
 
 <template>
@@ -73,6 +81,18 @@
                             </defs>
                         </svg>
                     </a>
+                    <a href="https://wa.me/573134141912" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="WhatsApp de soporte">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M20.52 3.48A11.93 11.93 0 0012 0C5.37 0 0 5.37 0 12c0 2.11.55 4.16 1.6 5.97L0 24l6.22-1.57A11.94 11.94 0 0012 24c6.63 0 12-5.37 12-12 0-3.21-1.25-6.22-3.48-8.52z" fill="#25D366"/>
+                            <path d="M17.47 14.38c-.28-.14-1.64-.81-1.9-.9-.25-.09-.44-.14-.62.14-.18.28-.71.9-.87 1.08-.16.18-.32.2-.6.07-.28-.14-1.18-.44-2.25-1.4-.83-.74-1.39-1.66-1.55-1.94-.16-.28-.02-.43.12-.57.13-.13.28-.32.42-.48.14-.16.18-.28.28-.46.09-.18.05-.34-.02-.48-.07-.14-.62-1.5-.85-2.05-.22-.54-.45-.46-.62-.47H8.3c-.18 0-.46.07-.7.34-.25.27-.94.92-.94 2.24s.96 2.6 1.1 2.78c.13.18 1.89 2.88 4.58 4.04.64.28 1.14.44 1.53.56.64.2 1.23.17 1.69.1.52-.08 1.64-.67 1.87-1.32.23-.65.23-1.2.16-1.32-.07-.12-.25-.18-.53-.32z" fill="white"/>
+                        </svg>
+                    </a>
+                    <a href="mailto:cursosestudiaytrabaja@gmail.com" class="social-link" aria-label="Correo de soporte">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" fill="#EA4335"/>
+                            <polyline points="22,6 12,13 2,6" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
                     <a href="#" class="social-link" aria-label="YouTube">
                         <svg width="20" height="14" viewBox="0 0 31 22" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <g clip-path="url(#clip0_footer_yt)">
@@ -113,23 +133,52 @@
             <div class="footer-col">
                 <h4 class="footer-col-title">Contacto</h4>
                 <div class="footer-contact">
-                    <div class="contact-item">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
-                        </svg>
-                        <span>Latinoamérica</span>
+                    <!-- Ubicación -->
+                    <div class="contact-item contact-accordion">
+                        <button class="contact-trigger" @click="toggleContact('location')">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+                            </svg>
+                            <span>Latinoamérica</span>
+                        </button>
+                        <div v-if="openContact === 'location'" class="contact-detail">
+                            <a href="https://maps.google.com/?q=Bogota,Colombia" target="_blank" rel="noopener noreferrer" class="contact-detail-link">
+                                Bogotá, Colombia 📍
+                            </a>
+                        </div>
                     </div>
-                    <div class="contact-item">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8a19.79 19.79 0 01-3.07-8.63A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.09 6.09l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
-                        </svg>
-                        <span>WhatsApp disponible</span>
+
+                    <!-- WhatsApp -->
+                    <div class="contact-item contact-accordion">
+                        <button class="contact-trigger" @click="toggleContact('whatsapp')">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M20.52 3.48A11.93 11.93 0 0012 0C5.37 0 0 5.37 0 12c0 2.11.55 4.16 1.6 5.97L0 24l6.22-1.57A11.94 11.94 0 0012 24c6.63 0 12-5.37 12-12 0-3.21-1.25-6.22-3.48-8.52z" fill="#25D366"/>
+                                <path d="M17.47 14.38c-.28-.14-1.64-.81-1.9-.9-.25-.09-.44-.14-.62.14-.18.28-.71.9-.87 1.08-.16.18-.32.2-.6.07-.28-.14-1.18-.44-2.25-1.4-.83-.74-1.39-1.66-1.55-1.94-.16-.28-.02-.43.12-.57.13-.13.28-.32.42-.48.14-.16.18-.28.28-.46.09-.18.05-.34-.02-.48-.07-.14-.62-1.5-.85-2.05-.22-.54-.45-.46-.62-.47H8.3c-.18 0-.46.07-.7.34-.25.27-.94.92-.94 2.24s.96 2.6 1.1 2.78c.13.18 1.89 2.88 4.58 4.04.64.28 1.14.44 1.53.56.64.2 1.23.17 1.69.1.52-.08 1.64-.67 1.87-1.32.23-.65.23-1.2.16-1.32-.07-.12-.25-.18-.53-.32z" fill="white"/>
+                            </svg>
+                            <span>WhatsApp</span>
+                        </button>
+                        <div v-if="openContact === 'whatsapp'" class="contact-detail">
+                            ¿Necesitas soporte rápido? ¡Contáctanos!
+                            <a href="https://wa.me/573134141912?text=Hola%2C%20necesito%20soporte%20con%20mi%20cuenta." target="_blank" rel="noopener noreferrer" class="contact-detail-link">
+                                +57 313 414 1912 — ¡Te esperamos! 💬
+                            </a>
+                        </div>
                     </div>
-                    <div class="contact-item">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
-                        </svg>
-                        <span>Soporte por email</span>
+
+                    <!-- Email -->
+                    <div class="contact-item contact-accordion">
+                        <button class="contact-trigger" @click="toggleContact('email')">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+                            </svg>
+                            <span>Soporte por email</span>
+                        </button>
+                        <div v-if="openContact === 'email'" class="contact-detail">
+                            Escríbenos tus dudas y sugerencias, ¡feliz día! 😊
+                            <a href="mailto:cursosestudiaytrabaja@gmail.com" class="contact-detail-link">
+                                cursosestudiaytrabaja@gmail.com
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -142,9 +191,9 @@
                 © {{ new Date().getFullYear() }} Cursos Estudia y Trabaja. Todos los derechos reservados.
             </p>
             <div class="footer-bottom-links">
-                <a href="#" class="footer-bottom-link">Términos y condiciones</a>
+                <RouterLink :to="{ name: 'terminos' }" class="footer-bottom-link">Términos y condiciones</RouterLink>
                 <span class="footer-dot" aria-hidden="true">·</span>
-                <a href="#" class="footer-bottom-link">Política de privacidad</a>
+                <RouterLink :to="{ name: 'privacidad' }" class="footer-bottom-link">Política de privacidad</RouterLink>
             </div>
         </div>
     </footer>
@@ -303,6 +352,58 @@
     flex-shrink: 0;
     color: #3b82f6;
     opacity: 0.8;
+}
+
+.contact-accordion {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+}
+
+.contact-trigger {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-size: 0.82rem;
+    color: #94a3b8;
+    transition: color 0.18s;
+}
+.contact-trigger:hover {
+    color: #3b82f6;
+}
+.contact-trigger svg {
+    flex-shrink: 0;
+    color: #3b82f6;
+    opacity: 0.8;
+}
+
+.contact-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.78rem;
+    color: #94a3b8;
+    padding-left: 1.4rem;
+    animation: fadeIn 0.2s ease;
+}
+
+.contact-detail-link {
+    color: #3b82f6;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.18s;
+}
+.contact-detail-link:hover {
+    color: #60a5fa;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
 /* Bottom bar */

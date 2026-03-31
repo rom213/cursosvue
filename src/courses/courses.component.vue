@@ -27,18 +27,20 @@ const storeAuth = authStore();
 const cartSt = cartStore();
 const router = useRouter();
 
-// ── Paginacion e infinite scroll (sin cambio) ──
-const pageSize = 6;
+// ── Paginacion e infinite scroll ──
+const pageSize = 12;
 const currentOffset = ref(0);
 const hasMoreCategories = ref(true);
 const isLoadingMore = ref(false);
 const categories = ref<ICategory[]>([]);
+const sentinelRef = ref<HTMLElement | null>(null);
+let scrollObserver: IntersectionObserver | null = null;
 
 const loadMoreCategories = async () => {
   if (!hasMoreCategories.value || isLoadingMore.value) return;
   isLoadingMore.value = true;
 
-  const batch = await CategoryService.getAllCategories(pageSize, currentOffset.value);
+  const batch = await CategoryService.getAllCategories(pageSize, currentOffset.value, activeFilter.value);
   const list = batch as ICategory[];
 
   if (list.length < pageSize) hasMoreCategories.value = false;
@@ -51,11 +53,13 @@ const loadMoreCategories = async () => {
   isLoadingMore.value = false;
 };
 
-const handleScroll = () => {
-  if (!hasMoreCategories.value || isLoadingMore.value) return;
-  const nearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 400;
-  if (nearBottom) void loadMoreCategories();
+const resetAndLoad = async () => {
+  categories.value = [];
+  currentOffset.value = 0;
+  hasMoreCategories.value = true;
+  await loadMoreCategories();
 };
+
 
 // ── Filtro activo ──
 const activeFilter = ref<FilterType>('all');
@@ -166,11 +170,7 @@ const buildSections = (cats: ICategory[]): CatalogSection[] => {
     }));
 };
 
-const visibleSections = computed(() => {
-  const all = buildSections(categories.value);
-  if (activeFilter.value === 'all') return all;
-  return all.filter((s) => s.filterType === activeFilter.value);
-});
+const visibleSections = computed(() => buildSections(categories.value));
 
 // ── Derivar props de card desde ID ──
 function getCardProps(category: ICategory) {
@@ -224,7 +224,7 @@ function getCardProps(category: ICategory) {
 
 // ── Currency suffix ──
 const currencySuffix = computed(() =>
-  storeAuth.getProfile()?.user?.country === 'COP' ? ' COP' : ' USD'
+  storeAuth.getProfile()?.user?.country === 'CO' ? ' COP' : ' USD'
 );
 
 // ── Event handlers ──
@@ -257,11 +257,23 @@ const handlePreview = (item: ICategory) => {
   }
 };
 
-// ── Upsell ──
+// ── Upsell pool (pilares + toda-la-tienda, cargado una vez) ──
+const upsellPool = ref<Map<number, ICategory>>(new Map());
+
+const loadUpsellPool = async () => {
+  const [pilares, tienda] = await Promise.all([
+    CategoryService.getAllCategories(10, 0, 'pilares'),
+    CategoryService.getAllCategories(1, 0, 'toda-la-tienda'),
+  ]);
+  const pool = new Map<number, ICategory>();
+  for (const c of [...pilares, ...tienda]) pool.set(c.id, c);
+  upsellPool.value = pool;
+};
+
 const getUpsellCategory = (category: ICategory): ICategory | null => {
   const targetId = getUpsellTargetId(category.id);
   if (!targetId) return null;
-  return categories.value.find((c) => c.id === targetId) ?? null;
+  return categories.value.find((c) => c.id === targetId) ?? upsellPool.value.get(targetId) ?? null;
 };
 
 const handleUpsellBuy = (item: ICategory) => {
@@ -272,8 +284,9 @@ const handleUpsellExplore = (id: number) => {
   handleClickCourseItem(id);
 };
 
-const handleReorder = (filterType: FilterType) => {
+const handleReorder = async (filterType: FilterType) => {
   activeFilter.value = filterType;
+  await resetAndLoad();
 };
 
 const handleScrollTo = (categoryId: number) => {
@@ -284,15 +297,18 @@ const handleScrollTo = (categoryId: number) => {
 
 // ── Lifecycle ──
 onMounted(async () => {
-  categories.value = [];
-  currentOffset.value = 0;
-  hasMoreCategories.value = true;
-  await loadMoreCategories();
-  window.addEventListener('scroll', handleScroll, { passive: true });
+  await Promise.all([resetAndLoad(), loadUpsellPool()]);
+  if (sentinelRef.value) {
+    scrollObserver = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting) void loadMoreCategories(); },
+      { rootMargin: '300px' }
+    );
+    scrollObserver.observe(sentinelRef.value);
+  }
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener('scroll', handleScroll);
+  scrollObserver?.disconnect();
 });
 </script>
 
@@ -390,6 +406,9 @@ onBeforeUnmount(() => {
         <p class="text-sm text-slate-400 mt-1">Intenta con otro filtro o vuelve mas tarde.</p>
       </div>
     </div>
+
+    <!-- Sentinel para IntersectionObserver -->
+    <div ref="sentinelRef" class="h-px" />
 
     <!-- Loading indicator -->
     <div v-if="isLoadingMore" class="text-center text-sm text-slate-500 py-8">

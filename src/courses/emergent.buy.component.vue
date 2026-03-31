@@ -471,21 +471,6 @@ watch(()=>storeemergentBuy.emergentBuy.emergent, ()=>{
                         Ahorras ${{ discountAmount?.toLocaleString() || 0 }}
                     </span>
                  </div>
-                 <div class="text-sm text-slate-700">
-                    <span>🎁 ¡Opción Premium! Consigue este pack + el pack completo con descuento usando el código LO NECESITO</span>
-                    <template v-if="premiumTargetCategory">
-                        <button
-                            type="button"
-                            @click="goToPremiumTarget"
-                            class="ml-1 font-semibold text-blue-600 underline underline-offset-2 hover:text-blue-700"
-                        >
-                            {{ premiumTargetCategory.titulo || `Ver categoría ${premiumTargetCategory.id}` }}
-                        </button>
-                    </template>
-                    <template v-else>
-                        <span class="ml-1 font-semibold text-slate-500">[sin categoría relacionada]</span>
-                    </template>
-                 </div>
                  <button
                     @click="handleBuy()"
                     :disabled="isProcessingPayment"

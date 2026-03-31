@@ -270,16 +270,22 @@ export const faqCategories: FaqCategory[] = [
         question:
           "¿Cómo puedo ganar dinero con ustedes? / ¿Cómo funciona lo de revender?",
         paragraphs: [
-          "¡Es la mejor decisión que puedes tomar! Nuestro programa te permite revender nuestros paquetes y llevarte el 50% libre de comisiones directo a tu bolsillo por cada venta. Nosotros nos encargamos de entregar el acceso al cliente y dar soporte; tú solo recomiendas y ganas.",
+          "¡Es la mejor decisión que puedes tomar! Nuestro programa te permite revender nuestros paquetes y llevarte el 60% del valor del curso directo a tu bolsillo por cada venta. Nosotros nos encargamos de entregar el acceso al cliente y dar soporte; tú solo recomiendas y ganas.",
         ],
       },
       {
         question:
           "¿Cualquier curso me sirve para ser afiliado? / Si compro un curso barato, ¿puedo monetizar? / ¿Tengo que pagar algo extra?",
         paragraphs: [
-          "El programa de revendedores no tiene ningún costo de mensualidad, pero tiene un único requisito estricto de entrada: para que el sistema te habilite el panel de afiliado y te deje monetizar, debes adquirir un Pack Principal de nuestras categorías con un valor mínimo de $49.900 COP. (Las compras de cursos individuales o mini packs de $19.900 COP NO activan el derecho de reventa). Una vez adquieres tu Pack Principal, quedas habilitado de por vida para ganar el 50% libre de comisiones.",
+          "El programa de revendedores no tiene ningún costo de mensualidad, pero tiene un único requisito estricto de entrada: para que el sistema te habilite el panel de afiliado y te deje monetizar, debes adquirir un Pack Principal de nuestras categorías con un valor mínimo de $48.500 COP. (Las compras de cursos individuales o mini packs de $19.600 COP NO activan el derecho de reventa). Una vez adquieres tu Pack Principal, quedas habilitado de por vida para ganar el 60% de comision por cada reventa. consulta la calculadora para darte una idea.",
         ],
       },
+      {
+        question: "¿Para qué sirve la Calculadora de Proyección de Ventas?",
+        paragraphs: [
+          'Es tu panel financiero personal. Solo debes ingresar en la casilla cuánto dinero quieres ganarte este mes (tu meta mensual). La calculadora te mostrará en tiempo real exactamente cuántas ventas diarias necesitas hacer de cada paquete para alcanzar ese objetivo económico. ¡Sin adivinanzas, solo matemáticas puras para trazar tu plan de trabajo!',
+        ],
+      }
     ],
   },
   {
@@ -289,13 +295,13 @@ export const faqCategories: FaqCategory[] = [
       {
         question: "¿Dónde saco mi link de afiliado / código de descuento?",
         paragraphs: [
-          'Debes loguearte y haber adquirido un paquete de mínimo $40.000 COP. Automáticamente en cada paquete estará activa la opción de generar link. Para crear un código promocional, ingresa a tu perfil en la sección “Monetizar”. El sistema registrará la venta a tu nombre automáticamente cuando el cliente use tu link o código.',
+          'Debes loguearte y haber adquirido un paquete de mínimo $48.500 COP. Automáticamente en cada paquete estará activa la opción de generar link. Para crear un código promocional, ingresa a tu perfil en la sección “Monetizar”. El sistema registrará la venta a tu nombre automáticamente cuando el cliente use tu link o código.',
         ],
       },
       {
         question: "¿Puedo comprar con mi propio link para tener descuento?",
         paragraphs: [
-          'No, está estrictamente prohibido hacer “auto-compras”. El sistema detecta estas prácticas y anula la comisión. El programa está diseñado para ganar dinero recomendando a otras personas.',
+          'No seria necesario, ya que te damos el 70% en toda la tienda para que compres los packs que quieras',
         ],
       },
     ],
@@ -316,6 +322,30 @@ export const faqCategories: FaqCategory[] = [
           'En tu panel de “Monetización” tienes un tablero en tiempo real para ver clics, ventas cerradas y saldo disponible para retirar.',
         ],
       },
+      {
+        question: "¿Cuánto gano exactamente por cada venta con mi link o cupón?",
+        paragraphs: [
+          'Te llevas el 60% de comisión neta. Para ser 100% transparentes, el cálculo es simple: al precio del paquete le restamos el 10% de descuento que le regalas a tu cliente con tu cupón para cerrar la venta. Luego descontamos la pequeña tarifa de la pasarela de pagos (PayU), y del valor real que ingresa, el 60% va directo a tu bolsillo. Por ejemplo, por cada Tienda Completa, ganas $43.200 COP libres.',
+        ],
+      },
+      {
+        question: "¿Por qué se descuenta el cupón del 10% y la tarifa de PayU de mi comisión?",
+        paragraphs: [
+          'El descuento del 10% es tu mejor gancho comercial para que el cliente compre más rápido. La tarifa de PayU es el costo estándar por procesar pagos seguros con tarjeta. Al calcular tu 60% sobre el dinero neto que realmente ingresa, mantenemos un negocio honesto, sin letras pequeñas ni costos ocultos para ninguna de las partes.',
+        ],
+      },
+      {
+        question: "¿Puedo ponerle mi propio precio a los cursos para ganar más?",
+        paragraphs: [
+          '¡Totalmente! Si tienes tu propia estrategia y quieres vender a un precio mayor, usa el apartado de "Venta a Terceros". Tú le cobras a tu cliente final la cantidad que decidas, y a nosotros solo nos pagas el 60% del valor oficial para que le liberemos el acceso. ¡Todo el excedente que cobres es 100% ganancia libre para ti!',
+        ],
+      },
+      {
+        question: "¿Para qué sirve la Calculadora de Proyección de Ventas?",
+        paragraphs: [
+          'Es tu panel financiero personal. Solo debes ingresar en la casilla cuánto dinero quieres ganarte este mes (tu meta mensual). La calculadora te mostrará en tiempo real exactamente cuántas ventas diarias necesitas hacer de cada paquete para alcanzar ese objetivo económico. ¡Sin adivinanzas, solo matemáticas puras para trazar tu plan de trabajo!',
+        ],
+      },
     ],
   },
   {
@@ -325,7 +355,7 @@ export const faqCategories: FaqCategory[] = [
       {
         question: "No sé cómo vender, ¿me ayudan?",
         paragraphs: [
-          '¡Claro que sí! En tu panel de afiliado encontrarás una carpeta con “Material de Promoción” que incluye imágenes, videos y textos persuasivos listos para usar en Facebook, Instagram y WhatsApp.',
+          '¡Claro que sí! No te dejamos solo. En tu panel de afiliado encontrarás un modulo con todo lo que debes saber para dominar las ventas, se desbloquea una vez tengas activado tu perfil como revendedor.',
         ],
       },
     ],
@@ -361,6 +391,13 @@ export const faqCategories: FaqCategory[] = [
           "El link y el código promocional no caducan, puedes vender con tranquilidad.",
         ],
       },
+      {
+        question:
+          "¿Me descuentan impuestos o comisiones de plataforma sobre mi 60%?",
+        paragraphs: [
+          "Tu comisión del 60% es neta sobre el valor comisionable del producto con un pequeño descuento de la pasarela de pago, consulta la calculadora.",
+        ],
+      },
     ],
   },
   {
@@ -369,16 +406,16 @@ export const faqCategories: FaqCategory[] = [
     items: [
       {
         question:
-          'Vendí un paquete con mi link, ¿por qué no me aparece ese paquete en “Mis Compras”?',
+          'Vendí un paquete con mi link, ¿por qué no me aparece ese paquete en “Mis cursos”?',
         paragraphs: [
-          '“Mis Compras” es tu biblioteca personal. Las ventas a terceros aparecen en la sección “Programa de Afiliados” > “Mis Ventas” o “Tablero”. El material le llega al correo del cliente, no al tuyo.',
+          '“Mis cursos” es tu biblioteca personal. Las ventas a terceros aparecen en la sección “Programa de Afiliados” > “Mis Ventas” o “Tablero”. El material le llega al correo del cliente, no al tuyo.',
         ],
       },
       {
         question:
           "¿Qué pasa con mi comisión si el cliente pide la garantía o un reembolso?",
         paragraphs: [
-          "Todos los clientes tienen 7 días de garantía. Si se solicita un reembolso, la comisión se anula. Por seguridad, las comisiones se liberan para pago tras pasar este periodo de 7 días.",
+          "Si eso sucede debes comunicarte con soporte vía WhatsApp, para solucionar el caso.",
         ],
       },
     ],

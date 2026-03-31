@@ -24,6 +24,18 @@ export default [
       meta: { showHeader: true }
     },
     {
+      path: '/terminos-y-condiciones',
+      name: 'terminos',
+      component: () => import('../pages/TerminosCondiciones.vue'),
+      meta: { showHeader: true }
+    },
+    {
+      path: '/politica-de-privacidad',
+      name: 'privacidad',
+      component: () => import('../pages/PoliticaPrivacidad.vue'),
+      meta: { showHeader: true }
+    },
+    {
       path: '/:pathMach(.*)*',
       component: () => import('../components/notfound.vue'),
       meta: { showHeader: true }

@@ -74,6 +74,7 @@ export interface ICourse {
     user_bought: boolean;
     user_comment:boolean;
     cat_rel?: Array<number | string>;
+    cat_rel_info?: Array<{ id: number; titulo: string }>;
     pregunta_respuesta?: IQuestionAnswer[];
     seccion_plataformas?: ICategorySeccionPlataformas;
     seccion_temas?: ICategorySeccionTemas;

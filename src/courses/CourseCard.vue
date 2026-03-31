@@ -42,7 +42,6 @@ const emit = defineEmits<{
 }>();
 
 // ── Upsell state ──
-const showUpsell = ref(false);
 
 // ── Tier level para renderizado condicional ──
 const tierLevel = computed(() => {
@@ -109,9 +108,38 @@ const formatPrice = (price: number | undefined) => {
   return price.toLocaleString();
 };
 
+const ctaBuyClasses = computed(() => {
+  if (selectedOption.value === 'upsell') {
+    return props.isPremium
+      ? 'cta-premium py-3.5 px-4 text-lg shadow-lg shadow-amber-500/25 hover:shadow-xl hover:shadow-amber-500/35 hover:-translate-y-1'
+      : 'bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 text-base shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 hover:-translate-y-0.5'
+  }
+  if (tierLevel.value === 'premium')
+    return 'cta-premium py-3.5 px-4 text-lg shadow-lg shadow-amber-500/25 hover:shadow-xl hover:shadow-amber-500/35 hover:-translate-y-1'
+  if (tierLevel.value === 'advanced')
+    return 'bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 text-base shadow-lg shadow-emerald-600/20 hover:shadow-emerald-600/30 hover:-translate-y-0.5'
+  return 'bg-slate-700 hover:bg-slate-800 text-white py-2.5 px-4 text-sm shadow-md shadow-slate-700/15 hover:shadow-lg hover:-translate-y-0.5'
+});
+
+const ctaCartClasses = computed(() => {
+  if (tierLevel.value === 'premium')
+    return 'bg-amber-500/15 border border-amber-400/40 text-amber-900 hover:bg-amber-500/25 py-3.5 px-3 text-lg shadow-md shadow-amber-500/15 hover:-translate-y-0.5'
+  if (tierLevel.value === 'advanced')
+    return 'bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-3 text-base shadow-lg shadow-emerald-600/20 hover:shadow-emerald-600/30 hover:-translate-y-0.5'
+  return 'bg-slate-700 hover:bg-slate-800 text-white py-2.5 px-3 text-sm shadow-md shadow-slate-700/15 hover:shadow-lg hover:-translate-y-0.5'
+});
+
 // ── Upsell helpers ──
 const selectedOption = ref<'current' | 'upsell'>('current');
 const showUpsellDetails = ref(false);
+const showBlocksList = ref(false);
+
+const upsellBreakdown = computed(() => {
+  const blocks = props.upsellCategory?.cat_rel_info ?? [];
+  const total = props.upsellCategory?.precio ?? 0;
+  const pricePerBlock = blocks.length > 0 ? Math.round(total / blocks.length) : 0;
+  return { blocks, pricePerBlock };
+});
 
 const upsellTierLabel = computed(() => {
   if (!props.upsellCategory) return '';
@@ -125,7 +153,7 @@ const upsellBenefits = computed(() => {
   if (!props.upsellCategory) return [];
   const type = classifyCategoryId(props.upsellCategory.id);
   if (type === 'pilares') {
-    return ['Todos los temas del pilar', 'Incluye reventa', '70% Dto.'];
+    return ['Todos los bloques del pilar', 'Incluye reventa', '70% Dto.'];
   }
   if (type === 'toda-la-tienda') {
     return ['Los 3 pilares completos', 'Incluye reventa', 'Máximo valor'];
@@ -244,7 +272,7 @@ const upsellBenefits = computed(() => {
         </h3>
         <p
           v-if="category.frase_1"
-          class="text-slate-500 mt-1 line-clamp-1"
+          class="text-slate-500 mt-1"
           :class="tierLevel === 'basic' ? 'text-xs' : 'text-sm'"
         >
           {{ category.frase_1 }}
@@ -256,9 +284,9 @@ const upsellBenefits = computed(() => {
         v-if="category.frase_2"
         class="mx-5 text-slate-400 italic mt-2 mb-1"
         :class="{
-          'text-xs line-clamp-1': tierLevel === 'basic',
-          'text-sm line-clamp-2 border-l-2 pl-3': tierLevel === 'advanced',
-          'text-sm line-clamp-2 border-l-2 border-amber-300 pl-3': tierLevel === 'premium',
+          'text-xs': tierLevel === 'basic',
+          'text-sm border-l-2 pl-3': tierLevel === 'advanced',
+          'text-sm border-l-2 border-amber-300 pl-3': tierLevel === 'premium',
         }"
         :style="tierLevel === 'advanced' ? `border-color: var(--accent-border)` : ''"
       >
@@ -443,28 +471,72 @@ const upsellBenefits = computed(() => {
           <Transition
             enter-active-class="transition-all duration-300 ease-out"
             enter-from-class="opacity-0 max-h-0"
-            enter-to-class="opacity-100 max-h-48"
+            enter-to-class="opacity-100 max-h-[32rem]"
             leave-active-class="transition-all duration-200 ease-in"
-            leave-from-class="opacity-100 max-h-48"
+            leave-from-class="opacity-100 max-h-[32rem]"
             leave-to-class="opacity-0 max-h-0"
           >
             <div v-if="showUpsellDetails" class="overflow-hidden">
-              <div class="rounded-b-xl bg-blue-50/60 border border-t-0 border-blue-100 px-3 py-2 space-y-1.5">
-                <ul class="space-y-1">
-                  <li
-                    v-for="(benefit, i) in upsellBenefits"
-                    :key="i"
-                    class="flex items-center gap-1.5 text-[0.65rem] text-slate-600"
-                  >
+              <div class="rounded-b-xl bg-blue-50/60 border border-t-0 border-blue-100 px-3 py-2 space-y-1">
+
+                <!-- Primer benefit: clickeable para expandir bloques -->
+                <button
+                  type="button"
+                  class="w-full flex items-center justify-between gap-1.5 text-[0.65rem] text-slate-700 font-semibold hover:text-blue-600 transition-colors"
+                  @click.stop="showBlocksList = !showBlocksList"
+                >
+                  <div class="flex items-center gap-1.5">
                     <svg class="w-3 h-3 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
-                    {{ benefit }}
-                  </li>
-                </ul>
+                    {{ upsellBenefits[0] }}
+                  </div>
+                  <svg class="w-3 h-3 transition-transform duration-200 text-slate-400 shrink-0" :class="{ 'rotate-180': showBlocksList }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                <!-- Lista de bloques -->
+                <Transition
+                  enter-active-class="transition-all duration-200 ease-out"
+                  enter-from-class="opacity-0 max-h-0"
+                  enter-to-class="opacity-100 max-h-60"
+                  leave-active-class="transition-all duration-150 ease-in"
+                  leave-from-class="opacity-100 max-h-60"
+                  leave-to-class="opacity-0 max-h-0"
+                >
+                  <div v-if="showBlocksList && upsellBreakdown.blocks.length" class="overflow-hidden pl-4 pb-1">
+                    <p class="text-[0.6rem] text-slate-400 mb-1">
+                      {{ upsellBreakdown.blocks.length }} bloques · ~${{ formatPrice(upsellBreakdown.pricePerBlock) }} c/u
+                    </p>
+                    <ul class="space-y-0.5">
+                      <li
+                        v-for="block in upsellBreakdown.blocks"
+                        :key="block.id"
+                        class="flex items-center justify-between gap-2"
+                      >
+                        <span class="text-[0.62rem] text-slate-600 truncate">· {{ block.titulo }}</span>
+                        <span class="text-[0.6rem] text-slate-400 shrink-0 tabular-nums">~${{ formatPrice(upsellBreakdown.pricePerBlock) }}</span>
+                      </li>
+                    </ul>
+                  </div>
+                </Transition>
+
+                <!-- Resto de benefits -->
+                <li
+                  v-for="(benefit, i) in upsellBenefits.slice(1)"
+                  :key="i"
+                  class="flex items-center gap-1.5 text-[0.65rem] text-slate-600 list-none"
+                >
+                  <svg class="w-3 h-3 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                  {{ benefit }}
+                </li>
+
                 <button
                   type="button"
-                  class="text-[0.6rem] font-semibold text-blue-600 hover:underline"
+                  class="text-[0.6rem] font-semibold text-blue-600 hover:underline pt-0.5"
                   @click="emit('upsell-explore', upsellCategory!.id)"
                 >
                   Ver detalles →
@@ -475,18 +547,40 @@ const upsellBenefits = computed(() => {
         </div>
 
         <!-- BOTON ÚNICO DE COMPRA -->
+        <!-- Modo current: dos botones (carrito 30% + comprar 70%) -->
+        <div v-if="selectedOption === 'current'" class="flex gap-2">
+          <!-- Botón Carrito (30%) -->
+          <button
+            type="button"
+            class="w-[30%] rounded-xl font-bold flex justify-center items-center transition-all duration-200"
+            :class="ctaCartClasses"
+            @click="emit('add-to-cart', category)"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.5 6h13M10 21a1 1 0 100-2 1 1 0 000 2zm8 0a1 1 0 100-2 1 1 0 000 2z" />
+            </svg>
+          </button>
+
+          <!-- Botón Comprar ahora (70%) -->
+          <button
+            type="button"
+            class="w-[70%] rounded-xl font-bold flex justify-center items-center gap-2 transition-all duration-200"
+            :class="ctaBuyClasses"
+            @click="emit('buy', category)"
+          >
+            <span>${{ formatPrice(category.precio) }}{{ currencySuffix }}</span>
+          </button>
+        </div>
+
+        <!-- Modo upsell: botón único de ancho completo -->
         <button
+          v-else
           type="button"
           class="w-full rounded-xl font-bold flex justify-center items-center gap-2 transition-all duration-200"
-          :class="{
-            'bg-slate-700 hover:bg-slate-800 text-white py-2.5 px-4 text-sm shadow-md shadow-slate-700/15 hover:shadow-lg hover:-translate-y-0.5': tierLevel === 'basic' && selectedOption === 'current',
-            'bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 text-base shadow-lg shadow-emerald-600/20 hover:shadow-emerald-600/30 hover:-translate-y-0.5': tierLevel === 'advanced' && selectedOption === 'current',
-            'cta-premium py-3.5 px-4 text-lg shadow-lg shadow-amber-500/25 hover:shadow-xl hover:shadow-amber-500/35 hover:-translate-y-1': tierLevel === 'premium',
-            'bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 text-base shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 hover:-translate-y-0.5': selectedOption === 'upsell' && !isPremium,
-          }"
-          @click="selectedOption === 'upsell' && upsellCategory ? emit('upsell-buy', upsellCategory) : emit('add-to-cart', category)"
+          :class="ctaBuyClasses"
+          @click="upsellCategory ? emit('upsell-buy', upsellCategory) : emit('add-to-cart', category)"
         >
-          <span>Agregar al carrito — ${{ formatPrice(selectedOption === 'upsell' && upsellCategory ? upsellCategory.precio : category.precio) }}{{ currencySuffix }}</span>
+          <span> ${{ formatPrice(upsellCategory?.precio ?? category.precio) }}{{ currencySuffix }}</span>
         </button>
       </div>
 

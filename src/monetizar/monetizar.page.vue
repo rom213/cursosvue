@@ -27,6 +27,11 @@ import {
   iconLock,
   iconWallet,
 } from "./monetizar.icons";
+import { authStore } from "../store/AuthStore";
+import ProLessonViewer from "./ProLessonViewer.vue";
+
+const store = authStore();
+const isPro = computed(() => store.profile?.user?.is_bought ?? false);
 
 const paymentIconSvg: Record<string, string> = {
   wallets: iconWallet,
@@ -34,6 +39,8 @@ const paymentIconSvg: Record<string, string> = {
   transfer: iconBank,
   cash: iconCash,
 };
+
+
 
 /* ── Calculadora ── */
 const metaMensual = ref(2000000);
@@ -288,7 +295,9 @@ function onFaqKeydown(e: KeyboardEvent, catIndex: number, itemIndex: number) {
           </p>
         </div>
 
+        <!-- Locked grid (non-PRO) -->
         <div
+          v-if="!isPro"
           class="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
         >
           <article
@@ -296,9 +305,7 @@ function onFaqKeydown(e: KeyboardEvent, catIndex: number, itemIndex: number) {
             :key="mod.id"
             class="relative flex flex-col overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm"
           >
-            <div
-              class="relative z-10 border-b border-gray-100/80 bg-white/95 px-5 pb-4 pt-5 backdrop-blur-sm"
-            >
+            <div class="relative z-10 border-b border-gray-100/80 bg-white/95 px-5 pb-4 pt-5 backdrop-blur-sm">
               <div
                 class="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-amber-50 text-[#D4AF37] [&_svg]:h-5 [&_svg]:w-5"
                 aria-hidden="true"
@@ -310,47 +317,36 @@ function onFaqKeydown(e: KeyboardEvent, catIndex: number, itemIndex: number) {
               <p class="mt-2 text-sm font-light leading-relaxed text-gray-600">
                 {{ mod.concept }}
               </p>
-              <p
-                class="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-[#D4AF37]"
-              >
+              <p class="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-[#D4AF37]">
                 <span aria-hidden="true">🔒</span>
                 Estado: Solo Afiliados
                 <span class="font-bold text-[#D4AF37]">PRO</span>
               </p>
             </div>
-
             <div class="relative min-h-[140px] flex-1 px-5 pt-4 pb-6">
-              <div
-                class="pointer-events-none select-none blur-[3px] opacity-70"
-                aria-hidden="true"
-              >
+              <div class="pointer-events-none select-none blur-[3px] opacity-70" aria-hidden="true">
                 <ul class="space-y-2 text-xs text-gray-500">
-                  <li v-for="(t, idx) in mod.lessonTitles" :key="idx">
-                    {{ t }}
-                  </li>
+                  <li v-for="(t, idx) in mod.lessonTitles" :key="idx">{{ t }}</li>
                 </ul>
               </div>
-              <div
-                class="absolute inset-0 top-0 bg-gradient-to-b from-white/55 via-white/70 to-white/90"
-              />
-              <div
-                class="absolute inset-0 flex items-center justify-center px-4"
-              >
-                <div
-                  class="flex flex-col items-center gap-1 rounded-xl bg-white/90 px-4 py-3 text-center shadow-sm backdrop-blur-md"
-                >
+              <div class="absolute inset-0 top-0 bg-gradient-to-b from-white/55 via-white/70 to-white/90" />
+              <div class="absolute inset-0 flex items-center justify-center px-4">
+                <div class="flex flex-col items-center gap-1 rounded-xl bg-white/90 px-4 py-3 text-center shadow-sm backdrop-blur-md">
                   <span
                     class="flex h-8 w-8 items-center justify-center text-[#D4AF37] [&_svg]:h-7 [&_svg]:w-7"
                     aria-hidden="true"
                     v-html="iconLock"
                   />
-                  <span class="text-xs font-semibold text-[#D4AF37]">
-                    Contenido PRO
-                  </span>
+                  <span class="text-xs font-semibold text-[#D4AF37]">Contenido PRO</span>
                 </div>
               </div>
             </div>
           </article>
+        </div>
+
+        <!-- Unlocked premium viewer (PRO) -->
+        <div v-else class="mt-12">
+          <ProLessonViewer />
         </div>
       </div>
     </section>

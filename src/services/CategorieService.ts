@@ -2,12 +2,15 @@
 import type { AxiosResponse } from "axios";
 import ApiService from "./ApiService";
 import type { ICategory } from "../types/Categorie";
+import type { FilterType } from "../courses/courseFilterData";
 
 class CategoryService {
-    static async getAllCategories(limit: number = 6, offset: number = 0): Promise<ICategory[] | []> {
+    static async getAllCategories(limit: number = 6, offset: number = 0, filterType: FilterType = 'all'): Promise<ICategory[] | []> {
         try {
+          const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+          if (filterType !== 'all') params.append('filter_type', filterType);
           const response: AxiosResponse<ICategory[]> = await ApiService.get<ICategory[]>(
-            `api/category/all-categories?limit=${limit}&offset=${offset}`
+            `api/category/all-categories?${params.toString()}`
           );
           return response.data;
         } catch (error) {
@@ -28,6 +31,18 @@ class CategoryService {
         }
       }
 
+
+      static async getCategoryBloques(categoryId: number): Promise<{ pilar: { id: number; titulo: string }; bloques: ICategory[] }[]> {
+        try {
+          const response = await ApiService.get<{ pilar: { id: number; titulo: string }; bloques: ICategory[] }[]>(
+            `api/category/${categoryId}/bloques`
+          );
+          return response.data;
+        } catch (error) {
+          console.error(`Error obteniendo bloques de categoría ${categoryId}:`, error);
+          return [];
+        }
+      }
 
       static async searchCategories(searchTerm: string, limit: number = 10): Promise<ICategory[] | []> {
         try {

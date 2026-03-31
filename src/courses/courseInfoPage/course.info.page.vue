@@ -19,6 +19,7 @@ import {
   getUpsellTargetId,
   PILARES,
   COMBOS,
+  TODA_LA_TIENDA_ID,
 } from "../courseFilterData";
 import type { PilarKey } from "../courseFilterData";
 
@@ -161,6 +162,7 @@ watch(
     }
     await syncCategoryFromRoute();
     await loadUpsellCategory();
+    await loadBloques();
   },
   { immediate: true },
 );
@@ -205,7 +207,7 @@ const cuposPercent = computed(() => Math.min(100, Math.round((cuposCount.value /
 const isLowStock = computed(() => cuposCount.value < 30);
 
 const currencySuffix = computed(() =>
-  userAuth.getProfile()?.user?.country === 'COP' ? 'COP' : 'USD'
+  userAuth.getProfile()?.user?.country === 'CO' ? 'COP' : 'USD'
 );
 
 const formatPrice = (price: number | undefined) => {
@@ -240,7 +242,7 @@ const upsellBenefits = computed(() => {
   if (!upsellCategory.value) return [];
   const type = classifyCategoryId(upsellCategory.value.id);
   if (type === 'pilares') {
-    return ['Todos los temas del pilar', 'Incluye reventa', '70% Dto. en toda la tienda'];
+    return ['Todos los blques del pilar', 'Incluye reventa', '70% Dto. en toda la tienda'];
   }
   if (type === 'toda-la-tienda') {
     return ['Los 3 pilares completos', 'Incluye reventa', 'Máximo valor por tu inversión'];
@@ -264,6 +266,38 @@ const loadUpsellCategory = async () => {
 
 const selectedOption = ref<'current' | 'upsell'>('current');
 const showUpsellDetails = ref(false);
+const showBlocksList = ref(false);
+
+const upsellBreakdown = computed(() => {
+  const blocks = upsellCategory.value?.cat_rel_info ?? [];
+  const total = upsellCategory.value?.precio ?? 0;
+  const pricePerBlock = blocks.length > 0 ? Math.round(total / blocks.length) : 0;
+  return { blocks, pricePerBlock };
+});
+
+const bloquesData = ref<{ pilar: { id: number; titulo: string }; bloques: ICategory[] }[]>([]);
+const bloquesLoading = ref(false);
+
+const _BLOQUE_IDS = new Set([100, 200, 300, 100200, 100300, 200300, TODA_LA_TIENDA_ID]);
+
+const loadBloques = async () => {
+  const id = category.value?.id;
+  if (!id || !_BLOQUE_IDS.has(id)) {
+    bloquesData.value = [];
+    return;
+  }
+  bloquesLoading.value = true;
+  bloquesData.value = await CategoryService.getCategoryBloques(id);
+  bloquesLoading.value = false;
+};
+
+const getPilarColorClasses = (pilarId: number) => {
+  if (pilarId === 100) return { border: 'border-blue-200', bg: 'bg-blue-50/40', header: 'bg-blue-100/60', badge: 'bg-blue-200 text-blue-700', dot: 'bg-blue-500' };
+  if (pilarId === 200) return { border: 'border-emerald-200', bg: 'bg-emerald-50/40', header: 'bg-emerald-100/60', badge: 'bg-emerald-200 text-emerald-700', dot: 'bg-emerald-500' };
+  return { border: 'border-orange-200', bg: 'bg-orange-50/40', header: 'bg-orange-100/60', badge: 'bg-orange-200 text-orange-700', dot: 'bg-orange-500' };
+};
+
+const getPilarEmoji = (pilarId: number) => pilarId === 100 ? '💼' : pilarId === 200 ? '💻' : '🎨';
 
 const selectedCategory = computed(() =>
   selectedOption.value === 'upsell' && upsellCategory.value
@@ -389,6 +423,109 @@ const handleUpsellExplore = () => {
             <div class="flex items-center gap-3 mb-4">
               <div class="w-1 h-8 rounded-full shrink-0" :class="tierInfo.accentColor" />
               <h2 class="font-[Poppins] text-xl md:text-2xl font-bold text-[#0d1b2a] tracking-tight">Temario del curso</h2>
+            </div>
+
+            <!-- Pilares que incluye -->
+            <div v-if="bloquesLoading || bloquesData.length" class="bg-white rounded-2xl border border-slate-100/80 shadow-md overflow-hidden transition-shadow hover:shadow-lg">
+              <button class="w-full flex items-center justify-between p-4 lg:px-6 bg-transparent border-none cursor-pointer transition-colors hover:bg-slate-50/60" @click="toggleFolder('section-bloques')">
+                <span class="font-[Poppins] text-base font-bold text-[#0d1b2a]">Pilares que incluye</span>
+                <span class="flex items-center gap-3">
+                  <template v-if="bloquesLoading">
+                    <svg class="w-4 h-4 animate-spin text-slate-400" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+                  </template>
+                  <template v-else>
+                    <span class="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full">
+                      {{ bloquesData.reduce((acc, g) => acc + g.bloques.length, 0) }} bloques
+                    </span>
+                  </template>
+                  <svg class="w-5 h-5 text-slate-400 transition-transform duration-300" :class="{ 'rotate-180': isFolderOpen('section-bloques') }" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </span>
+              </button>
+
+              <div v-show="isFolderOpen('section-bloques')" class="accordion-body border-t border-slate-100 bg-slate-50/40">
+                <!-- Precio por bloque -->
+                <div v-if="!bloquesLoading && bloquesData.length && category?.precio" class="mx-4 lg:mx-6 mt-4 mb-3 flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2.5">
+                  <svg class="w-4 h-4 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                  <span class="text-sm text-emerald-700">
+                    Cada bloque te sale a
+                    <strong>{{ formatPrice(Math.round(category.precio / bloquesData.reduce((acc, g) => acc + g.bloques.length, 0))) }} {{ currencySuffix }}</strong>
+                  </span>
+                </div>
+
+                <!-- Grupos de bloques por pilar -->
+                <div v-if="!bloquesLoading" class="p-4 lg:px-6 space-y-4">
+                  <div v-for="group in bloquesData" :key="group.pilar.id">
+                    <!-- Cabecera del pilar -->
+                    <div class="flex items-center gap-2 mb-2">
+                      <span class="text-base">{{ getPilarEmoji(group.pilar.id) }}</span>
+                      <span class="font-[Poppins] font-bold text-sm text-[#0d1b2a]">{{ group.pilar.titulo }}</span>
+                      <span class="text-[0.65rem] font-semibold px-2 py-0.5 rounded-full ml-1" :class="getPilarColorClasses(group.pilar.id).badge">
+                        {{ group.bloques.length }} bloques
+                      </span>
+                    </div>
+
+                    <!-- Bloques (temas) -->
+                    <div class="space-y-2">
+                      <div v-for="bloque in group.bloques" :key="bloque.id" class="bg-white rounded-xl border border-slate-100 overflow-hidden transition-colors hover:border-slate-200">
+                        <div class="flex items-center justify-between px-4 py-2.5 cursor-pointer transition-colors hover:bg-slate-50/60" @click="toggleFolder(`bloque-${bloque.id}`)">
+                          <div class="flex items-center gap-3">
+                            <span class="w-2 h-2 rounded-full shrink-0" :class="getPilarColorClasses(group.pilar.id).dot"></span>
+                            <span class="font-semibold text-sm text-[#0d1b2a]">{{ bloque.titulo }}</span>
+                          </div>
+                          <div class="flex items-center gap-3 shrink-0 ml-2">
+                            <span class="text-xs text-slate-500">{{ bloque.seccion_lista_completa?.cantidad_cursos ?? bloque.seccion_lista_completa?.lista_completa?.length ?? 0 }} cursos</span>
+                            <svg class="w-4 h-4 text-slate-400 transition-transform" :class="{ 'rotate-180': isFolderOpen(`bloque-${bloque.id}`) }" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                          </div>
+                        </div>
+
+                        <div v-show="isFolderOpen(`bloque-${bloque.id}`)" class="border-t border-slate-50 bg-[#fafbfd] px-4 py-3 space-y-2">
+
+                          <!-- Sub: Plataformas Integradas -->
+                          <div v-if="bloque.seccion_plataformas?.plataformas?.length" class="bg-white rounded-xl border border-slate-100 overflow-hidden">
+                            <button class="w-full flex items-center justify-between px-4 py-2.5 bg-transparent border-none cursor-pointer transition-colors hover:bg-blue-50/30" @click="toggleFolder(`bloque-${bloque.id}-plat`)">
+                              <div class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/></svg>
+                                <span class="font-semibold text-xs text-[#0d1b2a]">Plataformas Integradas</span>
+                              </div>
+                              <div class="flex items-center gap-2">
+                                <span class="text-[0.65rem] text-slate-500">{{ bloque.seccion_plataformas.cantidad_plataformas ?? bloque.seccion_plataformas.plataformas.length }} plataformas</span>
+                                <svg class="w-3.5 h-3.5 text-slate-400 transition-transform" :class="{ 'rotate-180': isFolderOpen(`bloque-${bloque.id}-plat`) }" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                              </div>
+                            </button>
+                            <div v-show="isFolderOpen(`bloque-${bloque.id}-plat`)" class="border-t border-slate-50 bg-[#fafbfd] px-4 py-3 max-h-72 overflow-y-auto">
+                              <div v-for="(plat, pIdx) in bloque.seccion_plataformas.plataformas" :key="pIdx" class="ml-2 pl-3 border-l-2 border-slate-200 py-1.5 flex items-center justify-between">
+                                <span class="text-xs font-medium text-slate-700">{{ plat.titulo_plataforma || 'Módulo' }}</span>
+                                <span class="text-[0.6rem] text-slate-400">{{ plat.cantidad_cursos_plataforma ?? plat.cursos?.length ?? 0 }} lecciones</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <!-- Sub: Lista Completa -->
+                          <div v-if="bloque.seccion_lista_completa?.lista_completa?.length" class="bg-white rounded-xl border border-slate-100 overflow-hidden">
+                            <button class="w-full flex items-center justify-between px-4 py-2.5 bg-transparent border-none cursor-pointer transition-colors hover:bg-amber-50/30" @click="toggleFolder(`bloque-${bloque.id}-lista`)">
+                              <div class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/><path fill-rule="evenodd" d="M4 5a2 2 0 012-2h3a1 1 0 010 2H6v11a2 2 0 002 2h7a2 2 0 002-2V5h-2a1 1 0 110-2h2a2 2 0 012 2v11a4 4 0 01-4 4H8a4 4 0 01-4-4V5z" clip-rule="evenodd"/></svg>
+                                <span class="font-semibold text-xs text-[#0d1b2a]">Lista Completa</span>
+                              </div>
+                              <div class="flex items-center gap-2">
+                                <span class="text-[0.65rem] text-slate-500">{{ bloque.seccion_lista_completa.cantidad_cursos ?? bloque.seccion_lista_completa.lista_completa.length }} cursos</span>
+                                <svg class="w-3.5 h-3.5 text-slate-400 transition-transform" :class="{ 'rotate-180': isFolderOpen(`bloque-${bloque.id}-lista`) }" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                              </div>
+                            </button>
+                            <div v-show="isFolderOpen(`bloque-${bloque.id}-lista`)" class="border-t border-slate-50 bg-[#fafbfd] px-4 py-3 max-h-72 overflow-y-auto">
+                              <div v-for="(curso, cIdx) in bloque.seccion_lista_completa.lista_completa" :key="cIdx" class="flex items-center justify-between py-1.5 border-b border-slate-50 last:border-0">
+                                <span class="text-xs text-slate-700">{{ cIdx + 1 }}. {{ curso.name_del_curso || 'Curso' }}</span>
+                                <button v-if="curso.info_tecnica?.url" class="text-[0.6rem] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border-none cursor-pointer hover:bg-blue-100 shrink-0 ml-2" @click.stop="openInNewTab(curso.info_tecnica?.url)">Recursos</button>
+                              </div>
+                            </div>
+                          </div>
+
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <!-- Plataformas -->
@@ -851,28 +988,72 @@ const handleUpsellExplore = () => {
                   <Transition
                     enter-active-class="transition-all duration-300 ease-out"
                     enter-from-class="opacity-0 max-h-0"
-                    enter-to-class="opacity-100 max-h-60"
+                    enter-to-class="opacity-100 max-h-[32rem]"
                     leave-active-class="transition-all duration-200 ease-in"
-                    leave-from-class="opacity-100 max-h-60"
+                    leave-from-class="opacity-100 max-h-[32rem]"
                     leave-to-class="opacity-0 max-h-0"
                   >
                     <div v-if="showUpsellDetails" class="overflow-hidden">
-                      <div class="mt-1 rounded-b-xl bg-blue-50/60 border border-t-0 border-blue-100 px-4 py-3 space-y-2">
-                        <ul class="space-y-1.5">
-                          <li
-                            v-for="(benefit, i) in upsellBenefits"
-                            :key="i"
-                            class="flex items-center gap-2 text-xs text-slate-700"
-                          >
+                      <div class="mt-1 rounded-b-xl bg-blue-50/60 border border-t-0 border-blue-100 px-4 py-3 space-y-1.5">
+
+                        <!-- Primer benefit: clickeable para expandir bloques -->
+                        <button
+                          type="button"
+                          class="w-full flex items-center justify-between gap-2 text-xs text-slate-700 font-semibold hover:text-blue-600 transition-colors border-none bg-transparent cursor-pointer"
+                          @click.stop="showBlocksList = !showBlocksList"
+                        >
+                          <div class="flex items-center gap-2">
                             <svg class="w-3.5 h-3.5 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                               <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                             </svg>
-                            {{ benefit }}
-                          </li>
-                        </ul>
+                            {{ upsellBenefits[0] }}
+                          </div>
+                          <svg class="w-3 h-3 transition-transform duration-200 text-slate-400 shrink-0" :class="{ 'rotate-180': showBlocksList }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+
+                        <!-- Lista de bloques -->
+                        <Transition
+                          enter-active-class="transition-all duration-200 ease-out"
+                          enter-from-class="opacity-0 max-h-0"
+                          enter-to-class="opacity-100 max-h-60"
+                          leave-active-class="transition-all duration-150 ease-in"
+                          leave-from-class="opacity-100 max-h-60"
+                          leave-to-class="opacity-0 max-h-0"
+                        >
+                          <div v-if="showBlocksList && upsellBreakdown.blocks.length" class="overflow-hidden pl-5 pb-1">
+                            <p class="text-[0.65rem] text-slate-400 mb-1">
+                              {{ upsellBreakdown.blocks.length }} bloques · ~${{ formatPrice(upsellBreakdown.pricePerBlock) }} c/u
+                            </p>
+                            <ul class="space-y-0.5">
+                              <li
+                                v-for="block in upsellBreakdown.blocks"
+                                :key="block.id"
+                                class="flex items-center justify-between gap-2"
+                              >
+                                <span class="text-[0.7rem] text-slate-600 truncate">· {{ block.titulo }}</span>
+                                <span class="text-[0.65rem] text-slate-400 shrink-0 tabular-nums">~${{ formatPrice(upsellBreakdown.pricePerBlock) }}</span>
+                              </li>
+                            </ul>
+                          </div>
+                        </Transition>
+
+                        <!-- Resto de benefits -->
+                        <div
+                          v-for="(benefit, i) in upsellBenefits.slice(1)"
+                          :key="i"
+                          class="flex items-center gap-2 text-xs text-slate-700"
+                        >
+                          <svg class="w-3.5 h-3.5 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                          {{ benefit }}
+                        </div>
+
                         <button
                           type="button"
-                          class="text-[0.65rem] font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-colors border-none bg-transparent cursor-pointer"
+                          class="text-[0.65rem] font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-colors border-none bg-transparent cursor-pointer pt-0.5"
                           @click="handleUpsellExplore"
                         >
                           Ver todos los detalles →

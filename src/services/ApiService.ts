@@ -59,5 +59,5 @@ class ApiService {
     }
 }
 
-export default new ApiService('http://192.168.0.105:5002')
+export default new ApiService('http://192.168.1.24:5002')
 

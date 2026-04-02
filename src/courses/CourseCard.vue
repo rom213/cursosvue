@@ -228,6 +228,9 @@ const upsellBenefits = computed(() => {
             class="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-105"
             :src="category.imagen_url"
             :alt="category.titulo || 'Curso'"
+            loading="lazy"
+            width="400"
+            height="225"
           />
           <div
             v-else

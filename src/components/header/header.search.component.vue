@@ -8,8 +8,13 @@ const dataReseived = ref<ICategory[] | []>([])
 const dataInput = ref('')
 const router = useRouter();
 
-watch(() => dataInput.value, () => {
+let searchTimer: ReturnType<typeof setTimeout> | null = null
+watch(() => dataInput.value, (val) => {
+  if (searchTimer) clearTimeout(searchTimer)
+  if (!val || val.trim().length < 2) return
+  searchTimer = setTimeout(() => {
     getDataSearch()
+  }, 350)
 })
 
 const getDataSearch = () => {
@@ -53,6 +58,8 @@ const handleClickOutside = () => {
                     placeholder="¿Qué quieres aprender?"
                     type="text"
                     autocomplete="off"
+                    inputmode="search"
+                    enterkeyhint="search"
                 />
             </div>
         </div>

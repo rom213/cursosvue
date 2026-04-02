@@ -18,47 +18,34 @@ const callback = async (response: any) => {
 
 
 onMounted(async () => {
-  const profile = await AuthService.getProfile();
-  console.log(profile);
-  await catStore.fetchCategories();
-  console.log("Categories loaded in App.vue");
-    
-  store.setProfile(profile);
+  const [profile] = await Promise.all([
+    AuthService.getProfile(),
+    catStore.fetchCategories()
+  ])
+  store.setProfile(profile)
 
-})
-
-
-onMounted(async () => {
-
-  const affiliaty_id= localStorage.getItem('google_affiliaty')
+  const affiliaty_id = localStorage.getItem('google_affiliaty')
   if (affiliaty_id) {
-    AuthService.get_affiliaty(String(affiliaty_id))
-        .then((res)=> {
-          if (res) {
-            store.nameAffiliaty= res.name
-            store.setCupoCode(res.cupon)
-          }
-        })
+    AuthService.get_affiliaty(String(affiliaty_id)).then((res) => {
+      if (res) {
+        store.nameAffiliaty = res.name
+        store.setCupoCode(res.cupon)
+      }
+    })
   }
-
 })
-
-
 
 
 
 // solo funciona cuando la persona es nueva y redifige al link del referido
-watch(() => store.profile, () => {
-  const referido = localStorage.getItem('path_referido');
+watch(() => store.profile?.user?.google_id, (id) => {
+  if (!id) return
+  const referido = localStorage.getItem('path_referido')
   if (referido) {
-    localStorage.removeItem('path_referido');
-    let path = location.origin + referido
-    location.href = path
+    localStorage.removeItem('path_referido')
+    location.href = location.origin + referido
   }
-},
-  {
-    deep: true
-  })
+})
 
 
 
@@ -73,7 +60,11 @@ watch(() => store.profile, () => {
         <!-- @ts-ignore -->
         <GoogleLogin :callback="callback" prompt auto-login />
       </div>
-      <RouterView></RouterView>
+      <RouterView v-slot="{ Component }">
+        <KeepAlive :include="['CoursesComponent']" :max="2">
+          <component :is="Component" />
+        </KeepAlive>
+      </RouterView>
     </div>
 
   </div>

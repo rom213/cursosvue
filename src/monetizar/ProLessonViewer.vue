@@ -455,7 +455,7 @@ watch(activeIdx, () => {
   animation: ctaPulse 2.5s 1.2s ease-in-out infinite;
 }
 @keyframes ctaPulse {
-  0%, 100% { box-shadow: 0 10px 25px -3px rgb(5 150 105 / 0.3), 0 4px 6px -4px rgb(5 150 105 / 0.3); }
-  50%       { box-shadow: 0 10px 40px -3px rgb(5 150 105 / 0.5), 0 4px 12px -4px rgb(5 150 105 / 0.5); }
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.85; transform: scale(1.02); }
 }
 </style>

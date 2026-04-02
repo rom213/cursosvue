@@ -1,14 +1,10 @@
 import { defineStore } from 'pinia';
-import { computed, ref, watch } from 'vue';
+import { computed, ref } from 'vue';
 import type { ICategory } from '../types/Categorie';
 
 
 export const cartStore = defineStore('car', () => {
     const cartCategories = ref<ICategory[]>([])
-
-    watch(cartCategories,()=>{
-        countCart
-    })
 
     const countCart=computed(()=>{
         return cartCategories.value.length

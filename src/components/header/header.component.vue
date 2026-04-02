@@ -44,7 +44,7 @@ const hadleShowCart = () => { showCart.value = !showCart.value }
 
             <!-- ── Logo + Marca ──────────────────────────── -->
             <RouterLink :to="{ name: 'home' }" class="header-brand">
-                <img src="../../assets/home/logo_cursos.png" alt="Logo" class="header-logo" />
+                <img src="../../assets/home/logo_cursos.png" alt="Logo" class="header-logo" width="120" height="40" />
                 <span class="header-brand-name">CURSOS ESTUDIA Y TRABAJA</span>
             </RouterLink>
 

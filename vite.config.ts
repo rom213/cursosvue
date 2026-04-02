@@ -6,11 +6,20 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [vue(), tailwindcss()],
   build: {
+    cssCodeSplit: true,
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-charts': ['apexcharts', 'vue3-apexcharts'],
-        },
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('apexcharts') || id.includes('vue3-apexcharts'))
+              return 'vendor-charts'
+            if (id.includes('vue3-google-login'))
+              return 'vendor-google'
+            if (id.includes('/vue/') || id.includes('pinia') || id.includes('vue-router'))
+              return 'vendor-core'
+            return 'vendor'
+          }
+        }
       },
     },
   },

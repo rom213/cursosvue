@@ -11,7 +11,7 @@ const storeCatergory = categoryStore()
 const router = useRouter()
 
 onMounted(async () => {
-  await storeCatergory.fetchCategories(true);
+  await storeCatergory.fetchCategories();
   courseBougth.value = storeCatergory.getCategoriesBougth();
 })
 

@@ -166,11 +166,17 @@ onBeforeUnmount(() => {
 
       <!-- Modelo: capa intermedia — z5, detrás del texto pero delante de las olas -->
       <div class="hero-model" aria-hidden="true">
-        <img
-          src="../assets/home/mujercursos.png"
-          alt=""
-          class="hero-model-img"
-        />
+        <picture>
+          <source srcset="../assets/home/mujercursos.webp" type="image/webp" />
+          <img
+            src="../assets/home/mujercursos.png"
+            alt=""
+            class="hero-model-img"
+            width="800"
+            height="600"
+            fetchpriority="high"
+          />
+        </picture>
       </div>
 
       <!-- Texto: z10, encima de todo -->
@@ -255,7 +261,7 @@ onBeforeUnmount(() => {
               @mouseenter="logosHoveredIdx = 0"
               @mouseleave="logosHoveredIdx = null"
             >
-              <img class="logo-img pointer-events-none select-none" src="../assets/home/coursera.png" alt="Coursera" draggable="false" />
+              <img class="logo-img pointer-events-none select-none" src="../assets/home/coursera.png" alt="Coursera" draggable="false" loading="lazy" width="120" height="40" />
             </div>
             <div
               class="logo-item"
@@ -263,7 +269,7 @@ onBeforeUnmount(() => {
               @mouseenter="logosHoveredIdx = 1"
               @mouseleave="logosHoveredIdx = null"
             >
-              <img class="logo-img pointer-events-none select-none" src="../assets/home/edx.png" alt="edX" draggable="false" />
+              <img class="logo-img pointer-events-none select-none" src="../assets/home/edx.png" alt="edX" draggable="false" loading="lazy" width="120" height="40" />
             </div>
             <div
               class="logo-item"
@@ -271,7 +277,7 @@ onBeforeUnmount(() => {
               @mouseenter="logosHoveredIdx = 2"
               @mouseleave="logosHoveredIdx = null"
             >
-              <img class="logo-img pointer-events-none select-none" src="../assets/home/hotmart.png" alt="Hotmart" draggable="false" />
+              <img class="logo-img pointer-events-none select-none" src="../assets/home/hotmart.png" alt="Hotmart" draggable="false" loading="lazy" width="120" height="40" />
             </div>
             <div
               class="logo-item"
@@ -279,7 +285,7 @@ onBeforeUnmount(() => {
               @mouseenter="logosHoveredIdx = 3"
               @mouseleave="logosHoveredIdx = null"
             >
-              <img class="logo-img pointer-events-none select-none" src="../assets/home/platzi.png" alt="Platzi" draggable="false" />
+              <img class="logo-img pointer-events-none select-none" src="../assets/home/platzi.png" alt="Platzi" draggable="false" loading="lazy" width="120" height="40" />
             </div>
           </template>
         </div>
@@ -348,7 +354,7 @@ onBeforeUnmount(() => {
                 :key="index"
                 class="testimonial-card"
               >
-                <img :src="item.url" alt="Testimonio de estudiante" class="testimonial-img" draggable="false" />
+                <img :src="item.url" alt="Testimonio de estudiante" class="testimonial-img" draggable="false" loading="lazy" width="96" height="96" />
               </div>
             </div>
           </template>

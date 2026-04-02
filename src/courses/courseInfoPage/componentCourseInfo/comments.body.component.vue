@@ -74,7 +74,7 @@ const ratingPercentages = computed(() => {
     <div class="grid gap-4 overflow-auto max-h-[300px]">
       <div class="grid gap-2" v-for="(item, index) in messageResponse?.messages" :key="index">
         <div class="flex items-center gap-3">
-          <img class="w-8 h-8 rounded-full" :src="item.user.picture" alt="">
+          <img class="w-8 h-8 rounded-full" :src="item.user.picture" alt="" loading="lazy" width="32" height="32" />
           <p class="text-sm">{{ item.user.name }}</p>
         </div>
         <div class="flex items-center">

@@ -13,6 +13,7 @@ import EmergentBuyComponent from "../emergent.buy.component.vue";
 import AuthService from "../../services/AuthServices";
 import CategoryService from "../../services/CategorieService";
 import CourseFaqSection from "./CourseFaqSection.vue";
+import FooterComponent from "../../components/footer/footer.component.vue";
 import {
   classifyCategoryId,
   getPilarForThemeId,
@@ -511,8 +512,8 @@ const handleUpsellExplore = () => {
                               </div>
                             </button>
                             <div v-show="isFolderOpen(`bloque-${bloque.id}-lista`)" class="border-t border-slate-50 bg-[#fafbfd] px-4 py-3 max-h-72 overflow-y-auto">
-                              <div v-for="(curso, cIdx) in bloque.seccion_lista_completa.lista_completa" :key="cIdx" class="flex items-center justify-between py-1.5 border-b border-slate-50 last:border-0">
-                                <span class="text-xs text-slate-700">{{ cIdx + 1 }}. {{ curso.name_del_curso || 'Curso' }}</span>
+                              <div v-for="(curso, cIdx) in bloque.seccion_lista_completa.lista_completa" :key="cIdx" class="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
+                                <span class="text-xs font-medium text-slate-700">{{ cIdx + 1 }}. {{ curso.name_del_curso || 'Curso' }}</span>
                                 <button v-if="curso.info_tecnica?.url" class="text-[0.6rem] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border-none cursor-pointer hover:bg-blue-100 shrink-0 ml-2" @click.stop="openInNewTab(curso.info_tecnica?.url)">Recursos</button>
                               </div>
                             </div>
@@ -541,9 +542,11 @@ const handleUpsellExplore = () => {
                 <div v-if="!(category?.seccion_plataformas?.plataformas?.length)" class="text-sm text-slate-500 py-4 text-center">Sin elementos</div>
 
                 <div v-for="plataforma in paginatedPlataformas" :key="plataforma.originalIndex" class="mb-2 bg-white rounded-xl border border-slate-100 overflow-hidden transition-colors hover:border-slate-200">
-                  <div class="flex items-center justify-between px-4 py-2.5 cursor-pointer transition-colors hover:bg-blue-50/30" @click="toggleFolder(`plat-${plataforma.originalIndex}`)">
+                  <div class="flex items-center justify-between px-4 py-3 cursor-pointer transition-colors hover:bg-blue-50/30" @click="toggleFolder(`plat-${plataforma.originalIndex}`)">
                     <div class="flex items-center gap-3">
-                      <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"></path></svg>
+                      <span class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                      </span>
                       <span class="font-semibold text-[#0d1b2a]">{{ plataforma.titulo_plataforma || "Modulo" }}</span>
                     </div>
                     <div class="flex items-center gap-3">
@@ -552,16 +555,16 @@ const handleUpsellExplore = () => {
                     </div>
                   </div>
                   <div v-show="isFolderOpen(`plat-${plataforma.originalIndex}`)" class="border-t border-slate-50 bg-[#fafbfd] px-4 py-3">
-                    <div v-for="(curso, cIndex) in plataforma.cursos || []" :key="cIndex" class="ml-4 pl-4 border-l-2 border-slate-200 py-2">
-                      <div class="flex items-center justify-between">
-                        <span class="text-sm font-medium text-slate-700 hover:text-blue-600 cursor-pointer" @click="toggleFolder(`plat-${plataforma.originalIndex}-cur-${cIndex}`)">
-                          {{ cIndex + 1 }}. {{ curso.name_del_curso || "Leccion" }}
+                    <div v-for="(curso, cIndex) in plataforma.cursos || []" :key="cIndex" class="ml-3 pl-4 border-l-2 border-blue-100 py-2.5 flex items-center justify-between group/item hover:border-l-blue-400 transition-colors">
+                      <div class="flex items-center gap-2.5 min-w-0">
+                        <span class="w-5 h-5 rounded-md bg-blue-50 text-blue-500 flex items-center justify-center shrink-0 text-[0.6rem] font-bold group-hover/item:bg-blue-100 transition-colors">
+                          {{ cIndex + 1 }}
                         </span>
-                        <button v-if="curso.info_tecnica?.url" class="text-[0.65rem] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border-none cursor-pointer transition-colors hover:bg-blue-100" @click.stop="openInNewTab(curso.info_tecnica?.url)">Recursos</button>
+                        <span class="text-sm font-medium text-slate-600 group-hover/item:text-slate-800 transition-colors truncate">
+                          {{ curso.name_del_curso || "Leccion" }}
+                        </span>
                       </div>
-                      <ul v-show="isFolderOpen(`plat-${plataforma.originalIndex}-cur-${cIndex}`)" class="mt-2 space-y-1 text-xs text-slate-500 list-disc ml-4">
-                        <li v-for="(item, iIndex) in curso.contenido || []" :key="iIndex">{{ item }}</li>
-                      </ul>
+                      <button v-if="curso.info_tecnica?.url" class="text-[0.65rem] font-semibold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border-none cursor-pointer transition-colors hover:bg-blue-100 shrink-0 ml-3" @click.stop="openInNewTab(curso.info_tecnica?.url)">Recursos</button>
                     </div>
                   </div>
                 </div>
@@ -592,9 +595,11 @@ const handleUpsellExplore = () => {
               <div v-show="isFolderOpen('section-temas')" class="accordion-body border-t border-slate-100 p-4 lg:px-6 max-h-[600px] overflow-y-auto bg-slate-50/40">
                 <div v-if="!(category?.seccion_temas?.temas?.length)" class="text-sm text-slate-500 py-4 text-center">Sin elementos</div>
                 <div v-for="tema in paginatedTemas" :key="tema.originalIndex" class="mb-2 bg-white rounded-xl border border-slate-100 overflow-hidden transition-colors hover:border-slate-200">
-                  <div class="flex items-center justify-between px-4 py-2.5 cursor-pointer transition-colors hover:bg-blue-50/30" @click="toggleFolder(`tema-${tema.originalIndex}`)">
+                  <div class="flex items-center justify-between px-4 py-3 cursor-pointer transition-colors hover:bg-emerald-50/30" @click="toggleFolder(`tema-${tema.originalIndex}`)">
                     <div class="flex items-center gap-3">
-                      <svg class="w-5 h-5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a2 2 0 012-2h5a1 1 0 010 2H4v5.586l6.293-6.293a1 1 0 011.414 0l6.293 6.293V5a1 1 0 112 0v5a1 1 0 01-.293.707z" clip-rule="evenodd"></path></svg>
+                      <span class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                      </span>
                       <span class="font-semibold text-[#0d1b2a]">{{ tema.titulo_tema || "Tema" }}</span>
                     </div>
                     <div class="flex items-center gap-3">
@@ -603,16 +608,16 @@ const handleUpsellExplore = () => {
                     </div>
                   </div>
                   <div v-show="isFolderOpen(`tema-${tema.originalIndex}`)" class="border-t border-slate-50 bg-[#fafbfd] px-4 py-3">
-                    <div v-for="(curso, cIndex) in tema.cursos || []" :key="cIndex" class="ml-4 pl-4 border-l-2 border-slate-200 py-2">
-                      <div class="flex items-center justify-between">
-                        <span class="text-sm font-medium text-slate-700 hover:text-blue-600 cursor-pointer" @click="toggleFolder(`tema-${tema.originalIndex}-cur-${cIndex}`)">
-                          {{ cIndex + 1 }}. {{ curso.name_del_curso || "Leccion" }}
+                    <div v-for="(curso, cIndex) in tema.cursos || []" :key="cIndex" class="ml-3 pl-4 border-l-2 border-emerald-100 py-2.5 flex items-center justify-between group/item hover:border-l-emerald-400 transition-colors">
+                      <div class="flex items-center gap-2.5 min-w-0">
+                        <span class="w-5 h-5 rounded-md bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0 text-[0.6rem] font-bold group-hover/item:bg-emerald-100 transition-colors">
+                          {{ cIndex + 1 }}
                         </span>
-                        <button v-if="curso.info_tecnica?.url" class="text-[0.65rem] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border-none cursor-pointer transition-colors hover:bg-blue-100" @click.stop="openInNewTab(curso.info_tecnica?.url)">Recursos</button>
+                        <span class="text-sm font-medium text-slate-600 group-hover/item:text-slate-800 transition-colors truncate">
+                          {{ curso.name_del_curso || "Leccion" }}
+                        </span>
                       </div>
-                      <ul v-show="isFolderOpen(`tema-${tema.originalIndex}-cur-${cIndex}`)" class="mt-2 space-y-1 text-xs text-slate-500 list-disc ml-4">
-                        <li v-for="(item, iIndex) in curso.contenido || []" :key="iIndex">{{ item }}</li>
-                      </ul>
+                      <button v-if="curso.info_tecnica?.url" class="text-[0.65rem] font-semibold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border-none cursor-pointer transition-colors hover:bg-blue-100 shrink-0 ml-3" @click.stop="openInNewTab(curso.info_tecnica?.url)">Recursos</button>
                     </div>
                   </div>
                 </div>
@@ -662,21 +667,15 @@ const handleUpsellExplore = () => {
                   No se encontraron cursos que coincidan con "{{ searchTermLista }}"
                 </div>
 
-                <div v-for="curso in paginatedListaCompleta" :key="curso.originalIndex" class="mb-2 bg-white rounded-xl border border-slate-100 overflow-hidden transition-colors hover:border-slate-200">
-                  <div class="flex items-center justify-between px-4 py-2.5 cursor-pointer transition-colors hover:bg-blue-50/30" @click="toggleFolder(`lista-cur-${curso.originalIndex}`)">
-                    <div class="flex items-center gap-3">
-                      <svg class="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path><path fill-rule="evenodd" d="M4 5a2 2 0 012-2h3a1 1 0 010 2H6a2 2 0 012 2v11a2 2 0 002 2h7a2 2 0 002-2V7a2 2 0 012-2h2a1 1 0 110 2h-2a2 2 0 012 2v11a4 4 0 01-4 4H8a4 4 0 01-4-4V5z" clip-rule="evenodd"></path></svg>
-                      <span class="font-semibold text-[#0d1b2a]">{{ curso.name_del_curso || "Curso" }}</span>
+                <div v-for="curso in paginatedListaCompleta" :key="curso.originalIndex" class="mb-1.5 bg-white rounded-xl border border-slate-100 overflow-hidden transition-all hover:border-blue-200 hover:shadow-sm group">
+                  <div class="flex items-center justify-between px-4 py-3">
+                    <div class="flex items-center gap-3 min-w-0">
+                      <span class="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 text-xs font-bold group-hover:bg-blue-100 transition-colors">
+                        {{ curso.originalIndex + 1 }}
+                      </span>
+                      <span class="text-sm font-medium text-slate-700 group-hover:text-[#0d1b2a] transition-colors truncate">{{ curso.name_del_curso || "Curso" }}</span>
                     </div>
-                    <div class="flex items-center gap-3">
-                      <button v-if="curso.info_tecnica?.url" class="text-[0.65rem] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border-none cursor-pointer transition-colors hover:bg-blue-100" @click.stop="openInNewTab(curso.info_tecnica?.url)">Recursos</button>
-                      <svg class="w-4 h-4 text-slate-400 transition-transform" :class="{ 'rotate-180': isFolderOpen(`lista-cur-${curso.originalIndex}`) }" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                    </div>
-                  </div>
-                  <div v-show="isFolderOpen(`lista-cur-${curso.originalIndex}`)" class="border-t border-slate-50 bg-[#fafbfd] px-4 py-3">
-                    <ul class="space-y-1 text-xs text-slate-500 list-disc ml-4">
-                      <li v-for="(item, iIndex) in curso.contenido || []" :key="iIndex">{{ item }}</li>
-                    </ul>
+                    <button v-if="curso.info_tecnica?.url" class="text-[0.65rem] font-semibold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border-none cursor-pointer transition-colors hover:bg-blue-100 shrink-0 ml-3" @click.stop="openInNewTab(curso.info_tecnica?.url)">Recursos</button>
                   </div>
                 </div>
 
@@ -1148,6 +1147,7 @@ const handleUpsellExplore = () => {
     </Teleport>
 
     <EmergentBuyComponent />
+    <FooterComponent />
   </div>
 </template>
 

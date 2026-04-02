@@ -21,6 +21,7 @@ import {
 } from "./monetizar.icons";
 import { authStore } from "../store/AuthStore";
 import ProLessonViewer from "./ProLessonViewer.vue";
+import FooterComponent from "../components/footer/footer.component.vue";
 
 const store = authStore();
 const isPro = computed(() => store.profile?.user?.is_bought ?? false);
@@ -422,34 +423,7 @@ function onFaqKeydown(e: KeyboardEvent, catIndex: number, itemIndex: number) {
       </div>
     </section>
 
-    <!-- Pie legal -->
-    <footer
-      class="border-t border-gray-200/60 bg-[#FAFAFA] px-4 py-12 sm:px-6 lg:px-8"
-    >
-      <div
-        class="mx-auto max-w-3xl text-center text-sm font-light text-gray-500"
-      >
-        <p>{{ footerSupportLine }}</p>
-        <nav
-          class="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm"
-          aria-label="Enlaces legales"
-        >
-          <a
-            href="#"
-            class="text-gray-600 underline-offset-2 transition-colors duration-300 hover:text-emerald-700 hover:underline"
-            >Términos y Condiciones</a
-          >
-          <a
-            href="#"
-            class="text-gray-600 underline-offset-2 transition-colors duration-300 hover:text-emerald-700 hover:underline"
-            >Política de Privacidad</a
-          >
-        </nav>
-        <p class="mt-8 text-xs leading-relaxed text-gray-400">
-          {{ footerDisclaimer }}
-        </p>
-      </div>
-    </footer>
+    <FooterComponent />
   </main>
 </template>
 

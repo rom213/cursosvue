@@ -6,7 +6,55 @@ import HomeCta from '../components/cta/HomeCta.vue';
 import PricingLevels from './PricingLevels.vue';
 import { icons } from './section_one/section.one.data';
 
-const logosAnimationDuration = 40;
+import courseraImg from '../assets/home/coursera.webp';
+import edxImg from '../assets/home/edx.webp';
+import hotmartImg from '../assets/home/hotmart.webp';
+import platziImg from '../assets/home/platzi.webp';
+import crehanaImg from '../assets/home/crehana.webp';
+import udemyImg from '../assets/home/udemy.webp';
+import domestikaImg from '../assets/home/domestika.webp';
+import mindvalleyImg from '../assets/home/mindvalley.webp';
+import edteamImg from '../assets/home/edteam.webp';
+import codigofacilitoImg from '../assets/home/codigofacilito.webp';
+import escuelaITImg from '../assets/home/escuelaIT.webp';
+import rgbImg from '../assets/home/rgb.webp';
+import smartBemmoImg from '../assets/home/smartBemmo.webp';
+import youtalktvImg from '../assets/home/youtalktv.webp';
+import arcuxImg from '../assets/home/arcux.webp';
+import drawImg from '../assets/home/21DRAW.webp';
+import felipevergaraImg from '../assets/home/felipevergara.webp';
+import netzunImg from '../assets/home/netzun.webp';
+import fhiImg from '../assets/home/fhi.webp';
+import backtrackacademyImg from '../assets/home/backtrackacademy.webp';
+import gaiaImg from '../assets/home/gaia.webp';
+import seowarriosImg from '../assets/home/seowarrios.webp';
+
+const brandLogos = [
+  { src: courseraImg, alt: 'Coursera' },
+  { src: edxImg, alt: 'edX' },
+  { src: hotmartImg, alt: 'Hotmart' },
+  { src: platziImg, alt: 'Platzi' },
+  { src: crehanaImg, alt: 'Crehana' },
+  { src: udemyImg, alt: 'Udemy' },
+  { src: domestikaImg, alt: 'Domestika' },
+  { src: mindvalleyImg, alt: 'Mindvalley' },
+  { src: edteamImg, alt: 'EDteam' },
+  { src: codigofacilitoImg, alt: 'Código Facilito' },
+  { src: escuelaITImg, alt: 'Escuela IT' },
+  { src: rgbImg, alt: 'RGB' },
+  { src: smartBemmoImg, alt: 'Smart Bemmo' },
+  { src: youtalktvImg, alt: 'YouTalk TV' },
+  { src: arcuxImg, alt: 'Arcux' },
+  { src: drawImg, alt: '21 Draw' },
+  { src: felipevergaraImg, alt: 'Felipe Vergara' },
+  { src: netzunImg, alt: 'Netzun' },
+  { src: fhiImg, alt: 'FHI' },
+  { src: backtrackacademyImg, alt: 'Backtrack Academy' },
+  { src: gaiaImg, alt: 'Gaia' },
+  { src: seowarriosImg, alt: 'SEO Warrios' },
+];
+
+const logosAnimationDuration = 120;
 const logosMarqueeRef = ref<HTMLElement | null>(null);
 const logosDragging = ref(false);
 const logosHoveredIdx = ref<number | null>(null);
@@ -256,36 +304,14 @@ onBeforeUnmount(() => {
         >
           <template v-for="n in 3" :key="n">
             <div
+              v-for="(logo, idx) in brandLogos"
+              :key="`${n}-${idx}`"
               class="logo-item"
-              :class="logosHoveredIdx !== null && logosHoveredIdx !== 0 ? 'logo-dim' : ''"
-              @mouseenter="logosHoveredIdx = 0"
+              :class="logosHoveredIdx !== null && logosHoveredIdx !== idx ? 'logo-dim' : ''"
+              @mouseenter="logosHoveredIdx = idx"
               @mouseleave="logosHoveredIdx = null"
             >
-              <img class="logo-img pointer-events-none select-none" src="../assets/home/coursera.png" alt="Coursera" draggable="false" loading="lazy" width="120" height="40" />
-            </div>
-            <div
-              class="logo-item"
-              :class="logosHoveredIdx !== null && logosHoveredIdx !== 1 ? 'logo-dim' : ''"
-              @mouseenter="logosHoveredIdx = 1"
-              @mouseleave="logosHoveredIdx = null"
-            >
-              <img class="logo-img pointer-events-none select-none" src="../assets/home/edx.png" alt="edX" draggable="false" loading="lazy" width="120" height="40" />
-            </div>
-            <div
-              class="logo-item"
-              :class="logosHoveredIdx !== null && logosHoveredIdx !== 2 ? 'logo-dim' : ''"
-              @mouseenter="logosHoveredIdx = 2"
-              @mouseleave="logosHoveredIdx = null"
-            >
-              <img class="logo-img pointer-events-none select-none" src="../assets/home/hotmart.png" alt="Hotmart" draggable="false" loading="lazy" width="120" height="40" />
-            </div>
-            <div
-              class="logo-item"
-              :class="logosHoveredIdx !== null && logosHoveredIdx !== 3 ? 'logo-dim' : ''"
-              @mouseenter="logosHoveredIdx = 3"
-              @mouseleave="logosHoveredIdx = null"
-            >
-              <img class="logo-img pointer-events-none select-none" src="../assets/home/platzi.png" alt="Platzi" draggable="false" loading="lazy" width="120" height="40" />
+              <img class="logo-img pointer-events-none select-none" :src="logo.src" :alt="logo.alt" draggable="false" loading="lazy" width="120" height="40" />
             </div>
           </template>
         </div>

@@ -27,7 +27,7 @@ function toggleContact(key: string) {
                 </p>
                 <!-- Social icons -->
                 <div class="footer-social">
-                    <a href="#" class="social-link" aria-label="Facebook">
+                    <a href="https://www.facebook.com/profile.php?id=61554175103394&mibextid=ZbWKwL" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="Facebook">
                         <svg width="18" height="18" viewBox="0 0 31 30" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <g clip-path="url(#clip0_footer_fb)">
                                 <path d="M30.5 15C30.5 6.71578 23.7842 0 15.5 0C7.21578 0 0.5 6.71578 0.5 15C0.5 22.4869 5.98531 28.6925 13.1562 29.8178V19.3359H9.34766V15H13.1562V11.6953C13.1562 7.93594 15.3957 5.85938 18.822 5.85938C20.4631 5.85938 22.1797 6.15234 22.1797 6.15234V9.84375H20.2883C18.4249 9.84375 17.8438 11 17.8438 12.1863V15H22.0039L21.3389 19.3359H17.8438V29.8178C25.0147 28.6925 30.5 22.487 30.5 15Z" fill="#1877F2"/>
@@ -38,7 +38,7 @@ function toggleContact(key: string) {
                             </defs>
                         </svg>
                     </a>
-                    <a href="#" class="social-link" aria-label="Instagram">
+                    <a href="https://www.instagram.com/cursos_estudia_y_trabaja?igsh=YXFodm9oMjE0Zmxh" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="Instagram">
                         <svg width="18" height="18" viewBox="0 0 29 30" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M21.4688 0H5.53125C1.648 0 -1.5 3.148 -1.5 7.03125V22.9688C-1.5 26.852 1.648 30 5.53125 30H21.4688C25.352 30 28.5 26.852 28.5 22.9688V7.03125C28.5 3.148 25.352 0 21.4688 0Z" fill="url(#paint0_footer_ig)"/>
                             <path d="M21.4688 0H5.53125C1.648 0 -1.5 3.148 -1.5 7.03125V22.9688C-1.5 26.852 1.648 30 5.53125 30H21.4688C25.352 30 28.5 26.852 28.5 22.9688V7.03125C28.5 3.148 25.352 0 21.4688 0Z" fill="url(#paint1_footer_ig)"/>
@@ -58,7 +58,7 @@ function toggleContact(key: string) {
                             </defs>
                         </svg>
                     </a>
-                    <a href="#" class="social-link" aria-label="TikTok">
+                    <a href="https://www.tiktok.com/@cursos.estudia.y?_t=8qrpqja63ec&_r=1" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="TikTok">
                         <svg width="18" height="18" viewBox="0 0 27 30" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <g clip-path="url(#clip0_footer_tt)">
                                 <path d="M19.7684 10.8787C21.6654 12.234 23.9893 13.0315 26.4993 13.0315V8.20424C26.0242 8.20443 25.5504 8.15487 25.0857 8.05637V11.8561C22.576 11.8561 20.2524 11.0588 18.355 9.70351V19.5547C18.355 24.4828 14.3579 28.4774 9.42762 28.4774C7.58802 28.4774 5.87812 27.9216 4.45776 26.9682C6.0789 28.625 8.33969 29.6527 10.8408 29.6527C15.7714 29.6527 19.7686 25.6581 19.7686 20.7297V10.8787H19.7684ZM21.5122 6.00856C20.5427 4.94998 19.9061 3.58193 19.7684 2.06946V1.44861H18.4289C18.7661 3.37088 19.9163 5.01315 21.5122 6.00856ZM7.57614 23.1866C7.03444 22.4769 6.74165 21.6085 6.74302 20.7156C6.74302 18.4618 8.57125 16.6342 10.8268 16.6342C11.2471 16.634 11.665 16.6985 12.0656 16.8255V11.8902C11.5974 11.8262 11.1249 11.7988 10.6527 11.8089V15.6502C10.2518 15.5232 9.83379 15.4587 9.4133 15.4591C7.1578 15.4591 5.32968 17.2864 5.32968 19.5405C5.32968 21.1345 6.24344 22.5144 7.57614 23.1866Z" fill="#FF004F"/>

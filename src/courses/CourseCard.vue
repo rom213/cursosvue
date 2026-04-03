@@ -82,7 +82,7 @@ const cardWrapperClasses = computed(() => {
 });
 
 // ── Metricas ──
-const themesCount = computed(() => props.category.seccion_temas?.cantidad_temas ?? 0);
+const bloquesCount = computed(() => props.category.seccion_temas?.cantidad_temas ?? 0);
 const cursosCount = computed(() => props.category.cantidad_cursos ?? 122);
 const cuposCount = computed(() => props.category.num_per ?? 23);
 const cuposMax = 200;
@@ -299,13 +299,13 @@ const upsellBenefits = computed(() => {
       <!-- ══ 5. METRICAS DE VALOR ══ -->
       <div class="px-5 pt-3 space-y-2.5">
 
-        <!-- Volumen: temas + cursos (siempre) -->
+        <!-- Volumen: bloques + cursos (siempre) -->
         <div class="flex items-center gap-2.5">
           <div class="p-1.5 rounded-lg shrink-0" :class="[colors.iconBg, colors.iconText]">
             <div class="w-5 h-5" v-html="courseIcons.cursos" />
           </div>
           <span class="text-sm text-slate-700">
-            <strong class="text-slate-900">{{ themesCount || 1 }}</strong> Tema{{ themesCount > 1 ? 's' : '' }}
+            <strong class="text-slate-900">{{ bloquesCount || 1 }}</strong> Bloque{{ bloquesCount > 1 ? 's' : '' }}
             <span class="text-slate-400 mx-0.5">&middot;</span>
             <strong class="text-slate-900">{{ cursosCount.toLocaleString() }}</strong> cursos
           </span>

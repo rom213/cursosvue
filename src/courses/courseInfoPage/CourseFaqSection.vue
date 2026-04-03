@@ -204,7 +204,7 @@ function parseAnswerBlocks(text: string): AnswerBlock[] {
   return blocks;
 }
 
-/** Icono por tema (título de categoría) */
+/** Icono por bloque (título de categoría) */
 type IconKey =
   | "acceso"
   | "tutorial"
@@ -289,7 +289,7 @@ const sugerenciasBusqueda = [
         <div class="min-w-0 flex-1">
           <h2 class="text-2xl font-bold tracking-tight text-slate-900">Preguntas frecuentes</h2>
           <p class="mt-1.5 max-w-prose text-sm leading-relaxed text-slate-600">
-            Respuestas sobre acceso, pagos y soporte. Un tema y una respuesta abiertos a la vez.
+            Respuestas sobre acceso, pagos y soporte. Un bloque y una respuesta abiertos a la vez.
           </p>
         </div>
       </div>
@@ -345,7 +345,7 @@ const sugerenciasBusqueda = [
             />
           </svg>
           {{ totalPreguntasVisibles }} resultado{{ totalPreguntasVisibles === 1 ? "" : "s" }} en
-          {{ categoriasFiltradas.length }} tema{{ categoriasFiltradas.length === 1 ? "" : "s" }}
+          {{ categoriasFiltradas.length }} bloque{{ categoriasFiltradas.length === 1 ? "" : "s" }}
         </span>
         <span v-else> Coincide con tildes o sin ellas. Varias palabras = todas deben aparecer. </span>
       </p>
@@ -385,7 +385,7 @@ const sugerenciasBusqueda = [
       <p class="mt-1 text-sm text-slate-500">Prueba sin tildes, menos palabras o otra sugerencia.</p>
     </div>
 
-    <!-- Lista de temas -->
+    <!-- Lista de bloques -->
     <div v-else class="space-y-3">
       <div
         v-for="{ cat, index: catIndex } in categoriasVisibles"
@@ -705,7 +705,7 @@ const sugerenciasBusqueda = [
           class="group flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 shadow-sm transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
           @click="showAll = !showAll"
         >
-          <span>{{ showAll ? 'Ver menos' : `Ver ${categoriasFiltradas.length - 3} temas más` }}</span>
+          <span>{{ showAll ? 'Ver menos' : `Ver ${categoriasFiltradas.length - 3} bloques más` }}</span>
           <svg
             class="h-4 w-4 transition-transform duration-300"
             :class="{ 'rotate-180': showAll }"

@@ -60,8 +60,8 @@ export const calculatorSectionLead =
 
 export const calculatorCategories: CalculatorCategory[] = [
   {
-    id: "tema",
-    name: "Tema Individual",
+    id: "bloque",
+    name: "Bloque Individual",
     precioReal: 19600,
     precioFinal: 17640,
     costoPayU: 1803,

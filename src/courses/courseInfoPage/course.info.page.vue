@@ -46,7 +46,7 @@ const itemsPerPageLista = 10;
 
 const currentPages = ref({
   plataformas: 1,
-  temas: 1,
+  bloques: 1,
   listaCompleta: 1
 });
 
@@ -66,15 +66,15 @@ const paginatedPlataformas = computed(() => {
 });
 const totalPagesPlataformas = computed(() => Math.ceil((category.value?.seccion_plataformas?.plataformas?.length || 0) / itemsPerPage));
 
-const paginatedTemas = computed(() => {
+const paginatedBloques = computed(() => {
   const list = category.value?.seccion_temas?.temas || [];
-  const start = (currentPages.value.temas - 1) * itemsPerPage;
+  const start = (currentPages.value.bloques - 1) * itemsPerPage;
   return list.slice(start, start + itemsPerPage).map((item, idx) => ({
     ...item,
     originalIndex: start + idx
   }));
 });
-const totalPagesTemas = computed(() => Math.ceil((category.value?.seccion_temas?.temas?.length || 0) / itemsPerPage));
+const totalPagesBloques = computed(() => Math.ceil((category.value?.seccion_temas?.temas?.length || 0) / itemsPerPage));
 
 const filteredListaCompleta = computed(() => {
   const list = category.value?.seccion_lista_completa?.lista_completa || [];
@@ -193,11 +193,11 @@ const tierInfo = computed(() => {
     const key = pilar?.key ?? 'negocios';
     return { tier: 'advanced' as const, label: `${PILAR_EMOJI[key]} ${pilar?.shortLabel ?? ''}`, includesResale: true, includesDiscount: true, isPremium: false, accentColor: pilar?.bgColor ?? 'bg-blue-500', pillBg: `bg-${key === 'negocios' ? 'blue' : key === 'tecnologia' ? 'emerald' : 'orange'}-100`, pillText: `text-${key === 'negocios' ? 'blue' : key === 'tecnologia' ? 'emerald' : 'orange'}-700` };
   }
-  // temas
+  // bloques
   const pilarKey = getPilarForThemeId(id);
   const pilar = pilarKey ? PILARES.find(p => p.key === pilarKey) : null;
   const colorName = pilarKey === 'negocios' ? 'blue' : pilarKey === 'tecnologia' ? 'emerald' : 'orange';
-  return { tier: 'basic' as const, label: `${pilarKey ? PILAR_EMOJI[pilarKey] : '📌'} ${pilar?.shortLabel ?? 'Tema Individual'}`, includesResale: false, includesDiscount: false, isPremium: false, accentColor: `bg-${colorName}-500`, pillBg: `bg-${colorName}-100`, pillText: `text-${colorName}-700` };
+  return { tier: 'basic' as const, label: `${pilarKey ? PILAR_EMOJI[pilarKey] : '📌'} ${pilar?.shortLabel ?? 'Bloque Individual'}`, includesResale: false, includesDiscount: false, isPremium: false, accentColor: `bg-${colorName}-500`, pillBg: `bg-${colorName}-100`, pillText: `text-${colorName}-700` };
 });
 
 const cuposCount = computed(() => category.value?.num_per ?? 23);
@@ -322,6 +322,13 @@ const handleUpsellExplore = () => {
   if (!upsellCategory.value) return;
   router.push({ name: 'courses-description', params: { id: upsellCategory.value.id } });
 };
+
+const contentHeading = computed(() => {
+  const t = tierInfo.value.tier;
+  if (t === 'basic') return 'Contenido del bloque';
+  if (t === 'advanced') return 'Contenido del pilar';
+  return 'Contenido del paquete';
+});
 </script>
 
 <template>
@@ -342,12 +349,12 @@ const handleUpsellExplore = () => {
       <div class="max-w-7xl mx-auto px-4 md:px-8 lg:px-12">
         <!-- Tags del producto -->
         <div class="flex flex-wrap gap-2 mb-4">
-          <!-- Etiqueta Tema Individual para temas basicos -->
+          <!-- Etiqueta Bloque Individual para bloques basicos -->
           <span
             v-if="tierInfo.tier === 'basic'"
             class="inline-flex items-center rounded-full text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-600"
           >
-            📌 Tema Individual
+            📌 Bloque Individual
           </span>
           <span
             class="inline-flex items-center rounded-full text-xs font-semibold px-2.5 py-1"
@@ -421,7 +428,7 @@ const handleUpsellExplore = () => {
           <div v-if="navegacion === Navegacion.Contenido" class="space-y-5">
             <div class="flex items-center gap-3 mb-4">
               <div class="w-1 h-8 rounded-full shrink-0" :class="tierInfo.accentColor" />
-              <h2 class="font-[Poppins] text-xl md:text-2xl font-bold text-[#0d1b2a] tracking-tight">Temario del curso</h2>
+              <h2 class="font-[Poppins] text-xl md:text-2xl font-bold text-[#0d1b2a] tracking-tight">{{ contentHeading }}</h2>
             </div>
 
             <!-- Pilares que incluye -->
@@ -463,7 +470,7 @@ const handleUpsellExplore = () => {
                       </span>
                     </div>
 
-                    <!-- Bloques (temas) -->
+                    <!-- Bloques -->
                     <div class="space-y-2">
                       <div v-for="bloque in group.bloques" :key="bloque.id" class="bg-white rounded-xl border border-slate-100 overflow-hidden transition-colors hover:border-slate-200">
                         <div class="flex items-center justify-between px-4 py-2.5 cursor-pointer transition-colors hover:bg-slate-50/60" @click="toggleFolder(`bloque-${bloque.id}`)">
@@ -581,34 +588,34 @@ const handleUpsellExplore = () => {
               </div>
             </div>
 
-            <!-- Temas -->
+            <!-- Bloques -->
             <div v-if="category?.seccion_temas?.temas?.length" class="bg-white rounded-2xl border border-slate-100/80 shadow-md overflow-hidden transition-shadow hover:shadow-lg">
-              <button class="w-full flex items-center justify-between p-4 lg:px-6 bg-transparent border-none cursor-pointer transition-colors hover:bg-slate-50/60" @click="toggleFolder('section-temas')">
-                <span class="font-[Poppins] text-base font-bold text-[#0d1b2a]">Temas</span>
+              <button class="w-full flex items-center justify-between p-4 lg:px-6 bg-transparent border-none cursor-pointer transition-colors hover:bg-slate-50/60" @click="toggleFolder('section-bloques')">
+                <span class="font-[Poppins] text-base font-bold text-[#0d1b2a]">Bloques</span>
                 <span class="flex items-center gap-3">
                   <span class="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full">
-                    {{ category?.seccion_temas?.cantidad_temas ?? category?.seccion_temas?.temas?.length ?? 0 }} temas
+                    {{ category?.seccion_temas?.cantidad_temas ?? category?.seccion_temas?.temas?.length ?? 0 }} bloques
                   </span>
-                  <svg class="w-5 h-5 text-slate-400 transition-transform duration-300" :class="{ 'rotate-180': isFolderOpen('section-temas') }" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                  <svg class="w-5 h-5 text-slate-400 transition-transform duration-300" :class="{ 'rotate-180': isFolderOpen('section-bloques') }" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                 </span>
               </button>
-              <div v-show="isFolderOpen('section-temas')" class="accordion-body border-t border-slate-100 p-4 lg:px-6 max-h-[600px] overflow-y-auto bg-slate-50/40">
+              <div v-show="isFolderOpen('section-bloques')" class="accordion-body border-t border-slate-100 p-4 lg:px-6 max-h-[600px] overflow-y-auto bg-slate-50/40">
                 <div v-if="!(category?.seccion_temas?.temas?.length)" class="text-sm text-slate-500 py-4 text-center">Sin elementos</div>
-                <div v-for="tema in paginatedTemas" :key="tema.originalIndex" class="mb-2 bg-white rounded-xl border border-slate-100 overflow-hidden transition-colors hover:border-slate-200">
-                  <div class="flex items-center justify-between px-4 py-3 cursor-pointer transition-colors hover:bg-emerald-50/30" @click="toggleFolder(`tema-${tema.originalIndex}`)">
+                <div v-for="bloque in paginatedBloques" :key="bloque.originalIndex" class="mb-2 bg-white rounded-xl border border-slate-100 overflow-hidden transition-colors hover:border-slate-200">
+                  <div class="flex items-center justify-between px-4 py-3 cursor-pointer transition-colors hover:bg-emerald-50/30" @click="toggleFolder(`bloque-${bloque.originalIndex}`)">
                     <div class="flex items-center gap-3">
                       <span class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
                       </span>
-                      <span class="font-semibold text-[#0d1b2a]">{{ tema.titulo_tema || "Tema" }}</span>
+                      <span class="font-semibold text-[#0d1b2a]">{{ bloque.titulo_tema || "Bloque" }}</span>
                     </div>
                     <div class="flex items-center gap-3">
-                      <span class="text-xs text-slate-500">{{ tema.cantidad_cursos_tema ?? tema.cursos?.length ?? 0 }} lecciones</span>
-                      <svg class="w-4 h-4 text-slate-400 transition-transform" :class="{ 'rotate-180': isFolderOpen(`tema-${tema.originalIndex}`) }" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                      <span class="text-xs text-slate-500">{{ bloque.cantidad_cursos_tema ?? bloque.cursos?.length ?? 0 }} lecciones</span>
+                      <svg class="w-4 h-4 text-slate-400 transition-transform" :class="{ 'rotate-180': isFolderOpen(`bloque-${bloque.originalIndex}`) }" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                     </div>
                   </div>
-                  <div v-show="isFolderOpen(`tema-${tema.originalIndex}`)" class="border-t border-slate-50 bg-[#fafbfd] px-4 py-3">
-                    <div v-for="(curso, cIndex) in tema.cursos || []" :key="cIndex" class="ml-3 pl-4 border-l-2 border-emerald-100 py-2.5 flex items-center justify-between group/item hover:border-l-emerald-400 transition-colors">
+                  <div v-show="isFolderOpen(`bloque-${bloque.originalIndex}`)" class="border-t border-slate-50 bg-[#fafbfd] px-4 py-3">
+                    <div v-for="(curso, cIndex) in bloque.cursos || []" :key="cIndex" class="ml-3 pl-4 border-l-2 border-emerald-100 py-2.5 flex items-center justify-between group/item hover:border-l-emerald-400 transition-colors">
                       <div class="flex items-center gap-2.5 min-w-0">
                         <span class="w-5 h-5 rounded-md bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0 text-[0.6rem] font-bold group-hover/item:bg-emerald-100 transition-colors">
                           {{ cIndex + 1 }}
@@ -622,12 +629,12 @@ const handleUpsellExplore = () => {
                   </div>
                 </div>
 
-                <div v-if="totalPagesTemas > 1" class="flex items-center justify-center gap-4 mt-4 pt-3">
-                  <button @click="currentPages.temas--" :disabled="currentPages.temas === 1" class="p-1.5 rounded-full bg-transparent border-none text-slate-500 cursor-pointer transition-all hover:bg-slate-100 hover:text-[#0d1b2a] disabled:opacity-35 disabled:cursor-not-allowed">
+                <div v-if="totalPagesBloques > 1" class="flex items-center justify-center gap-4 mt-4 pt-3">
+                  <button @click="currentPages.bloques--" :disabled="currentPages.bloques === 1" class="p-1.5 rounded-full bg-transparent border-none text-slate-500 cursor-pointer transition-all hover:bg-slate-100 hover:text-[#0d1b2a] disabled:opacity-35 disabled:cursor-not-allowed">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
                   </button>
-                  <span class="text-xs font-semibold text-slate-500">Pagina {{ currentPages.temas }} de {{ totalPagesTemas }}</span>
-                  <button @click="currentPages.temas++" :disabled="currentPages.temas === totalPagesTemas" class="p-1.5 rounded-full bg-transparent border-none text-slate-500 cursor-pointer transition-all hover:bg-slate-100 hover:text-[#0d1b2a] disabled:opacity-35 disabled:cursor-not-allowed">
+                  <span class="text-xs font-semibold text-slate-500">Pagina {{ currentPages.bloques }} de {{ totalPagesBloques }}</span>
+                  <button @click="currentPages.bloques++" :disabled="currentPages.bloques === totalPagesBloques" class="p-1.5 rounded-full bg-transparent border-none text-slate-500 cursor-pointer transition-all hover:bg-slate-100 hover:text-[#0d1b2a] disabled:opacity-35 disabled:cursor-not-allowed">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
                   </button>
                 </div>
@@ -816,7 +823,7 @@ const handleUpsellExplore = () => {
                   </div>
                   <div>
                     <h4 class="font-bold text-[#0d1b2a] text-sm">Contenido de otros pilares</h4>
-                    <p class="text-xs text-slate-500 mt-0.5">Solo incluye este tema, no el pilar completo ni los demas pilares</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Solo incluye este bloque, no el pilar completo ni los demas pilares</p>
                   </div>
                 </div>
 

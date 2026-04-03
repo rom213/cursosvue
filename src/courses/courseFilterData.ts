@@ -1,4 +1,4 @@
-export type FilterType = 'all' | 'temas' | 'pilares' | 'combos' | 'toda-la-tienda'
+export type FilterType = 'all' | 'bloques' | 'pilares' | 'combos' | 'toda-la-tienda'
 
 export type PilarKey = 'negocios' | 'tecnologia' | 'creativa'
 
@@ -120,7 +120,7 @@ export function classifyCategoryId(id: number): FilterType {
   if (id === TODA_LA_TIENDA_ID) return 'toda-la-tienda'
   if ([100200, 100300, 200300].includes(id)) return 'combos'
   if ([100, 200, 300].includes(id)) return 'pilares'
-  if ((id >= 101 && id <= 107) || (id >= 201 && id <= 207) || (id >= 301 && id <= 309)) return 'temas'
+  if ((id >= 101 && id <= 107) || (id >= 201 && id <= 207) || (id >= 301 && id <= 309)) return 'bloques'
   return 'all'
 }
 
@@ -153,11 +153,11 @@ export function getCategoryBorderClass(id: number): string {
 
 /**
  * Devuelve el ID de la categoría upsell sugerida para un producto dado.
- * Tema → su Pilar padre, Pilar/Combo → Toda la Tienda, Toda la Tienda → null.
+ * Bloque → su Pilar padre, Pilar/Combo → Toda la Tienda, Toda la Tienda → null.
  */
 export function getUpsellTargetId(id: number): number | null {
   const type = classifyCategoryId(id)
-  if (type === 'temas') {
+  if (type === 'bloques') {
     const pilar = getPilarForThemeId(id)
     if (pilar) {
       const def = PILARES.find((p) => p.key === pilar)

@@ -27,20 +27,20 @@ const levels: PricingLevel[] = [
   {
     id: 1,
     tier: 'basic',
-    name: 'Tema Individual',
+    name: 'Bloque Individual',
     price: '$19.600',
     priceNote: 'COP · Pago unico',
-    themes: '1 Tema',
+    themes: '1 Bloque',
     courses: '+20 cursos',
     description: 'Perfecto para explorar un area especifica y empezar a aprender hoy.',
     tags: [],
     features: [
-      'Acceso vitalicio al tema',
+      'Acceso vitalicio al bloque',
       '100% descargable y offline',
       'Certificacion incluida',
     ],
-    ctaLabel: 'Explorar temas',
-    filterQuery: 'temas',
+    ctaLabel: 'Explorar bloques',
+    filterQuery: 'bloques',
   },
   {
     id: 2,
@@ -48,7 +48,7 @@ const levels: PricingLevel[] = [
     name: 'Pilar Principal',
     price: '$48.500',
     priceNote: 'COP · Pago unico',
-    themes: '7 a 9 Temas',
+    themes: '7 a 9 Bloques',
     courses: '+150 cursos',
     description: 'Domina un area completa. Ideal para especializarte y monetizar tu conocimiento.',
     tags: [
@@ -71,7 +71,7 @@ const levels: PricingLevel[] = [
     name: 'Combinacion de Gigantes',
     price: '$75.700',
     priceNote: 'COP · Pago unico',
-    themes: '14 a 16 Temas',
+    themes: '14 a 16 Bloques',
     courses: '+300 cursos',
     description: 'Une dos pilares y multiplica tu perfil profesional. Maximo valor por tu inversion.',
     tags: [
@@ -94,7 +94,7 @@ const levels: PricingLevel[] = [
     name: 'Toda la Tienda 2026',
     price: '$80.000',
     priceNote: 'COP · Pago unico',
-    themes: '23 Temas',
+    themes: '23 Bloques',
     courses: 'Acceso Total',
     description: 'El pack definitivo. Todo el conocimiento, una sola compra. Acceso vitalicio a los 3 pilares.',
     tags: [
@@ -134,7 +134,7 @@ const levels: PricingLevel[] = [
           <em class="pricing-title-em">perfecto para ti</em>
         </h2>
         <p class="pricing-sub">
-          A mayor nivel, mas temas, mas cursos y mayores beneficios.
+          A mayor nivel, mas bloques, mas cursos y mayores beneficios.
           Todos incluyen acceso vitalicio y descarga offline.
         </p>
       </div>

@@ -19,7 +19,7 @@ const openDropdown = ref<string | null>(null)
 const activeFilter = ref<FilterType>('all')
 const filterBarRef = ref<HTMLElement | null>(null)
 
-const temasBtnRef = ref<HTMLElement | null>(null)
+const bloquesBtnRef = ref<HTMLElement | null>(null)
 const pilaresBtnRef = ref<HTMLElement | null>(null)
 const combosBtnRef = ref<HTMLElement | null>(null)
 
@@ -40,7 +40,7 @@ const toggleDropdown = (key: string) => {
     return
   }
   const refMap: Record<string, HTMLElement | null> = {
-    temas: temasBtnRef.value,
+    bloques: bloquesBtnRef.value,
     pilares: pilaresBtnRef.value,
     combos: combosBtnRef.value,
   }
@@ -96,26 +96,26 @@ const allThemesTotal = computed(() =>
     <div class="filter-scroll overflow-x-auto">
       <div class="flex items-center gap-2 justify-center whitespace-nowrap py-2.5 px-4 min-w-max mx-auto">
 
-        <!-- TEMAS INDIVIDUALES (Split Button) -->
-        <div ref="temasBtnRef" class="relative">
+        <!-- BLOQUES INDIVIDUALES (Split Button) -->
+        <div ref="bloquesBtnRef" class="relative">
           <div class="flex items-center rounded-xl border overflow-hidden transition-all"
-               :class="activeFilter === 'temas'
+               :class="activeFilter === 'bloques'
                  ? 'ring-2 ring-gray-300 border-gray-400 bg-gray-50'
                  : 'border-gray-200 hover:border-gray-300'">
             <button
               type="button"
               class="px-3.5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
-              @click="handleTextClick('temas')"
+              @click="handleTextClick('bloques')"
             >
-              Temas Individuales
+              Bloques Individuales
             </button>
             <div class="w-px h-6 bg-gray-200" />
             <button
               type="button"
               class="px-2.5 py-2 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors"
-              @click="toggleDropdown('temas')"
+              @click="toggleDropdown('bloques')"
             >
-              <svg class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-180': openDropdown === 'temas' }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-180': openDropdown === 'bloques' }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
@@ -194,7 +194,7 @@ const allThemesTotal = computed(() =>
 
     <!-- ═══ DROPDOWNS (fixed, fuera del overflow) ═══ -->
 
-    <!-- Dropdown: 23 temas agrupados por pilar -->
+    <!-- Dropdown: 23 bloques agrupados por pilar -->
     <Teleport to="body">
       <Transition
         enter-active-class="transition duration-200 ease-out"
@@ -205,12 +205,12 @@ const allThemesTotal = computed(() =>
         leave-to-class="opacity-0 translate-y-1 scale-95"
       >
         <div
-          v-if="openDropdown === 'temas'"
+          v-if="openDropdown === 'bloques'"
           class="fixed w-80 bg-white rounded-xl shadow-2xl border border-gray-100 max-h-[24rem] overflow-y-auto z-[9999] dropdown-scroll"
           :style="{ top: dropdownPos.top, left: dropdownPos.left }"
         >
           <div class="px-3.5 py-2 border-b border-gray-100 bg-gray-50/80 rounded-t-xl">
-            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">23 Temas</span>
+            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">23 Bloques</span>
             <span class="text-[10px] text-gray-400 ml-2">{{ allThemesTotal.toLocaleString() }} cursos en total</span>
           </div>
 
@@ -280,7 +280,7 @@ const allThemesTotal = computed(() =>
                   {{ pilar.label }}
                 </span>
                 <span class="text-xs text-gray-400">
-                  {{ pilar.themes.length }} temas &middot; {{ getPilarTotalCourses(pilar).toLocaleString() }} cursos
+                  {{ pilar.themes.length }} bloques &middot; {{ getPilarTotalCourses(pilar).toLocaleString() }} cursos
                 </span>
               </div>
               <span class="text-xs font-bold text-gray-500">$50k</span>

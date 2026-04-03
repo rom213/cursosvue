@@ -89,31 +89,31 @@ interface CatalogSection {
 }
 
 const SECTION_ORDER = [
-  'temas-negocios',
-  'temas-tecnologia',
-  'temas-creativa',
+  'bloques-negocios',
+  'bloques-tecnologia',
+  'bloques-creativa',
   'pilares',
   'combos',
   'toda-la-tienda',
 ] as const;
 
 const SECTION_META: Record<string, { title: string; description: string; filterType: FilterType; accentColor: string; label?: string }> = {
-  'temas-negocios': {
+  'bloques-negocios': {
     title: 'Negocios Digitales y Exito Profesional',
     description: 'Domina las finanzas, marketing digital, ventas y gestion empresarial. Ideal para emprendedores y profesionales.',
-    filterType: 'temas',
+    filterType: 'bloques',
     accentColor: 'bg-blue-500',
   },
-  'temas-tecnologia': {
+  'bloques-tecnologia': {
     title: 'Tecnologia, Codigo e Ingenieria',
     description: 'Programacion, inteligencia artificial, ciberseguridad y desarrollo web. El futuro es tech.',
-    filterType: 'temas',
+    filterType: 'bloques',
     accentColor: 'bg-emerald-500',
   },
-  'temas-creativa': {
+  'bloques-creativa': {
     title: 'Academia Creativa y Bienestar Integral',
     description: 'Diseno grafico, fotografia, musica, gastronomia y desarrollo personal. Explora tu lado creativo.',
-    filterType: 'temas',
+    filterType: 'bloques',
     accentColor: 'bg-orange-500',
   },
   'pilares': {
@@ -145,9 +145,9 @@ const buildSections = (cats: ICategory[]): CatalogSection[] => {
   for (const cat of cats) {
     const type = classifyCategoryId(cat.id);
 
-    if (type === 'temas') {
+    if (type === 'bloques') {
       const pilar = getPilarForThemeId(cat.id);
-      if (pilar) buckets[`temas-${pilar}`].push(cat);
+      if (pilar) buckets[`bloques-${pilar}`].push(cat);
     } else if (type === 'pilares') {
       buckets['pilares'].push(cat);
     } else if (type === 'combos') {
@@ -182,15 +182,15 @@ function getCardProps(category: ICategory) {
   let includesDiscount = false;
   let isPremium = false;
 
-  if (filterType === 'temas') {
-    // Temas individuales: tarjeta limpia, sin beneficios extra
+  if (filterType === 'bloques') {
+    // Bloques individuales: tarjeta limpia, sin beneficios extra
     const pilarKey = getPilarForThemeId(category.id);
     if (pilarKey) {
       const pilar = PILARES.find((p) => p.key === pilarKey);
       pillarColor = PILAR_TO_COLOR[pilarKey];
       pillarLabel = `${PILAR_EMOJI[pilarKey]} ${pilar?.shortLabel ?? ''}`;
     }
-    typeLabel = '📌 Tema Individual';
+    typeLabel = '📌 Bloque Individual';
   } else if (filterType === 'pilares') {
     // Pilares: reventa + 70% dto.
     const pilar = PILARES.find((p) => p.pilarId === category.id);

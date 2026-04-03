@@ -33,4 +33,5 @@ export interface IPaymentResponsePayu {
   export enum OptionBuyPay {
     Paypal = 'paypal',
     PayU = 'payu',
+    Wompi = 'wompi'
   }

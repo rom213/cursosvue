@@ -66,6 +66,7 @@ export interface ICourse {
     pack_nombre?: string;
     cantidad_cursos?: number;
     num_per?: number;
+    cupos_google:number;
     descuento?: number;
     precio?: number;
     precio_desc: number;
@@ -73,7 +74,7 @@ export interface ICourse {
     signature: string;
     user_bought: boolean;
     user_comment:boolean;
-    cat_rel?: Array<number | string>;
+    cat_rel?: Array<number | string>; 
     cat_rel_info?: Array<{ id: number; titulo: string }>;
     pregunta_respuesta?: IQuestionAnswer[];
     seccion_plataformas?: ICategorySeccionPlataformas;

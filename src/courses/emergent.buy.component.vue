@@ -337,7 +337,7 @@ watch(()=>storeemergentBuy.emergentBuy.emergent, ()=>{
                 </div>
                 <div class="flex gap-3">
                     <!-- PayU Option -->
-                    <div 
+                    <!-- <div 
                         v-if="!isOnlyPaypal"
                         @click="storeemergentBuy.emergentBuy.optionBuyPay = OptionBuyPay.PayU"
                         class="cursor-pointer w-full border-2 rounded-lg p-3 flex flex-col items-center justify-center gap-2 transition-all duration-200 relative"
@@ -352,14 +352,37 @@ watch(()=>storeemergentBuy.emergentBuy.emergent, ()=>{
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                             </svg>
                         </div>
-                         <!-- Credit Card Icon -->
                         <div class="h-8 w-8 text-gray-700">
                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                             </svg>
                         </div>
                         <span class="text-sm font-bold text-gray-700">Tarjeta / PSE</span>
-                    </div>
+                    </div> -->
+
+                    <div 
+                        v-if="!isOnlyPaypal"
+                        @click="storeemergentBuy.emergentBuy.optionBuyPay = OptionBuyPay.Wompi"
+                        class="cursor-pointer w-full border-2 rounded-lg p-3 flex flex-col items-center justify-center gap-2 transition-all duration-200 relative"
+                        :class="[
+                            storeemergentBuy.emergentBuy.optionBuyPay === OptionBuyPay.Wompi 
+                            ? 'border-emerald-600 bg-emerald-50/30' 
+                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                        ]"
+                    >
+                        <div v-if="storeemergentBuy.emergentBuy.optionBuyPay === OptionBuyPay.Wompi" class="absolute top-2 right-2 text-emerald-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                         <!-- Credit Card Icon -->
+                        <div class="h-8 w-8 text-gray-700">
+                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                            </svg>  
+                        </div>      
+                        <span class="text-sm font-bold text-gray-700">Wompy</span>
+                    </div>                  
 
                     <!-- PayPal Option -->
                     <div 

@@ -71,23 +71,34 @@ watch(
 
 
 
-const buyCategoryPayu = async () => {
+// const buyCategoryPayu = async () => {
+//   if (isProcessingPayment.value) return;
+//   isProcessingPayment.value = true;
+//   let data = storeCart.getCart().map(item => ({ id_category: item.id }));
+
+//   await PaymentService.generate_signature_reference_code({ categories: data }).then((res) => {
+//     if (res?.signature) {
+//       let extra_info: string = ''
+//       const user_id = userAuth.getProfile()?.user?.google_id
+//       data.map((item) => {
+//         extra_info = extra_info + '|' + `${item.id_category},` + `${user_id}`
+//       })
+//       generatePayUForm(res?.price, " carrito de compras", userAuth.getProfile()?.user?.email, res?.signature, res?.reference_code, extra_info)
+//     }
+//   });
+//   isProcessingPayment.value = false;
+// };
+
+const buyCategoriesWompi = async () => {
   if (isProcessingPayment.value) return;
   isProcessingPayment.value = true;
   let data = storeCart.getCart().map(item => ({ id_category: item.id }));
-
-  await PaymentService.generate_signature_reference_code({ categories: data }).then((res) => {
-    if (res?.signature) {
-      let extra_info: string = ''
-      const user_id = userAuth.getProfile()?.user?.google_id
-      data.map((item) => {
-        extra_info = extra_info + '|' + `${item.id_category},` + `${user_id}`
-      })
-      generatePayUForm(res?.price, " carrito de compras", userAuth.getProfile()?.user?.email, res?.signature, res?.reference_code, extra_info)
-    }
-  });
-  isProcessingPayment.value = false;
-};
+  await PaymentService.generate_link_pay_wompy({ categories: data }).then((res) => {
+    if (res?.approval_url) window.location.href = res.approval_url
+  }).finally(() => {
+    isProcessingPayment.value = false;
+  })
+}
 
 const buyCategoriesPayPal = async () => {
   if (isProcessingPayment.value) return;
@@ -207,11 +218,11 @@ const handleBuyClick = async () => {
           </div>
           <div class="space-y-3">
             <button
-              @click="buyCategoryPayu(); showPaymentModal = false"
+              @click="buyCategoriesWompi(); showPaymentModal = false"
               class="w-full rounded-xl border border-sky-200 bg-sky-50 py-3 text-sm font-bold text-sky-800 transition hover:bg-sky-100 disabled:cursor-not-allowed disabled:opacity-70"
               :disabled="isProcessingPayment"
             >
-              Pagar con PayU
+              Pagar con Wompi
             </button>
             <button
               @click="buyCategoriesPayPal(); showPaymentModal = false"

@@ -169,6 +169,36 @@ export function getUpsellTargetId(id: number): number | null {
   return null // toda-la-tienda no tiene upsell
 }
 
+/**
+ * Cantidad de bloques (temas) para una categoría.
+ * Retorna null para bloques individuales (no mostrar "Bloques").
+ */
+export function getBloquesCountForCategory(id: number): number | null {
+  const type = classifyCategoryId(id)
+
+  if (type === 'bloques') return null
+
+  if (type === 'pilares') {
+    const pilar = PILARES.find(p => p.pilarId === id)
+    return pilar?.themes.length ?? null
+  }
+
+  if (type === 'combos') {
+    const combo = COMBOS.find(c => c.id === id)
+    if (!combo) return null
+    return combo.pilarKeys.reduce((sum, key) => {
+      const pilar = PILARES.find(p => p.key === key)
+      return sum + (pilar?.themes.length ?? 0)
+    }, 0)
+  }
+
+  if (type === 'toda-la-tienda') {
+    return PILARES.reduce((sum, p) => sum + p.themes.length, 0)
+  }
+
+  return null
+}
+
 export function getCategoryGlowClass(id: number): string {
   if (id === TODA_LA_TIENDA_ID) return 'ring-2 ring-amber-300 shadow-lg shadow-amber-200/50'
   if ([100200, 100300, 200300].includes(id)) return 'ring-2 ring-purple-300 shadow-lg shadow-purple-200/50'

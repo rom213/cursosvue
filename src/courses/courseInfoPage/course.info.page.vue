@@ -13,11 +13,13 @@ import EmergentBuyComponent from "../emergent.buy.component.vue";
 import AuthService from "../../services/AuthServices";
 import CategoryService from "../../services/CategorieService";
 import CourseFaqSection from "./CourseFaqSection.vue";
+import CommentsBodyComponent from "./componentCourseInfo/comments.body.component.vue";
 import FooterComponent from "../../components/footer/footer.component.vue";
 import {
   classifyCategoryId,
   getPilarForThemeId,
   getUpsellTargetId,
+  getBloquesCountForCategory,
   PILARES,
   COMBOS,
   TODA_LA_TIENDA_ID,
@@ -146,7 +148,7 @@ onMounted(() => {
 });
 
 watch(
-  [() => route.params.id, () => storeCategory.categories.length],
+  [() => route.params.id, () => storeCategory.categories.length, () => route.query._t],
   async () => {
     openedFolders.value['section-lista-completa'] = true;
     if (route.query.q_course) {
@@ -272,6 +274,12 @@ const upsellBreakdown = computed(() => {
   const total = upsellCategory.value?.precio ?? 0;
   const pricePerBlock = blocks.length > 0 ? Math.round(total / blocks.length) : 0;
   return { blocks, pricePerBlock };
+});
+
+const computedBloquesCount = computed(() => {
+  const id = category.value?.id;
+  if (!id) return null;
+  return getBloquesCountForCategory(id);
 });
 
 const bloquesData = ref<{ pilar: { id: number; titulo: string }; bloques: ICategory[] }[]>([]);
@@ -594,7 +602,7 @@ const contentHeading = computed(() => {
                 <span class="font-[Poppins] text-base font-bold text-[#0d1b2a]">Bloques</span>
                 <span class="flex items-center gap-3">
                   <span class="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full">
-                    {{ category?.seccion_temas?.cantidad_temas ?? category?.seccion_temas?.temas?.length ?? 0 }} bloques
+                    {{ computedBloquesCount ?? category?.seccion_temas?.temas?.length ?? 0 }} bloques
                   </span>
                   <svg class="w-5 h-5 text-slate-400 transition-transform duration-300" :class="{ 'rotate-180': isFolderOpen('section-bloques') }" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                 </span>
@@ -647,7 +655,7 @@ const contentHeading = computed(() => {
                 <span class="font-[Poppins] text-base font-bold text-[#0d1b2a]">Lista Completa</span>
                 <span class="flex items-center gap-3">
                   <span class="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full">
-                    {{ category?.seccion_lista_completa?.cantidad_cursos ?? category?.seccion_lista_completa?.lista_completa?.length ?? 0 }} cursos
+                    <template v-if="computedBloquesCount !== null">{{ computedBloquesCount }} bloques &middot; </template>{{ category?.seccion_lista_completa?.cantidad_cursos ?? category?.seccion_lista_completa?.lista_completa?.length ?? 0 }} cursos
                   </span>
                   <svg class="w-5 h-5 text-slate-400 transition-transform duration-300" :class="{ 'rotate-180': isFolderOpen('section-lista-completa') }" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                 </span>
@@ -656,7 +664,7 @@ const contentHeading = computed(() => {
                 <!-- Buscador -->
                 <div class="mb-5 relative w-full lg:w-2/3 mx-auto">
                   <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    <svg class="h-5 w-5 text-slate-400" fi  ll="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                   </div>
                   <input
                     v-model="searchTermLista"
@@ -710,10 +718,8 @@ const contentHeading = computed(() => {
               <div class="w-1 h-8 rounded-full shrink-0" :class="tierInfo.accentColor" />
               <h2 class="font-[Poppins] text-xl md:text-2xl font-bold text-[#0d1b2a] tracking-tight">Lo que dicen nuestros estudiantes</h2>
             </div>
-            <div class="bg-white rounded-2xl p-12 text-center border border-slate-100/80 shadow-md">
-              <svg class="w-16 h-16 text-slate-300 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
-              <h3 class="text-lg font-bold text-[#0d1b2a]">Comentarios proximamente</h3>
-              <p class="text-slate-500 mt-2 text-sm">Se uno de los primeros en dejar tu opinion al terminar el curso.</p>
+            <div class="bg-white rounded-2xl p-6 border border-slate-100/80 shadow-md">
+              <CommentsBodyComponent />
             </div>
           </div>
 

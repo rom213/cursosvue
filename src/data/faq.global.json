@@ -13,8 +13,18 @@
                     ]
                 },
                 {
+                    "categoria": "COMO FUNCIONA LA PLATAFORMA/ MODELO DE NEGOCIO",
+                    "palabras_clave": ["Plataforma", "modelo", "paquetes", "cursos", "transparencia", "comprar"],
+                    "preguntas_frecuentes": [
+                        {
+                            "pregunta": "¿Cómo funciona nuestro modelo de negocio?",
+                            "respuesta": "En Cursos Estudia y Trabaja hemos diseñado un sistema enfocado en el valor real: no vendemos cursos individuales, sino paquetes completos de formación para maximizar tu aprendizaje.\n\nNuestra tienda está dividida en cuatro categorías para que elijas la que mejor se adapte a tus metas:\n✅ 1. Bloques Específicos: Paquetes pequeños enfocados en dominar un tema en particular.\n✅ 2. Pilares: Un nivel mucho más robusto. Cada 'Pilar' está conformado por la unión de 6 o 7 bloques temáticos.\n✅ 3. Combinación de Pilares: Ideal para quienes buscan un perfil multidisciplinario, combinando habilidades de diferentes áreas.\n✅ 4. La Tienda Completa: ¡Nuestra mejor opción! Te llevas absolutamente todos los cursos y pilares disponibles en nuestra web.\n\n💎 Beneficios de Socio (Al adquirir un Pilar por $48.500 COP):\nAl realizar esta inversión, no solo adquieres conocimiento, sino que activas ventajas exclusivas:\n- Oportunidad de Negocio: Posibilidad de revender los paquetes llevándote un 60% de ganancia directa (o accediendo a la modalidad de adquirir paquetes pagando solo el 40% de su valor).\n- Descuento Vitalicio: Obtienes un 70% de descuento automático para cualquier futura compra en toda la tienda.\n- Bono Exclusivo: Acceso total a una biblioteca digital premium con más de 10.000 libros.\n\n🔒 Transparencia, Acceso y Actualizaciones:\nNos gusta trabajar con total claridad. Al realizar tu pago único, recibes el acceso a todo tu material directamente a través de Google Drive. Esto te da la libertad de estudiar online o descargar los archivos a tus dispositivos. Además, gozas de actualizaciones futuras gratuitas; notarás que nuestro catálogo se mantiene siempre al día.\n\n⚙️ ¿Hacia dónde va tu inversión?\nEl dinero recaudado se destina principalmente al mantenimiento tecnológico de la plataforma (el almacenamiento seguro en la nube tiene costos significativos) y a la inversión constante de tiempo y recursos para seguir adquiriendo y actualizando los mejores cursos para la comunidad.\n\n🚀 Nuestra Promesa:\nEsta es una excelente inversión para mejorar tu perfil profesional, desarrollar nuevos hobbies y, como nuestro propio nombre lo indica, Cursos Estudia y Trabaja te brinda las herramientas exactas para que te capacites mientras generas ingresos con nosotros."
+                        }
+                    ]
+                },
+                {
                     "categoria": "TUTORIALES PARA VER CURSOS EN OTRAS APPS (PC, ANDROID, iOS)",
-                    "palabras_clave": ["vlc", "android", "ios", "mac", "windows", "file manager", "streaming", "acceso directo"],
+                    "palabras_clave": ["vlc", "android", "ios", "mac", "windows", "file manager", "FileBrowserGO", "streaming", "acceso directo"],
                     "preguntas_frecuentes": [
                         {
                             "pregunta": "¿Cómo puedo ver los cursos usando aplicaciones externas o reproductores como VLC?",
@@ -23,7 +33,22 @@
                     ]
                 },
                 {
+                    "categoria": "NIVELES DE CURSOS Y PRECIOS",
+                    "palabras_clave": ["70% descuento", "descuento", "paquete"],
+                    "preguntas_frecuentes": [
+                        {
+                            "pregunta": "¿Cómo están organizados los cursos y qué bloque o pilar me conviene más?",
+                            "respuesta": "Nuestra academia está dividida en 3 grandes Pilares: Negocios Digitales, Tecnología y Academia Creativa. Puedes elegir la opción que mejor se adapte a tu presupuesto y metas:\n\n🥉 Tema Individual ($19.600): Llevas un (1) solo tema específico de cualquier pilar. Ideal si buscas algo muy puntual. (Nota: No incluye licencia de reventa ni descuentos adicionales).\n\n🥈 Pilar Completo ($48.500): ¡Nuestra opción más popular! Te llevas todos los temas de un pilar entero (Negocios, Tecnología o Creatividad). Beneficio VIP: ¡Incluye licencia de reventa y un 70% de descuento en el resto de la tienda!\n\n🥇 Combinación de Gigantes ($75.700): Fusiona dos pilares completos (entre 14 y 16 temas). También incluye licencia de reventa y 70% de descuento.\n\n💎 Toda la Tienda 202 ($80.000): El paquete definitivo. Te llevas los 23 temas completos (¡más de 9.400 cursos!). Incluye licencia de reventa y acceso total."
+                        },
+                        {
+                            "pregunta": "¿Qué es el beneficio del '70% de descuento en toda la tienda'?",
+                            "respuesta": "¡Es un premio a tu inversión! Si adquieres cualquier paquete desde $48.500 en adelante (Pilar, Combinación o Toda la Tienda), tu cuenta quedará configurada automáticamente como usuario VIP. Esto significa que cualquier otro curso o paquete que quieras comprar en el futuro te saldrá con un 70% de descuento automático."
+                        }
+                    ]
+                },
+                {
                     "categoria": "PROBLEMAS DE ACCESO Y ENTREGA",
+                    "palabras_clave": ["cursos", "no me llego"],
                     "preguntas_frecuentes": [
                         {
                             "pregunta": "¿Pagué pero no me ha llegado nada? / ¿Dónde están mis cursos?",
@@ -32,18 +57,50 @@
                     ]
                 },
                 {
+                    "categoria": "CONTACTO Y REDES SOCIALES",
+                    "palabras_clave": ["Redes sociales", "Facebook", "Tiktok", "Instagram", "WhatsApp", "Correo"],
+                    "preguntas_frecuentes": [
+                        {
+                            "pregunta": "¿Cuáles son sus redes sociales? / ¿Tienen algún número de WhatsApp o correo de contacto?",
+                            "respuesta": "¡Nos encanta estar en contacto con nuestra comunidad! Puedes seguirnos en todas nuestras redes sociales oficiales (Facebook, Instagram, Tiktok, LinkedIn y YouTube) para enterarte de novedades, tips y nuevos lanzamientos. También contamos con atención directa por WhatsApp y correo electrónico (Gmail). Todos los enlaces directos a nuestras redes y canales de soporte los encuentras en la parte inferior (hasta abajo) de nuestra página web. ¡Te esperamos por allá!"
+                        }
+                    ]
+                },
+                {
                     "categoria": "MEDIOS DE PAGOS, SEGURIDAD, GARANTIAS",
-                    "palabras_clave": ["pago", "payu", "paypal", "pse", "nequi", "tarjeta", "efecty", "seguridad", "garantía", "reembolso"],
+                    "palabras_clave": ["pago", "Wompi", "paypal", "pse", "nequi", "tarjeta", "efecty", "seguridad", "garantía", "reembolso"],
                     "preguntas_frecuentes": [
                         {
                             "pregunta": "¿Qué garantías tengo al comprar?",
                             "respuesta": "✅ Garantía de satisfacción: 7 días para pedir devolución si no es lo que esperabas.\n✅ Seguridad: Pasarelas de pago certificadas (PayU y PayPal) y sitio con cifrado HTTPS.\n✅ Calidad: Archivos libres de virus y soporte vía WhatsApp.\n✅ Transparencia: Puedes ver una vista previa antes de comprar",
-                            "palabras_clave": ["garantías", "devolución", "payu", "paypal", "https", "virus", "vista previa"]
+                            "palabras_clave": ["garantías", "devolución", "Wompi", "paypal", "https", "virus", "vista previa"]
                         },
                         {
                             "pregunta": "¿Cómo puedo pagar - metodos de pago?",
-                            "respuesta": "Tu inversión está 100% protegida. Te ofrecemos múltiples opciones para que elijas la más cómoda para ti:\n\n📱 Billeteras Digitales y Pagos Móviles: Nequi, DaviPlata, Google Pay y códigos QR (Bre-B).\n\n💳 Tarjetas de Crédito y Débito: Visa, Mastercard, American Express, Diners Club y Codensa.\n\n🏦 Transferencias Bancarias: Pagos rápidos y seguros a través de PSE o directamente desde tu banco.\n\n💵 Efectivo en Oficinas de Pago: Acércate a puntos físicos como Efecty, PagaTodo, La Perla, Su Red, Gana, y muchos más a nivel nacional.\n\nTu seguridad es primero: Procesamos tu pago con encriptación bancaria y protección antifraude, asegurando que tus datos financieros nunca sean revelados.",
-                            "palabras_clave": ["nequi", "pse", "visa", "mastercard", "efecty", "billetera", "transferencia", "efectivo"]
+                            "respuesta": "Tu inversión está 100% protegida. Te ofrecemos múltiples opciones para que elijas la más cómoda para ti:\n\n📱 Billeteras Digitales y Pagos Móviles: Nequi, DaviPlata y códigos QR (Bre-B).\n\n💳 Tarjetas de Crédito y Débito: Visa, Mastercard, American Express, Diners Club y Codensa.\n\n🏦 Transferencias Bancarias: Pagos rápidos y seguros a través de PSE o directamente desde tu banco.\n\n💵 Efectivo en Oficinas de Pago: Acércate a puntos físiccos como corresponsales Bancolombia a nivel nacional.\n\nTu seguridad es primero: Procesamos tu pago con encriptación bancaria y protección antifraude, asegurando que tus datos financieros nunca sean revelados atraves de la pasarela de pagos Wompi en Colombia y Paypal a nivel internacional.",
+                            "palabras_clave": ["nequi", "pse", "visa", "mastercard", "Corresposales Bancolobia", "billetera", "transferencia", "efectivo"]
+                        }
+                    ]
+                },
+                                {
+                    "categoria": "SISTEMA DE REVENTA Y AFILIADOS",
+                    "palabras_clave": ["moetizar", "reventa", "cupones", "comisiones", "transparencia", "afiliado"],
+                    "preguntas_frecuentes": [
+                        {
+                            "pregunta": "¿Cómo funciona el beneficio de Reventa y los cupones de descuento?",
+                            "respuesta": "Al comprar cualquier paquete de $48.500 en adelante, te conviertes en socio. Tu mejor gancho de ventas es que te daremos enlaces de afiliado y cupones personalizados. Cuando recomiendes nuestra tienda, tu cliente recibirá un 10% de descuento sobre el precio oficial al usar tu cupón. ¡Y lo mejor es que este descuento aplica para TODOS nuestros paquetes, desde los temas individuales hasta la tienda completa! Es un ganar-ganar: ellos ahorran dinero y tú aseguras tu comisión."
+                        },
+                        {
+                            "pregunta": "Las cuentas claras: ¿Cómo calculamos tu ganancia del 60%?",
+                            "respuesta": "Para ser 100% transparentes contigo, tu comisión se calcula sobre el dinero real que ingresa al sistema cuando el cliente compra en nuestra web. Es muy sencillo:\n\n1. Al precio original del paquete, le restamos el 10% de descuento que tú le regalaste a tu cliente con tu cupón.\n2. De ese nuevo total, se descuenta la pequeña tarifa que cobra Wompi por procesar el pago seguro.\n3. ¡Del valor neto que queda, tú te llevas el 60% directo a tu bolsillo! Nosotros nos encargamos del soporte y la plataforma; tú solo de vender y ganar."
+                        },
+                        {
+                            "pregunta": "¿Quieres poner tus propios precios? Usa la 'Venta a Terceros' (Ideal para WhatsApp)",
+                            "respuesta": "Si prefieres gestionar tus propios clientes y cerrar ventas directamente (por ejemplo, conversando por WhatsApp) cobrando el precio final que tú decidas, ¡esta opción es para ti! El proceso es muy simple:\n\n1. Tú le cobras a tu cliente el valor que establezcas por el paquete que eligió (desde un tema individual hasta la tienda completa).\n2. Entras a nuestra plataforma y compras ese mismo paquete, pagando únicamente tu tarifa especial de revendedor.\n3. Le entregas el enlace de acceso de Google Drive directamente a tu cliente.\n\n¡Todo el dinero extra o excedente que le cobraste a tu cliente es 100% ganancia libre para ti! Tú controlas tu propio margen de rentabilidad."
+                        },
+                        {
+                            "pregunta": "¿Por qué no soy afiliado si ya le compré el paquete a un conocido?",
+                            "respuesta": "Al comprar a través de un tercero, el sistema te registra como el cliente final de esa persona, protegiendo así las ventas y comisiones de nuestra red de afiliados. ¡Pero dar el salto a revendedor es muy fácil! Para activar tu panel de negocio, generar tus propios links y unirte como socio oficial de Cursos Estudia y Trabaja, necesitas hacer una compra directa en nuestra página de un paquete de $48.500 COP o superior. Esto activará tu rol de franquicia y te dará acceso inmediato a herramientas premium y a un increíble 70% de descuento especial."
                         }
                     ]
                 },
@@ -62,6 +119,7 @@
                 },
                 {
                     "categoria": "CERTIFICADOS Y LOGÍSTICA",
+                    "palabras_clave": ["certificado"],
                     "preguntas_frecuentes": [
                         {
                             "pregunta": "Ya terminé de estudiar, ¿cómo pido mi certificado?",
@@ -75,6 +133,7 @@
                 },
                 {
                     "categoria": "GARANTÍAS Y REEMBOLSOS",
+                    "palabras_clave": ["garantias", "reembolso"],
                     "preguntas_frecuentes": [
                         {
                             "pregunta": "Quiero pedir un reembolso / El curso no era lo que esperaba",

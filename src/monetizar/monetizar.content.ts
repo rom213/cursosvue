@@ -270,14 +270,28 @@ export const faqCategories: FaqCategory[] = [
         question:
           "¿Cómo puedo ganar dinero con ustedes? / ¿Cómo funciona lo de revender?",
         paragraphs: [
-          "¡Es la mejor decisión que puedes tomar! Nuestro programa te permite revender nuestros paquetes y llevarte el 60% del valor del curso directo a tu bolsillo por cada venta. Nosotros nos encargamos de entregar el acceso al cliente y dar soporte; tú solo recomiendas y ganas.",
+          "¡Es la mejor decisión que puedes tomar! Nuestro programa te permite revender nuestros paquetes y llevarte el 60% del valor del curso directo a tu bolsillo por cada venta. Nosotros nos encargamos de entregar el acceso al cliente y dar soporte; tú solo recomiendas y ganas, si quieres vender al precio que quieras utiliza el modelo de venta a terceros.",
+        ],
+      },
+      {
+        question:
+          "¿Cómo funciona el beneficio de Reventa y los cupones de descuento?",
+        paragraphs: [
+          "Al comprar cualquier paquete de $48.500 en adelante, te conviertes en socio. Tu mejor gancho de ventas es que te daremos enlaces de afiliado y cupones personalizados. Cuando recomiendes nuestra tienda, tu cliente recibirá un 10% de descuento sobre el precio oficial al usar tu cupón. ¡Y lo mejor es que este descuento aplica para TODOS nuestros paquetes, desde los temas individuales hasta la tienda completa! Es un ganar-ganar: ellos ahorran dinero y tú aseguras tu comisión.",
         ],
       },
       {
         question:
           "¿Cualquier curso me sirve para ser afiliado? / Si compro un curso barato, ¿puedo monetizar? / ¿Tengo que pagar algo extra?",
         paragraphs: [
-          "El programa de revendedores no tiene ningún costo de mensualidad, pero tiene un único requisito estricto de entrada: para que el sistema te habilite el panel de afiliado y te deje monetizar, debes adquirir un Pack Principal de nuestras categorías con un valor mínimo de $48.500 COP. (Las compras de cursos individuales o mini packs de $19.600 COP NO activan el derecho de reventa). Una vez adquieres tu Pack Principal, quedas habilitado de por vida para ganar el 60% de comision por cada reventa. consulta la calculadora para darte una idea.",
+          "El programa de revendedores no tiene ningún costo de mensualidad, pero tiene un único requisito estricto de entrada: para que el sistema te habilite el panel de afiliado y te deje monetizar, debes adquirir un Pack Principal de nuestras categorías con un valor mínimo de $48.500 COP. (Las compras de cursos individuales o mini packs de $19.600 COP NO activan el derecho de reventa). Una vez adquieres tu Pack Principal, quedas habilitado de por vida para ganar el 60% o mas si usas la venta a tercceros.",
+        ],
+      },
+      {
+        question:
+          "¿Qué es el beneficio del '70% de descuento en toda la tienda'?",
+        paragraphs: [
+          "¡Es un premio a tu inversión! Si adquieres cualquier paquete desde $48.500 en adelante (Pilar, Combinación o Toda la Tienda), tu cuenta quedará configurada automáticamente como usuario VIP. Esto significa que cualquier otro curso o paquete que quieras comprar en el futuro te saldrá con un 70% de descuento automático.",
         ],
       },
       {
@@ -325,13 +339,13 @@ export const faqCategories: FaqCategory[] = [
       {
         question: "¿Cuánto gano exactamente por cada venta con mi link o cupón?",
         paragraphs: [
-          'Te llevas el 60% de comisión neta. Para ser 100% transparentes, el cálculo es simple: al precio del paquete le restamos el 10% de descuento que le regalas a tu cliente con tu cupón para cerrar la venta. Luego descontamos la pequeña tarifa de la pasarela de pagos (PayU), y del valor real que ingresa, el 60% va directo a tu bolsillo. Por ejemplo, por cada Tienda Completa, ganas $43.200 COP libres.',
+          'Te llevas el 60% de comisión neta. Para ser 100% transparentes, el cálculo es simple: al precio del paquete le restamos el 10% de descuento que le regalas a tu cliente con tu cupón para cerrar la venta. Luego descontamos la pequeña tarifa de la pasarela de pagos (Wompi), y del valor real que ingresa, el 60% va directo a tu bolsillo. Por ejemplo, por cada Tienda Completa, ganas $43.200 COP libres.',
         ],
       },
       {
-        question: "¿Por qué se descuenta el cupón del 10% y la tarifa de PayU de mi comisión?",
+        question: "¿Por qué se descuenta el cupón del 10% y la tarifa de Wompi de mi comisión?",
         paragraphs: [
-          'El descuento del 10% es tu mejor gancho comercial para que el cliente compre más rápido. La tarifa de PayU es el costo estándar por procesar pagos seguros con tarjeta. Al calcular tu 60% sobre el dinero neto que realmente ingresa, mantenemos un negocio honesto, sin letras pequeñas ni costos ocultos para ninguna de las partes.',
+          'El descuento del 10% es tu mejor gancho comercial para que el cliente compre más rápido. La tarifa de Wompi es el costo estándar por procesar pagos seguros con tarjeta. Al calcular tu 60% sobre el dinero neto que realmente ingresa, mantenemos un negocio honesto, sin letras pequeñas ni costos ocultos para ninguna de las partes.',
         ],
       },
       {
@@ -431,9 +445,9 @@ export const faqCategories: FaqCategory[] = [
         list: {
           ordered: false,
           items: [
-            "Opción 1 (Link de afiliado): El cliente paga en la web con descuento automático y recibes el 50% libre de comisiones.",
+            "Opción 1 (Link de afiliado): El cliente paga en la web con descuento automático y recibes el 60% libre de comisiones.",
             "Opción 2 (Código promocional): El cliente usa un cupón para un 10% de descuento extra y recibes comisión automática.",
-            "Opción 3 (Comprar para un tercero): Cobras directamente al cliente el precio que desees, luego compras en la plataforma con el 50% libre de comisiones de descuento inmediato (solo pagas el 50%) usando el correo del cliente.",
+            "Opción 3 (Comprar para un tercero): Cobras directamente al cliente el precio que desees, luego compras en la plataforma con el 60% libre de comisiones de descuento inmediato (solo pagas el 60%) usando el correo del cliente.",
           ],
         },
       },
@@ -452,9 +466,9 @@ export const faqCategories: FaqCategory[] = [
       },
       {
         question:
-          "¿Me descuentan impuestos o comisiones de plataforma sobre mi 50%?",
+          "¿Me descuentan impuestos o comisiones de plataforma sobre mi 60%?",
         paragraphs: [
-          "Tu comisión del 50% es neta sobre el valor comisionable. Nosotros cubrimos costos de servidores, pasarelas de pago y mantenimiento con el 50% restante.",
+          "Tu comisión del 60% es neta sobre el valor comisionable. Nosotros cubrimos costos de servidores, pasarelas de pago y mantenimiento con el 40% restante.",
         ],
       },
     ],
@@ -467,13 +481,13 @@ export const faqCategories: FaqCategory[] = [
         question:
           "¿Qué es exactamente un afiliado y por qué debería convertirme en uno?",
         paragraphs: [
-          "Es un socio comercial que recomienda productos digitales y gana comisión. Es ideal porque no creas el producto ni das soporte, nosotros ponemos la infraestructura y tú te llevas el 50% libre de comisiones de ganancia limpia.",
+          "Es un socio comercial que recomienda productos digitales y gana comisión. Es ideal porque no creas el producto ni das soporte, nosotros ponemos la infraestructura y tú te llevas el 60% libre de comisiones de ganancia limpia.",
         ],
       },
       {
         question: "¿Cuántos ingresos se pueden generar como afiliado?",
         paragraphs: [
-          "No hay tope. Desde un ingreso extra hasta un sueldo completo. Con la comisión del 50% libre de comisiones, pocas ventas a la semana generan ganancias muy atractivas.",
+          "No hay tope. Desde un ingreso extra hasta un sueldo completo. Con la comisión del 60%, pocas ventas a la semana generan ganancias muy atractivas.",
         ],
       },
       {

@@ -26,6 +26,7 @@ import {
 } from "../courseFilterData";
 import type { PilarKey } from "../courseFilterData";
 import { usePromoQuery } from "../../composables/usePromoQuery";
+import descripcionesRaw from "./descripcionCursos.json";
 
 const cartSt = cartStore();
 const storeemergentBuy = emergentBuyStore();
@@ -148,7 +149,7 @@ onMounted(() => {
   }
 });
 
-const { promoCourseName } = usePromoQuery();
+const { promoName, promoType } = usePromoQuery();
 
 watch(
   [() => route.params.id, () => storeCategory.categories.length, () => route.query._t],
@@ -163,8 +164,8 @@ watch(
            window.scrollTo({ top: y, behavior: 'smooth' });
          }
       }, 600);
-    } else if (promoCourseName.value) {
-      searchTermLista.value = promoCourseName.value;
+    } else if (promoType.value === 'curso' && promoName.value) {
+      searchTermLista.value = promoName.value;
       setTimeout(() => {
          const el = document.getElementById('lista-completa-header');
          if(el) {
@@ -318,6 +319,28 @@ const getPilarColorClasses = (pilarId: number) => {
 
 const getPilarEmoji = (pilarId: number) => pilarId === 100 ? '💼' : pilarId === 200 ? '💻' : '🎨';
 
+// ── Descripción desplegable ──
+const descripcionesMap: Record<string, string> = {};
+for (const group of Object.values(descripcionesRaw)) {
+  for (const [key, value] of Object.entries(group)) {
+    descripcionesMap[key] = value;
+  }
+}
+
+const showDescripcion = ref(false);
+
+const descripcionCurso = computed(() => {
+  const titulo = category.value?.titulo;
+  if (!titulo) return null;
+  const tituloLower = titulo.toLowerCase().trim();
+  for (const [key, value] of Object.entries(descripcionesMap)) {
+    if (key.toLowerCase().includes(tituloLower) || tituloLower.includes(key.toLowerCase())) {
+      return value;
+    }
+  }
+  return null;
+});
+
 const selectedCategory = computed(() =>
   selectedOption.value === 'upsell' && upsellCategory.value
     ? upsellCategory.value
@@ -413,6 +436,31 @@ const contentHeading = computed(() => {
         <p v-if="category?.frase_2" class="text-sm text-slate-400 italic border-l-2 border-blue-200 pl-3 max-w-xl">
           "{{ category.frase_2 }}"
         </p>
+
+        <!-- ── Desplegable "Descubre lo que lograrás" ── -->
+        <div v-if="descripcionCurso" class="mt-4 max-w-2xl">
+          <button
+            @click="showDescripcion = !showDescripcion"
+            class="inline-flex items-center gap-1.5 bg-transparent border-none cursor-pointer text-sm font-semibold text-slate-500 hover:text-blue-600 transition-colors duration-200 px-0 py-1"
+          >
+            Descubre lo que lograrás
+            <svg
+              class="w-4 h-4 transition-transform duration-300"
+              :class="{ 'rotate-180': showDescripcion }"
+              fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          <Transition name="desc-accordion">
+            <div v-show="showDescripcion" class="overflow-hidden">
+              <p class="text-sm text-slate-600 leading-relaxed mt-2 pl-3 border-l-2 border-blue-300">
+                {{ descripcionCurso }}
+              </p>
+            </div>
+          </Transition>
+        </div>
       </div>
     </section>
 
@@ -421,7 +469,7 @@ const contentHeading = computed(() => {
       <div class="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 lg:gap-8 items-start">
 
         <!-- ── COLUMNA IZQUIERDA: CONTENIDO ── -->
-        <div class="order-2 lg:order-1">
+        <div class="order-2 lg:order-1 min-w-0">
 
           <!-- Tab Navigation -->
           <div class="flex flex-wrap gap-1 p-1 bg-white/90 backdrop-blur-sm border border-slate-100/80 rounded-2xl shadow-md mb-4 sticky top-16 max-md:top-28 z-10">
@@ -805,6 +853,15 @@ const contentHeading = computed(() => {
                     <p class="text-xs text-slate-500 mt-0.5">Estudia desde cualquier dispositivo</p>
                   </div>
                 </div>
+                <div class="flex items-start gap-3 p-4 rounded-xl bg-emerald-50/50 border border-emerald-100/60">
+                  <div class="p-2 rounded-lg bg-emerald-100 text-emerald-600 shrink-0">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                  </div>
+                  <div>
+                    <h4 class="font-bold text-[#0d1b2a] text-sm">Biblioteca de 10.134 libros</h4>
+                    <p class="text-xs text-slate-500 mt-0.5">Acceso a una coleccion de libros digitales para complementar tu aprendizaje</p>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -1127,6 +1184,10 @@ const contentHeading = computed(() => {
                     <svg class="w-4 h-4 text-[#1e40af]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
                     <span>Garantia de reembolso de 7 dias</span>
                   </li>
+                  <li class="flex items-center gap-2.5 text-sm text-slate-600">
+                    <svg class="w-4 h-4 text-[#1e40af]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                    <span>Biblioteca de 10.134 libros</span>
+                  </li>
                 </ul>
               </div>
 
@@ -1178,6 +1239,19 @@ const contentHeading = computed(() => {
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap');
+
+/* Accordion transition for description */
+.desc-accordion-enter-active,
+.desc-accordion-leave-active {
+  transition: max-height 0.35s ease, opacity 0.3s ease;
+  max-height: 300px;
+  opacity: 1;
+}
+.desc-accordion-enter-from,
+.desc-accordion-leave-to {
+  max-height: 0;
+  opacity: 0;
+}
 
 /* Premium CTA gradient animation */
 .btn-premium-gradient {

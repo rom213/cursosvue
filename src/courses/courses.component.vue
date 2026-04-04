@@ -30,8 +30,8 @@ const cartSt = cartStore();
 const router = useRouter();
 
 // ── Promo desde redes sociales ──
-const { promoCourseName } = usePromoQuery();
-const searchTerm = ref(promoCourseName.value ?? '');
+const { promoName, promoType } = usePromoQuery();
+const searchTerm = ref(promoType.value === 'curso' ? (promoName.value ?? '') : '');
 
 // ── Carga de categorías ──
 const isLoading = ref(false);
@@ -314,8 +314,6 @@ onMounted(async () => {
     <!-- Barra de filtros sticky -->
     <CourseFilterBar
       :categories="categories"
-      :search="searchTerm"
-      @update:search="searchTerm = $event"
       @reorder="handleReorder"
       @scroll-to="handleScrollTo"
     />

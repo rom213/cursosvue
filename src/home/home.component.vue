@@ -6,6 +6,19 @@ import HomeCta from '../components/cta/HomeCta.vue';
 import PricingLevels from './PricingLevels.vue';
 import { icons } from './section_one/section.one.data';
 
+// Tooltip tap-to-toggle para móvil
+const activeTooltip = ref<string | null>(null);
+
+function toggleTooltip(id: string) {
+  activeTooltip.value = activeTooltip.value === id ? null : id;
+}
+
+function closeTooltips(e: Event) {
+  if (!(e.target as HTMLElement).closest('.has-tooltip')) {
+    activeTooltip.value = null;
+  }
+}
+
 import courseraImg from '../assets/home/coursera.webp';
 import edxImg from '../assets/home/edx.webp';
 import hotmartImg from '../assets/home/hotmart.webp';
@@ -188,6 +201,7 @@ onMounted(() => {
   window.addEventListener('mouseup',   onLogosMouseUp);
   window.addEventListener('mousemove', onTestimonialsMouseMove);
   window.addEventListener('mouseup',   onTestimonialsMouseUp);
+  document.addEventListener('click', closeTooltips);
 });
 
 onBeforeUnmount(() => {
@@ -195,6 +209,7 @@ onBeforeUnmount(() => {
   window.removeEventListener('mouseup',   onLogosMouseUp);
   window.removeEventListener('mousemove', onTestimonialsMouseMove);
   window.removeEventListener('mouseup',   onTestimonialsMouseUp);
+  document.removeEventListener('click', closeTooltips);
 });
 </script>
 
@@ -237,7 +252,7 @@ onBeforeUnmount(() => {
             te damos <strong class="hero-title-strong">miles</strong><br>
             de cursos.
           </h1>
-          <p class="hero-sub has-tooltip">
+          <p class="hero-sub has-tooltip" :class="{ 'tooltip-active': activeTooltip === 'hero-sub' }" @click.stop="toggleTooltip('hero-sub')">
             · Cursos alojados en Google Drive
             <span class="tooltip tooltip-up">
               Todos los cursos se almacenan en Google Drive con material completo y organizado.
@@ -250,7 +265,7 @@ onBeforeUnmount(() => {
 
       <!-- Tarjetas glass en la base del hero -->
       <div class="hero-cards">
-        <div class="glass-card has-tooltip">
+        <div class="glass-card has-tooltip" :class="{ 'tooltip-active': activeTooltip === 'card-1' }" @click.stop="toggleTooltip('card-1')">
           <div class="card-icon" v-html="icons.accesoVitalicio" />
           <h3 class="card-title">Acceso Vitalicio</h3>
           <p class="card-text">Pago único. Actualizaciones gratis para siempre.</p>
@@ -259,7 +274,7 @@ onBeforeUnmount(() => {
             con actualizaciones incluidas. Estudia hoy, mañana o dentro de un año.
           </span>
         </div>
-        <div class="glass-card has-tooltip">
+        <div class="glass-card has-tooltip" :class="{ 'tooltip-active': activeTooltip === 'card-2' }" @click.stop="toggleTooltip('card-2')">
           <div class="card-icon" v-html="icons.descargable" />
           <h3 class="card-title">100% Descargable</h3>
           <p class="card-text">Estudia offline y a tu propio ritmo.</p>
@@ -268,7 +283,7 @@ onBeforeUnmount(() => {
             Tú decides cuándo, dónde y cómo aprender. El control es completamente tuyo.
           </span>
         </div>
-        <div class="glass-card has-tooltip">
+        <div class="glass-card has-tooltip" :class="{ 'tooltip-active': activeTooltip === 'card-3' }" @click.stop="toggleTooltip('card-3')">
           <div class="card-icon" v-html="icons.clubDescuentos" />
           <h3 class="card-title">Club de Descuentos</h3>
           <p class="card-text">70% OFF en todas tus próximas compras.</p>
@@ -277,7 +292,7 @@ onBeforeUnmount(() => {
             y el modo Revendedor. Descuentos exclusivos en todo el catálogo y ganancias del 60% por cada venta.
           </span>
         </div>
-        <div class="glass-card has-tooltip">
+        <div class="glass-card has-tooltip" :class="{ 'tooltip-active': activeTooltip === 'card-4' }" @click.stop="toggleTooltip('card-4')">
           <div class="card-icon" v-html="icons.trabajaYGana" />
           <h3 class="card-title">Trabaja y Gana</h3>
           <p class="card-text">Comisiones del 60% por cada venta referida.</p>
@@ -1054,9 +1069,16 @@ onBeforeUnmount(() => {
   .logos-track-outer::-webkit-scrollbar { display: none; }
 }
 
-/* ── Tooltips: ocultar en táctil/mobile ─────────────────── */
+/* ── Tooltips: tap-to-toggle en móvil ─────────────────── */
+.has-tooltip.tooltip-active > .tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
 @media (max-width: 768px) {
-  .tooltip { display: none; }
+  .tooltip { width: 220px; font-size: 0.7rem; }
 }
 
 /* ── Tooltips: ajustar cards de los extremos para no salirse ── */
@@ -1068,7 +1090,8 @@ onBeforeUnmount(() => {
   left: 24px;
   transform: translateX(0) rotate(45deg);
 }
-.hero-cards .glass-card:first-child:hover > .tooltip-up {
+.hero-cards .glass-card:first-child:hover > .tooltip-up,
+.hero-cards .glass-card:first-child.tooltip-active > .tooltip-up {
   transform: translateX(0) translateY(0);
 }
 
@@ -1082,7 +1105,8 @@ onBeforeUnmount(() => {
   right: 24px;
   transform: translateX(0) rotate(45deg);
 }
-.hero-cards .glass-card:last-child:hover > .tooltip-up {
+.hero-cards .glass-card:last-child:hover > .tooltip-up,
+.hero-cards .glass-card:last-child.tooltip-active > .tooltip-up {
   transform: translateX(0) translateY(0);
 }
 </style>

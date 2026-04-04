@@ -12,7 +12,7 @@ import { usePromoQuery } from './composables/usePromoQuery';
 const store = authStore() // Renamed storeAuth to store for consistency with new code
 const catStore = categoryStore()
 const appRouter = useRouter()
-const { promoCourseName, promoRoute, isPromoActive, clearPromo } = usePromoQuery()
+const { promoName, promoRoute, promoType, isPromoActive, clearPromo } = usePromoQuery()
 
 const goToPromo = () => {
   appRouter.push(promoRoute.value ?? '/courses')
@@ -86,37 +86,43 @@ watch(() => store.profile?.user?.google_id, (id) => {
     >
       <div
         v-if="isPromoActive"
-        class="fixed bottom-4 left-4 right-4 md:left-auto md:right-6 md:max-w-xl z-[60] rounded-2xl shadow-2xl shadow-blue-900/25 border border-blue-400/30 overflow-hidden"
-        style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)"
+        class="promo-toast fixed bottom-16 md:bottom-4 left-3 right-3 md:left-auto md:right-6 md:max-w-xl z-[60] rounded-2xl shadow-2xl shadow-blue-900/25 border border-blue-400/30 overflow-hidden backdrop-blur-md"
       >
-        <div class="flex items-center gap-3 pr-2">
+        <div class="flex items-center gap-2 md:gap-3 pr-2">
           <!-- Zona clickeable: todo el banner menos la X -->
           <div
-            class="flex-1 flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-white/[0.07] transition-colors min-w-0"
+            class="flex-1 flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2.5 md:py-3 cursor-pointer hover:bg-white/[0.07] transition-colors min-w-0"
             @click="goToPromo"
-            title="Ver curso promocionado"
+            title="Ver promocion"
           >
             <!-- Icono -->
-            <div class="flex-shrink-0 w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center">
-              <svg class="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <div class="flex-shrink-0 w-8 h-8 md:w-9 md:h-9 rounded-xl bg-white/15 flex items-center justify-center">
+              <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
               </svg>
             </div>
-            <!-- Texto -->
+            <!-- Texto adaptado por tipo -->
             <p class="text-white text-xs md:text-sm leading-snug min-w-0">
-              Si vienes para el curso de
-              <span class="font-bold text-blue-100">{{ promoCourseName }}</span>,
-              esta aqui y te llevas los demas como bono
+              <template v-if="promoType === 'bloque'">
+                Si vienes por el bloque de
+                <span class="font-bold text-blue-100">{{ promoName }}</span>,
+                esta aqui y te llevas los demas cursos como bono
+              </template>
+              <template v-else>
+                Si vienes para el curso de
+                <span class="font-bold text-blue-100">{{ promoName }}</span>,
+                esta aqui y te llevas los demas como bono
+              </template>
             </p>
           </div>
           <!-- Cerrar (no navega) -->
           <button
             type="button"
-            class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 transition-colors cursor-pointer border-none text-white/70 hover:text-white"
+            class="flex-shrink-0 w-7 h-7 md:w-8 md:h-8 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 transition-colors cursor-pointer border-none text-white/70 hover:text-white"
             @click.stop="clearPromo"
             title="Cerrar"
           >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -127,3 +133,15 @@ watch(() => store.profile?.user?.google_id, (id) => {
   </div>
 
 </template>
+
+<style>
+/* Mobile: semi-transparent so buy button peeks through */
+.promo-toast {
+  background: rgba(30, 64, 175, 0.92);
+}
+@media (min-width: 768px) {
+  .promo-toast {
+    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  }
+}
+</style>

@@ -17,16 +17,21 @@ import {
   getPilarForThemeId,
   getUpsellTargetId,
   PILARES,
-  COMBOS, 
+  COMBOS,
 } from './courseFilterData';
 import type { FilterType, PilarKey } from './courseFilterData';
 import { OptionsEmergentBuy } from '../types/Payment';
+import { usePromoQuery } from '../composables/usePromoQuery';
 
 const storeemergentBuy = emergentBuyStore();
 const categorStore = categoryStore();
 const storeAuth = authStore();
 const cartSt = cartStore();
 const router = useRouter();
+
+// ── Promo desde redes sociales ──
+const { promoCourseName } = usePromoQuery();
+const searchTerm = ref(promoCourseName.value ?? '');
 
 // ── Carga de categorías ──
 const isLoading = ref(false);
@@ -151,7 +156,17 @@ const buildSections = (cats: ICategory[]): CatalogSection[] => {
     }));
 };
 
-const visibleSections = computed(() => buildSections(categories.value));
+// ── Filtrado por búsqueda ──
+const displayedCategories = computed(() => {
+  const term = searchTerm.value.trim().toLowerCase();
+  if (!term) return categories.value;
+  return categories.value.filter(cat =>
+    cat.titulo?.toLowerCase().includes(term) ||
+    cat.pack_nombre?.toLowerCase().includes(term)
+  );
+});
+
+const visibleSections = computed(() => buildSections(displayedCategories.value));
 
 // ── Derivar props de card desde ID ──
 function getCardProps(category: ICategory) {
@@ -299,6 +314,8 @@ onMounted(async () => {
     <!-- Barra de filtros sticky -->
     <CourseFilterBar
       :categories="categories"
+      :search="searchTerm"
+      @update:search="searchTerm = $event"
       @reorder="handleReorder"
       @scroll-to="handleScrollTo"
     />
@@ -374,8 +391,12 @@ onMounted(async () => {
             <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
         </div>
-        <p class="font-[Poppins] text-xl font-semibold text-[#0d1b2a]">No hay cursos disponibles</p>
-        <p class="text-sm text-slate-400 mt-1">Intenta con otro filtro o vuelve mas tarde.</p>
+        <p class="font-[Poppins] text-xl font-semibold text-[#0d1b2a]">
+          {{ searchTerm ? 'Sin resultados para "' + searchTerm + '"' : 'No hay cursos disponibles' }}
+        </p>
+        <p class="text-sm text-slate-400 mt-1">
+          {{ searchTerm ? 'Prueba con otro termino o limpia el buscador.' : 'Intenta con otro filtro o vuelve mas tarde.' }}
+        </p>
       </div>
     </div>
 

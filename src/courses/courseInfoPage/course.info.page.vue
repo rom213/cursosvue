@@ -25,6 +25,7 @@ import {
   TODA_LA_TIENDA_ID,
 } from "../courseFilterData";
 import type { PilarKey } from "../courseFilterData";
+import { usePromoQuery } from "../../composables/usePromoQuery";
 
 const cartSt = cartStore();
 const storeemergentBuy = emergentBuyStore();
@@ -147,12 +148,23 @@ onMounted(() => {
   }
 });
 
+const { promoCourseName } = usePromoQuery();
+
 watch(
   [() => route.params.id, () => storeCategory.categories.length, () => route.query._t],
   async () => {
     openedFolders.value['section-lista-completa'] = true;
     if (route.query.q_course) {
       searchTermLista.value = route.query.q_course as string;
+      setTimeout(() => {
+         const el = document.getElementById('lista-completa-header');
+         if(el) {
+           const y = el.getBoundingClientRect().top + window.scrollY - 180;
+           window.scrollTo({ top: y, behavior: 'smooth' });
+         }
+      }, 600);
+    } else if (promoCourseName.value) {
+      searchTermLista.value = promoCourseName.value;
       setTimeout(() => {
          const el = document.getElementById('lista-completa-header');
          if(el) {

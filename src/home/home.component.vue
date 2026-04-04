@@ -464,28 +464,30 @@ onBeforeUnmount(() => {
 /* ── Modelo: z10, encima de todo, derecha absoluta ──────── */
 .hero-model {
   position: absolute;
-  right: 0;
+  right: 2%;
   top: 0;
   bottom: 0;
-  width: 46%;
+  width: 42%;
   z-index: 10;
   display: flex;
   align-items: flex-end;
   justify-content: center;
   pointer-events: none;
+  overflow: hidden;
 }
 @media (max-width: 1023px) {
   .hero-model { display: none; }
 }
 .hero-model-img {
-  height: 97%;
+  height: auto;
   width: auto;
-  max-width: 100%;
+  max-height: 55%;
+  max-width: 75%;
   object-fit: contain;
   object-position: bottom center;
   /* Fusión suave solo en el borde inferior */
-  mask-image: linear-gradient(to bottom, black 68%, transparent 97%);
-  -webkit-mask-image: linear-gradient(to bottom, black 68%, transparent 97%);
+  mask-image: linear-gradient(to bottom, black 78%, transparent 98%);
+  -webkit-mask-image: linear-gradient(to bottom, black 78%, transparent 98%);
   /* Sombra fría que ancla la figura al gradiente del hero */
   filter: drop-shadow(-16px 0 48px rgba(30, 64, 175, 0.14));
 }

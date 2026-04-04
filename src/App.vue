@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router';
+import { RouterView, useRouter } from 'vue-router';
 import HeaderComponent from './components/header/header.component.vue';
 import { GoogleLogin } from 'vue3-google-login'; // Added GoogleLogin import
 
@@ -7,9 +7,16 @@ import { onMounted, watch } from 'vue';
 import AuthService from './services/AuthServices';
 import { authStore } from './store/AuthStore';
 import { categoryStore } from './store/CategoryStore';
+import { usePromoQuery } from './composables/usePromoQuery';
 
 const store = authStore() // Renamed storeAuth to store for consistency with new code
 const catStore = categoryStore()
+const appRouter = useRouter()
+const { promoCourseName, promoRoute, isPromoActive, clearPromo } = usePromoQuery()
+
+const goToPromo = () => {
+  appRouter.push(promoRoute.value ?? '/courses')
+}
 
 const callback = async (response: any) => {
     const ser = await AuthService.verifyToken(response.credential)
@@ -54,6 +61,7 @@ watch(() => store.profile?.user?.google_id, (id) => {
 
 <template>
   <div class="h-screen bg-[#F9F9F9]">
+
     <HeaderComponent v-if="$route.meta.showHeader" />
     <div :class="{ 'pt-0': $route.meta.showHeader }">
       <div class="opacity-0 absolute top-0 left-0" >
@@ -66,6 +74,55 @@ watch(() => store.profile?.user?.google_id, (id) => {
         </KeepAlive>
       </RouterView>
     </div>
+
+    <!-- ═══ BANNER PROMO (flotante inferior, tema azul) ═══ -->
+    <Transition
+      enter-active-class="transition-all duration-400 ease-out"
+      enter-from-class="opacity-0 translate-y-full"
+      enter-to-class="opacity-100 translate-y-0"
+      leave-active-class="transition-all duration-300 ease-in"
+      leave-from-class="opacity-100 translate-y-0"
+      leave-to-class="opacity-0 translate-y-full"
+    >
+      <div
+        v-if="isPromoActive"
+        class="fixed bottom-4 left-4 right-4 md:left-auto md:right-6 md:max-w-xl z-[60] rounded-2xl shadow-2xl shadow-blue-900/25 border border-blue-400/30 overflow-hidden"
+        style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)"
+      >
+        <div class="flex items-center gap-3 pr-2">
+          <!-- Zona clickeable: todo el banner menos la X -->
+          <div
+            class="flex-1 flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-white/[0.07] transition-colors min-w-0"
+            @click="goToPromo"
+            title="Ver curso promocionado"
+          >
+            <!-- Icono -->
+            <div class="flex-shrink-0 w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center">
+              <svg class="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+              </svg>
+            </div>
+            <!-- Texto -->
+            <p class="text-white text-xs md:text-sm leading-snug min-w-0">
+              Si vienes para el curso de
+              <span class="font-bold text-blue-100">{{ promoCourseName }}</span>,
+              esta aqui y te llevas los demas como bono
+            </p>
+          </div>
+          <!-- Cerrar (no navega) -->
+          <button
+            type="button"
+            class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 transition-colors cursor-pointer border-none text-white/70 hover:text-white"
+            @click.stop="clearPromo"
+            title="Cerrar"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </Transition>
 
   </div>
 

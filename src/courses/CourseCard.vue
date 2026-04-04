@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue';
 import type { ICategory } from '../types/Categorie';
 import { courseIcons } from './courseIcons';
-import { classifyCategoryId } from './courseFilterData';
+import { classifyCategoryId, getBloquesCountForCategory } from './courseFilterData';
 import AffiliatyMessageComponent from '../components/auth/affiliaty.message.component.vue';
 
 export type PillarColor = 'blue' | 'emerald' | 'orange' | 'purple' | 'amber'
@@ -82,11 +82,11 @@ const cardWrapperClasses = computed(() => {
 });
 
 // ── Metricas ──
-const bloquesCount = computed(() => props.category.seccion_temas?.cantidad_temas ?? 0);
-const cursosCount = computed(() => props.category.cantidad_cursos ?? 122);
+const bloquesCount = computed(() => getBloquesCountForCategory(props.category.id));
+const cursosCount = computed(() => props.category.cantidad_cursos ?? 200);
 const cuposCount = computed(() => props.category.num_per ?? 23);
-const cuposMax = 200;
-const cuposPercent = computed(() => Math.min(100, Math.round((cuposCount.value / cuposMax) * 100)));
+const cuposMax = computed(() => props.category.cupos_google ?? 200);
+const cuposPercent = computed(() => Math.min(100, Math.round((cuposCount.value / cuposMax.value) * 100)));
 const isLowStock = computed(() => cuposCount.value < 30);
 const commentsCount = computed(() => props.category.pregunta_respuesta?.length ?? 0);
 
@@ -305,20 +305,22 @@ const upsellBenefits = computed(() => {
             <div class="w-5 h-5" v-html="courseIcons.cursos" />
           </div>
           <span class="text-sm text-slate-700">
-            <strong class="text-slate-900">{{ bloquesCount || 1 }}</strong> Bloque{{ bloquesCount > 1 ? 's' : '' }}
-            <span class="text-slate-400 mx-0.5">&middot;</span>
+            <template v-if="bloquesCount !== null">
+              <strong class="text-slate-900">{{ bloquesCount }}</strong> Bloque{{ bloquesCount > 1 ? 's' : '' }}
+              <span class="text-slate-400 mx-0.5">&middot;</span>
+            </template>
             <strong class="text-slate-900">{{ cursosCount.toLocaleString() }}</strong> cursos
           </span>
         </div>
 
         <!-- Cupos con barra de progreso (advanced+) -->
-        <div v-if="tierLevel !== 'basic'" class="flex flex-col gap-1">
+        <div  class="flex flex-col gap-1">
           <div class="flex items-center gap-2.5">
             <div class="p-1.5 rounded-lg shrink-0" :class="[colors.iconBg, colors.iconText]">
               <div class="w-5 h-5" v-html="courseIcons.cupos" />
             </div>
             <div class="flex items-baseline gap-1">
-              <span class="text-sm text-slate-500">Cupos:</span>
+              <span class="text-sm text-slate-500">Cupos Google Drive:</span>
               <span
                 class="text-base font-bold"
                 :class="isLowStock ? 'text-red-600' : 'text-slate-900'"
@@ -340,15 +342,7 @@ const upsellBenefits = computed(() => {
         </div>
 
         <!-- Cupos simplificado (basic) -->
-        <div v-else class="flex items-center gap-2.5">
-          <div class="p-1.5 rounded-lg shrink-0" :class="[colors.iconBg, colors.iconText]">
-            <div class="w-5 h-5" v-html="courseIcons.cupos" />
-          </div>
-          <span class="text-sm text-slate-700">
-            Cupos: <strong :class="isLowStock ? 'text-red-600' : 'text-slate-900'">{{ cuposCount }}</strong>
-            <span class="text-xs text-slate-400">/ {{ cuposMax }}</span>
-          </span>
-        </div>
+ 
 
         <!-- Comentarios (advanced+ y si > 0) -->
         <div v-if="commentsCount > 0 && tierLevel !== 'basic'" class="flex items-center gap-2.5">

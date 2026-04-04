@@ -44,6 +44,18 @@ class CategoryService {
         }
       }
 
+      static async getMyCourses(): Promise<ICategory[]> {
+        try {
+          const response: AxiosResponse<ICategory[]> = await ApiService.get<ICategory[]>(
+            'api/category/my-courses'
+          );
+          return response.data;
+        } catch (error) {
+          console.error("Error obteniendo mis cursos:", error);
+          return [];
+        }
+      }
+
       static async searchCategories(searchTerm: string, limit: number = 10): Promise<ICategory[] | []> {
         try {
           

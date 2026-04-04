@@ -26,11 +26,19 @@ const getDataSearch = () => {
 const handleClickItem = (cat: ICategory) => {
     dataInput.value = ""
     dataReseived.value = []
-    router.push({
+    const dest = {
         name: 'courses-description',
         params: { id: cat.id },
-        query: { q_course: cat.titulo }
-    })
+        query: { q_course: cat.titulo, _t: Date.now().toString() }
+    }
+    router.push(dest)
+}
+
+const handleSearch = () => {
+    if (searchTimer) clearTimeout(searchTimer)
+    if (dataInput.value && dataInput.value.trim().length >= 2) {
+        getDataSearch()
+    }
 }
 
 const handleClickOutside = () => {
@@ -47,7 +55,7 @@ const handleClickOutside = () => {
 
             <!-- Interior blanco: el input real -->
             <div class="search-inner">
-                <svg class="search-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg class="search-icon" @click="handleSearch" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M11.5 21C16.7467 21 21 16.7467 21 11.5C21 6.25329 16.7467 2 11.5 2C6.25329 2 2 6.25329 2 11.5C2 16.7467 6.25329 21 11.5 21Z"
                         stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                     <path d="M22 22L20 20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -60,6 +68,7 @@ const handleClickOutside = () => {
                     autocomplete="off"
                     inputmode="search"
                     enterkeyhint="search"
+                    @keydown.enter="handleSearch"
                 />
             </div>
         </div>

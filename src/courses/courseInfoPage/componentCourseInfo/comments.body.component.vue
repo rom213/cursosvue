@@ -7,10 +7,18 @@ import { useRoute } from 'vue-router';
 const route = useRoute();
 const messageResponse = ref<IResponseDataMessage>();
 
-onMounted(async () => {
+const newStars = ref(0);
+const hoverStars = ref(0);
+const newMessage = ref('');
+const submitting = ref(false);
+const submitError = ref('');
+
+const loadMessages = async () => {
   const message = await MessageService.getAllMessageByCategory(Number(route.params.id));
   messageResponse.value = message;
-});
+};
+
+onMounted(loadMessages);
 
 const averageRating = computed(() => {
   const messages = messageResponse.value?.messages || [];
@@ -32,6 +40,32 @@ const ratingPercentages = computed(() => {
   }
   return percentages;
 });
+
+const canComment = computed(() => {
+  return messageResponse.value?.is_login && !messageResponse.value?.is_comment;
+});
+
+const submitReview = async () => {
+  if (newStars.value === 0 || !newMessage.value.trim()) {
+    submitError.value = 'Selecciona una calificación y escribe tu comentario.';
+    return;
+  }
+  submitError.value = '';
+  submitting.value = true;
+  const success = await MessageService.addMessage(
+    Number(route.params.id),
+    newMessage.value.trim(),
+    newStars.value
+  );
+  submitting.value = false;
+  if (success) {
+    newStars.value = 0;
+    newMessage.value = '';
+    await loadMessages();
+  } else {
+    submitError.value = 'No se pudo enviar tu reseña. Intenta de nuevo.';
+  }
+};
 </script>
 
 <template>
@@ -68,6 +102,47 @@ const ratingPercentages = computed(() => {
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Formulario de reseña -->
+    <div v-if="canComment" class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+      <h4 class="font-semibold text-sm mb-3">Deja tu reseña</h4>
+      <!-- Selector de estrellas -->
+      <div class="flex items-center gap-1 mb-3">
+        <button
+          v-for="i in 5"
+          :key="i"
+          type="button"
+          class="text-2xl transition-colors"
+          :class="i <= (hoverStars || newStars) ? 'text-yellow-500' : 'text-gray-300'"
+          @mouseenter="hoverStars = i"
+          @mouseleave="hoverStars = 0"
+          @click="newStars = i"
+        >★</button>
+        <span v-if="newStars > 0" class="ml-2 text-sm text-gray-600">{{ newStars }} de 5</span>
+      </div>
+      <!-- Campo de texto -->
+      <textarea
+        v-model="newMessage"
+        placeholder="Escribe tu opinión sobre este curso..."
+        rows="3"
+        class="w-full border border-gray-300 rounded-lg p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"
+      ></textarea>
+      <!-- Error -->
+      <p v-if="submitError" class="text-red-500 text-xs mt-1">{{ submitError }}</p>
+      <!-- Botón enviar -->
+      <button
+        @click="submitReview"
+        :disabled="submitting"
+        class="mt-3 bg-[#FFBF2B] hover:bg-[#FACC15] text-slate-900 font-semibold py-2 px-6 rounded-lg text-sm transition-all disabled:opacity-50"
+      >
+        {{ submitting ? 'Enviando...' : 'Enviar reseña' }}
+      </button>
+    </div>
+
+    <!-- Mensaje si ya comentó -->
+    <div v-if="messageResponse?.is_login && messageResponse?.is_comment" class="mb-4 text-sm text-green-600 flex items-center gap-1">
+      <span>✓</span> Ya dejaste tu reseña para este curso.
     </div>
 
     <!-- Lista de mensajes de usuarios -->

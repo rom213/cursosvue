@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { categoryStore } from '../store/CategoryStore';
 import CategoryService from '../services/CategorieService';
@@ -17,7 +17,7 @@ import {
   getPilarForThemeId,
   getUpsellTargetId,
   PILARES,
-  COMBOS,
+  COMBOS, 
 } from './courseFilterData';
 import type { FilterType, PilarKey } from './courseFilterData';
 
@@ -27,37 +27,17 @@ const storeAuth = authStore();
 const cartSt = cartStore();
 const router = useRouter();
 
-// ── Paginacion e infinite scroll ──
-const pageSize = 12;
-const currentOffset = ref(0);
-const hasMoreCategories = ref(true);
-const isLoadingMore = ref(false);
+// ── Carga de categorías ──
+const isLoading = ref(false);
 const categories = ref<ICategory[]>([]);
-const sentinelRef = ref<HTMLElement | null>(null);
-let scrollObserver: IntersectionObserver | null = null;
 
-const loadMoreCategories = async () => {
-  if (!hasMoreCategories.value || isLoadingMore.value) return;
-  isLoadingMore.value = true;
-
-  const batch = await CategoryService.getAllCategories(pageSize, currentOffset.value, activeFilter.value);
-  const list = batch as ICategory[];
-
-  if (list.length < pageSize) hasMoreCategories.value = false;
-  currentOffset.value += list.length;
-
+const loadCategories = async () => {
+  isLoading.value = true;
+  const list = await CategoryService.getAllCategories(1000, 0, activeFilter.value) as ICategory[];
   const unboughtList = list.filter((item) => !item.user_bought);
-  categories.value = [...categories.value, ...unboughtList];
+  categories.value = unboughtList;
   categorStore.setCategories(categories.value);
-
-  isLoadingMore.value = false;
-};
-
-const resetAndLoad = async () => {
-  categories.value = [];
-  currentOffset.value = 0;
-  hasMoreCategories.value = true;
-  await loadMoreCategories();
+  isLoading.value = false;
 };
 
 
@@ -286,7 +266,7 @@ const handleUpsellExplore = (id: number) => {
 
 const handleReorder = async (filterType: FilterType) => {
   activeFilter.value = filterType;
-  await resetAndLoad();
+  await loadCategories();
 };
 
 const handleScrollTo = (categoryId: number) => {
@@ -297,18 +277,7 @@ const handleScrollTo = (categoryId: number) => {
 
 // ── Lifecycle ──
 onMounted(async () => {
-  await Promise.all([resetAndLoad(), loadUpsellPool()]);
-  if (sentinelRef.value) {
-    scrollObserver = new IntersectionObserver(
-      (entries) => { if (entries[0].isIntersecting) void loadMoreCategories(); },
-      { rootMargin: '300px' }
-    );
-    scrollObserver.observe(sentinelRef.value);
-  }
-});
-
-onBeforeUnmount(() => {
-  scrollObserver?.disconnect();
+  await Promise.all([loadCategories(), loadUpsellPool()]);
 });
 </script>
 
@@ -394,7 +363,7 @@ onBeforeUnmount(() => {
 
       <!-- Estado vacio -->
       <div
-        v-if="!isLoadingMore && categories.length === 0"
+        v-if="!isLoading && categories.length === 0"
         class="text-center py-20"
       >
         <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-slate-100 flex items-center justify-center">
@@ -407,17 +376,14 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <!-- Sentinel para IntersectionObserver -->
-    <div ref="sentinelRef" class="h-px" />
-
     <!-- Loading indicator -->
-    <div v-if="isLoadingMore" class="text-center text-sm text-slate-500 py-8">
+    <div v-if="isLoading" class="text-center text-sm text-slate-500 py-8">
       <div class="inline-flex items-center gap-2.5">
         <svg class="animate-spin w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
         </svg>
-        <span>Cargando mas cursos para ti...</span>
+        <span>Cargando cursos...</span>
       </div>
     </div>
 

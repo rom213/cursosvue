@@ -16,7 +16,8 @@ export interface AuthResponse {
     accounts: IAccount[]
     country:string,
     tasa_de_cambio:number
-    codigo_referido:string
+    codigo_referido:string,
+    vista_previa_drive: number
   };
   error?: string;
 }

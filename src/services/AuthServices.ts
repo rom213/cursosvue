@@ -7,6 +7,7 @@ import type { AuthResponse, IApiResponseVerifyEmail, IUserAfiliaty, LogoutRespon
 class AuthService {
   static async verifyToken(token: string): Promise<AuthResponse | null> {
     try {
+      console.log("Enviando token:", token ? "presente" : "ausente");
       const response: AxiosResponse<AuthResponse> = await ApiService.post<AuthResponse>("/verify-token", { token });
       const data = response.data;
       if (data?.token) {

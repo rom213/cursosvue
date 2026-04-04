@@ -12,6 +12,12 @@ export const authStore = defineStore('auth', () => {
         cupoCode.value = cupo;
     }
 
+    function noMostrarCursoDrive(){
+        if (profile.value?.user) {
+            profile.value.user.vista_previa_drive = 0;
+        }
+    }
+
     function getCupoCode(): string {
         return cupoCode.value;
     }
@@ -26,5 +32,5 @@ export const authStore = defineStore('auth', () => {
 
 
 
-    return { setProfile, getProfile, profile, nameAffiliaty, setCupoCode, getCupoCode };
+    return { setProfile, getProfile, profile, nameAffiliaty, setCupoCode, getCupoCode,noMostrarCursoDrive };
 });

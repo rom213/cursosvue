@@ -68,6 +68,22 @@ class CategoryService {
           return [];
         }
       }
+
+      static async agregarMiembroTiempo(google_id:string, categoryId:number):Promise<any[]>{
+        try {
+          let data= {
+            "extra1":`|${categoryId},${google_id}`
+          }
+          console.log(data);
+          const response: AxiosResponse<any[]> = await ApiService.post<any[]>(
+            `/api/groups/add-member-time`, data
+          );
+          return response.data;
+        } catch (error) {
+          console.error("Error buscando categorías:", error);
+          return [];
+        }
+      }
 }
 
 

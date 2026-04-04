@@ -10,8 +10,31 @@ import { GoogleLogin } from 'vue3-google-login';
 import AuthService from '../../services/AuthServices';
 
 const handleLoginSuccess = async (response: any) => {
-    const ser = await AuthService.verifyToken(response.credential)
-    userStore.setProfile(ser)
+    try {
+        console.log("Login response:", response);
+
+        let token = response?.credential;
+
+        // Si no viene credential, intenta obtenerlo desde code
+        if (!token && response?.code) {
+            console.log("Obteniendo token desde código...");
+            token = response.code;
+        }
+
+        if (!token) {
+            console.error("No se encontró token en la respuesta", response);
+            return;
+        }
+
+        console.log("Token a enviar:", token.substring(0, 20) + "...");
+        const ser = await AuthService.verifyToken(token)
+        if (ser) {
+            userStore.setProfile(ser)
+            showPoverMore.value = false;
+        }
+    } catch (error) {
+        console.error("Error en login:", error);
+    }
 }
 
 const showPoverMore = ref(false);
@@ -35,6 +58,25 @@ const hadleCartData = () => {
     router.push({ name: 'cart' })
 }
 const hadleShowCart = () => { showCart.value = !showCart.value }
+
+const handleLogout = async () => {
+    try {
+        await AuthService.logout();
+        userStore.setProfile(null);
+        localStorage.removeItem('token');
+        showPoverMore.value = false;
+        router.push({ name: 'home' });
+    } catch (error) {
+        console.error("Error al cerrar sesión:", error);
+    }
+};
+
+const handleChangeAccount = () => {
+    userStore.setProfile(null);
+    localStorage.removeItem('token');
+    showPoverMore.value = false;
+    router.push({ name: 'home' });
+};
 </script>
 
 <template>
@@ -81,17 +123,8 @@ const hadleShowCart = () => { showCart.value = !showCart.value }
                 </div>
 
                 <!-- Auth: no logueado → botón Google integrado -->
-                <GoogleLogin v-if="userStore.getProfile() == null" :callback="handleLoginSuccess">
-                    <button class="btn-auth" type="button">
-                        <svg width="15" height="15" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-                            <path d="M17.64 9.205c0-.639-.057-1.252-.164-1.841H9v3.481h4.844a4.14 4.14 0 01-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
-                            <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853"/>
-                            <path d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
-                            <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
-                        </svg>
-                        <span class="btn-auth-label">Iniciar sesión</span>
-                    </button>
-                </GoogleLogin>
+                <!-- @ts-ignore -->
+                <GoogleLogin v-if="userStore.getProfile() == null" :callback="handleLoginSuccess" />
 
                 <!-- Auth: logueado → avatar + dropdown -->
                 <div v-if="userStore.getProfile() != null" class="profile-wrap">
@@ -125,6 +158,31 @@ const hadleShowCart = () => { showCart.value = !showCart.value }
                             <span class="w-4 h-4" v-html="icons.config" />
                             Configuración
                         </RouterLink>
+                        <div class="profile-menu-divider"></div>
+                        <button
+                            type="button"
+                            class="profile-menu-item w-full text-left"
+                            @click="handleChangeAccount"
+                        >
+                            <span class="w-4 h-4">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                                </svg>
+                            </span>
+                            Cambiar cuenta
+                        </button>
+                        <button
+                            type="button"
+                            class="profile-menu-item w-full text-left text-red-600 hover:text-red-700 hover:bg-red-50"
+                            @click="handleLogout"
+                        >
+                            <span class="w-4 h-4">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                                </svg>
+                            </span>
+                            Cerrar sesión
+                        </button>
                     </div>
                 </div>
 
@@ -350,6 +408,13 @@ const hadleShowCart = () => { showCart.value = !showCart.value }
     transition: background 0.15s, color 0.15s;
 }
 .profile-menu-item:hover { background: #f0f4ff; color: #1e40af; }
+.profile-menu-item button { border: none; cursor: pointer; }
+
+.profile-menu-divider {
+    height: 1px;
+    background: rgba(30, 64, 175, 0.06);
+    margin: 0.4rem 0;
+}
 
 /* ── Carrito ─────────────────────────────────────────────── */
 .cart-btn {
@@ -435,5 +500,21 @@ const hadleShowCart = () => { showCart.value = !showCart.value }
     .header-inner      { gap: 0.75rem; }
     .header-nav        { gap: 0; }
     .nav-link          { padding: 0.4rem 0.55rem; }
+}
+
+/* GoogleLogin styling */
+:deep(.gsi-material-button) {
+    margin: 0 !important;
+    width: auto !important;
+    height: auto !important;
+    padding: 0.4rem 0.9rem !important;
+    background: #1e40af !important;
+    border-radius: 8px !important;
+}
+:deep(.gsi-material-button-content) {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.45rem !important;
+    height: auto !important;
 }
 </style>

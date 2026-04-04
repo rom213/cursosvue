@@ -362,15 +362,6 @@ const upsellBenefits = computed(() => {
           <span class="text-sm font-medium text-slate-600">Certificación incluida</span>
         </div>
 
-        <!-- Biblioteca de libros (siempre) -->
-        <div class="flex items-center gap-2.5">
-          <div class="p-1.5 rounded-lg shrink-0" :class="[colors.iconBg, colors.iconText]">
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-            </svg>
-          </div>
-          <span class="text-sm font-medium text-slate-600">Biblioteca de 10.134 libros</span>
-        </div>
 
         <!-- Bonus premium: acceso 3 pilares -->
         <div
@@ -384,19 +375,6 @@ const upsellBenefits = computed(() => {
 
       <!-- ══ 6. CTAs ══ -->
       <div class="p-5 pt-4 mt-auto space-y-2.5">
-
-        <!-- Vista previa en Drive -->
-        <button
-          type="button"
-          class="w-full flex items-center justify-center gap-2.5 rounded-xl border transition-all font-medium"
-          :class="tierLevel === 'basic'
-            ? 'py-2 px-3 text-xs border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700'
-            : 'py-2.5 px-4 text-sm border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-800 hover:border-slate-300'"
-          @click="emit('preview', category)"
-        >
-          <div class="w-5 h-5 shrink-0" v-html="courseIcons.preview" />
-          <span>Vista previa en Drive</span>
-        </button>
 
         <!-- Anclaje de precio con descuento -->
         <div v-if="hasDiscount" class="flex items-center justify-center gap-2 text-sm">

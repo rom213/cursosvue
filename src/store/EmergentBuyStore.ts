@@ -16,7 +16,8 @@ export const emergentBuyStore = defineStore('emergentBuy', () => {
 
     const router = useRouter();
     const userAuth = authStore()
-    const cuponResponse = ref<ICuponResponsePayu | null>(null)
+    const cuponResponse = ref<ICuponResponsePayu | null>(null);
+    const esVentaTercero = ref(false)
     const emergentBuy = ref({
         emergent: false,
         optionsEmergentBuy: OptionsEmergentBuy.UserInternal,
@@ -174,5 +175,5 @@ export const emergentBuyStore = defineStore('emergentBuy', () => {
         })
     }
 
-    return { buyCategory, handleChangeOptionsEmergentBuy, handleEmergentBuy, emergentBuy, setCategoryEmergent, getCategoryEmergent, validarCupon, clearCupon, cuponResponse }
+    return { buyCategory, handleChangeOptionsEmergentBuy, handleEmergentBuy, emergentBuy, setCategoryEmergent, getCategoryEmergent, validarCupon, clearCupon, cuponResponse, esVentaTercero }
 })

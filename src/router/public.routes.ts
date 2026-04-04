@@ -19,9 +19,51 @@ export default [
     },
     {
       path: '/monetizar',
-      name: 'monetizar',
-      component: () => import('../monetizar/monetizar.page.vue'),
-      meta: { showHeader: true }
+      component: () => import('../monetizar/MonetizarLayout.vue'),
+      meta: { showHeader: true },
+      children: [
+        {
+          path: '',
+          name: 'monetizar',
+          component: () => import('../monetizar/monetizar.page.vue'),
+        },
+        {
+          path: 'catalogo',
+          name: 'monetizar-catalogo',
+          component: () => import('../monetizar/MonetizarCatalogo.vue'),
+        },
+        {
+          path: 'configuracion',
+          name: 'monetizar-configuracion',
+          component: () => import('../monetizar/configuracion/MonetizarConfiguracion.vue'),
+        },
+        {
+          path: 'mis-ventas',
+          component: () => import('../monetizar/mis-ventas/MonetizarMisVentas.vue'),
+          children: [
+            {
+              path: '',
+              name: 'monetizar-mis-ventas',
+              component: () => import('../monetizar/mis-ventas/MonetizarMisVentas.vue'),
+            },
+            {
+              path: 'resumen',
+              name: 'monetizar-mis-ventas-resumen',
+              component: () => import('../monetizar/mis-ventas/MonetizarMisVentasResumen.vue'),
+            },
+            {
+              path: 'graficos',
+              name: 'monetizar-mis-ventas-graficos',
+              component: () => import('../monetizar/mis-ventas/MonetizarMisVentasGraficos.vue'),
+            },
+            {
+              path: 'historial',
+              name: 'monetizar-mis-ventas-historial',
+              component: () => import('../monetizar/mis-ventas/MonetizarMisVentasHistorial.vue'),
+            },
+          ],
+        },
+      ],
     },
     {
       path: '/terminos-y-condiciones',

@@ -5,22 +5,25 @@ import { categoryStore } from '../store/CategoryStore';
 import CategoryService from '../services/CategorieService';
 import FooterComponent from '../components/footer/footer.component.vue';
 import { authStore } from '../store/AuthStore';
-import EmergentBuyComponent from './emergent.buy.component.vue';
+
 import { emergentBuyStore } from '../store/EmergentBuyStore';
 import { cartStore } from '../store/CartStore';
 import type { ICategory } from '../types/Categorie';
-import CourseCard from './CourseCard.vue';
-import type { PillarColor } from './CourseCard.vue';
-import CourseFilterBar from './CourseFilterBar.vue';
+import type { PillarColor } from '../courses/CourseCard.vue';
 import {
   classifyCategoryId,
   getPilarForThemeId,
   getUpsellTargetId,
   PILARES,
   COMBOS, 
-} from './courseFilterData';
-import type { FilterType, PilarKey } from './courseFilterData';
+} from '../courses/courseFilterData';
+import type { FilterType, PilarKey } from '../courses/courseFilterData';
+import CourseFilterBar from '../courses/CourseFilterBar.vue';
+import EmergentBuyComponent from '../courses/emergent.buy.component.vue';
+import CourseCardMonitizar from './CourseCardMonitizar.vue';
 import { OptionsEmergentBuy } from '../types/Payment';
+
+
 
 const storeemergentBuy = emergentBuyStore();
 const categorStore = categoryStore();
@@ -35,8 +38,7 @@ const categories = ref<ICategory[]>([]);
 const loadCategories = async () => {
   isLoading.value = true;
   const list = await CategoryService.getAllCategories(1000, 0, activeFilter.value) as ICategory[];
-  const unboughtList = list.filter((item) => !item.user_bought);
-  categories.value = unboughtList;
+  categories.value = list;
   categorStore.setCategories(categories.value);
   isLoading.value = false;
 };
@@ -228,8 +230,7 @@ const handleBuy = (item: ICategory) => {
     router.push('/login');
     return;
   }
-  storeemergentBuy.esVentaTercero=false 
-  storeemergentBuy.handleChangeOptionsEmergentBuy(OptionsEmergentBuy.UserInternal)
+  storeemergentBuy.esVentaTercero = true  
   storeemergentBuy.handleEmergentBuy();
   storeemergentBuy.setCategoryEmergent(item);
 };
@@ -281,6 +282,7 @@ const handleScrollTo = (categoryId: number) => {
 // ── Lifecycle ──
 onMounted(async () => {
   await Promise.all([loadCategories(), loadUpsellPool()]);
+  storeemergentBuy.handleChangeOptionsEmergentBuy(OptionsEmergentBuy.UserExternal)
 });
 </script>
 
@@ -344,7 +346,7 @@ onMounted(async () => {
             enter-from-class="opacity-0 translate-y-4"
             enter-to-class="opacity-100 translate-y-0"
           >
-            <CourseCard
+            <CourseCardMonitizar
               v-for="cat in section.categories"
               :key="cat.id"
               :id="'card-' + cat.id"

@@ -217,7 +217,7 @@ onBeforeUnmount(() => {
         <picture>
           <source srcset="../assets/home/mujercursos.webp" type="image/webp" />
           <img
-            src="../assets/home/mujercursos.png"
+            src="../assets/home/mujercursos.webp"
             alt=""
             class="hero-model-img"
             width="800"

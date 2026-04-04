@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { onMounted, ref, watch, onUnmounted } from 'vue';
-import { usePayU } from '../payu/usePayu';
+//import { usePayU } from '../payu/usePayu';
 import PaymentService from '../services/PaymentService';
 import { authStore } from '../store/AuthStore';
 import { cartStore } from '../store/CartStore';
@@ -8,7 +8,7 @@ import ItemComponent from './item.component.vue';
 import type { ICategory } from '../types/Categorie';
 const storeCart = cartStore()
 const userAuth = authStore()
-const { generatePayUForm } = usePayU();
+//const { generatePayUForm } = usePayU();
 
 const cart = ref<ICategory[]>([]);
 const valueCart = ref<number>(0)

@@ -206,7 +206,8 @@ watch(()=>storeemergentBuy.emergentBuy.emergent, ()=>{
                 <div class="space-y-3">
                     
                     <!-- Option 1: Internal User -->
-                    <div 
+                    <div
+                        v-if="!storeemergentBuy.esVentaTercero" 
                         @click="storeemergentBuy.handleChangeOptionsEmergentBuy(OptionsEmergentBuy.UserInternal)"
                         class="cursor-pointer border-2 rounded-lg p-4 transition-all duration-200 relative group"
                         :class="[

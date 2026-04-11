@@ -60,4 +60,4 @@ class ApiService {
     }
 }
 
-export default new ApiService('https://53d2-24-152-58-172.ngrok-free.app')
+export default new ApiService('https://server.cursosestudiaytrabaja.store')

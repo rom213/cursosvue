@@ -290,7 +290,7 @@ onBeforeUnmount(() => {
     <div v-if="isOpen && isAuthenticated" class="chat-widget">
       <!-- Header -->
       <div class="chat-header">
-        <img src="../../../dist/assets/mujercursos-Cayk62po.webp" alt="Clarita" class="header-avatar-img" />
+        <img src="../../assets/home/mujercursos.webp" alt="Clarita" class="header-avatar-img" />
         <div class="header-info">
           <p class="header-name">Clarita</p>
           <p class="header-status">
@@ -344,7 +344,7 @@ onBeforeUnmount(() => {
 
           <!-- Mensaje del agente -->
           <div v-else-if="msg.type === 'agent'" class="bubble-row agent">
-            <img src="../../../dist/assets/mujercurosagente-Dw-kvHdI.png" alt="Clarita" class="chat-avatar-img-agent" />
+            <img src="../../assets/home/mujercurosagente.png" alt="Clarita" class="chat-avatar-img-agent" />
             <div class="bubble" v-html="msg.content"></div>
           </div>
 
@@ -356,7 +356,7 @@ onBeforeUnmount(() => {
 
         <!-- Typing indicator -->
         <div v-if="showTyping" class="bubble-row agent">
-          <img src="../../../dist/assets/mujercurosagente.png" alt="Clarita" class="chat-avatar-img-agent" />
+          <img src="../../assets/home/mujercurosagente.png" alt="Clarita" class="chat-avatar-img-agent" />
           <div class="typing-bubble">
             <div class="typing-dot"></div>
             <div class="typing-dot"></div>

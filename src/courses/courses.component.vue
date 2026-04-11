@@ -18,10 +18,12 @@ import {
   getUpsellTargetId,
   PILARES,
   COMBOS,
+  TODA_LA_TIENDA_ID,
 } from './courseFilterData';
 import type { FilterType, PilarKey } from './courseFilterData';
 import { OptionsEmergentBuy } from '../types/Payment';
 import { usePromoQuery } from '../composables/usePromoQuery';
+import SkeletonLoaderComponent from '../components/common/skeleton-loader.component.vue';
 
 const storeemergentBuy = emergentBuyStore();
 const categorStore = categoryStore();
@@ -36,19 +38,31 @@ const searchTerm = ref(promoType.value === 'curso' ? (promoName.value ?? '') : '
 // ── Carga de categorías ──
 const isLoading = ref(false);
 const categories = ref<ICategory[]>([]);
+const activeFilter = ref<FilterType>('all');
+
+const UPSELL_POOL_IDS = new Set<number>([
+  ...PILARES.map((p) => p.pilarId),
+  TODA_LA_TIENDA_ID,
+]);
+
+// ── Upsell: pilares + toda-la-tienda (se rellenan desde la respuesta con filtro "all") ──
+const upsellPool = ref<Map<number, ICategory>>(new Map());
 
 const loadCategories = async () => {
   isLoading.value = true;
-  const list = await CategoryService.getAllCategories(1000, 0, activeFilter.value) as ICategory[];
+  const list = await CategoryService.getAllCategories(100, 0, activeFilter.value) as ICategory[];
   const unboughtList = list.filter((item) => !item.user_bought);
   categories.value = unboughtList;
   categorStore.setCategories(categories.value);
+  if (activeFilter.value === 'all') {
+    const pool = new Map<number, ICategory>();
+    for (const c of unboughtList) {
+      if (UPSELL_POOL_IDS.has(c.id)) pool.set(c.id, c);
+    }
+    upsellPool.value = pool;
+  }
   isLoading.value = false;
 };
-
-
-// ── Filtro activo ──
-const activeFilter = ref<FilterType>('all');
 
 // ── Mapeo pilar → color ──
 const PILAR_TO_COLOR: Record<PilarKey, PillarColor> = {
@@ -249,22 +263,6 @@ const handleBuy = (item: ICategory) => {
   storeemergentBuy.setCategoryEmergent(item);
 };
 
-// work
-
-
-// ── Upsell pool (pilares + toda-la-tienda, cargado una vez) ──
-const upsellPool = ref<Map<number, ICategory>>(new Map());
-
-const loadUpsellPool = async () => {
-  const [pilares, tienda] = await Promise.all([
-    CategoryService.getAllCategories(10, 0, 'pilares'),
-    CategoryService.getAllCategories(1, 0, 'toda-la-tienda'),
-  ]);
-  const pool = new Map<number, ICategory>();
-  for (const c of [...pilares, ...tienda]) pool.set(c.id, c);
-  upsellPool.value = pool;
-};
-
 const getUpsellCategory = (category: ICategory): ICategory | null => {
   const targetId = getUpsellTargetId(category.id);
   if (!targetId) return null;
@@ -292,7 +290,7 @@ const handleScrollTo = (categoryId: number) => {
 
 // ── Lifecycle ──
 onMounted(async () => {
-  await Promise.all([loadCategories(), loadUpsellPool()]);
+  await loadCategories();
 });
 </script>
 
@@ -394,16 +392,12 @@ onMounted(async () => {
       </div>
     </div>
 
-    <!-- Loading indicator -->
-    <div v-if="isLoading" class="text-center text-sm text-slate-500 py-8">
-      <div class="inline-flex items-center gap-2.5">
-        <svg class="animate-spin w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-        </svg>
-        <span>Cargando cursos...</span>
+    <!-- Skeleton Loader while loading -->
+    <template v-if="isLoading">
+      <div class="px-4 md:px-8">
+        <SkeletonLoaderComponent type="card" :count="6" />
       </div>
-    </div>
+    </template>
 
     <EmergentBuyComponent />
     <FooterComponent />

@@ -4,8 +4,14 @@ import type { IResponseDataMessage } from '../../../types/Message';
 import MessageService from '../../../services/MessageService';
 import { useRoute } from 'vue-router';
 
+const props = withDefaults(
+  defineProps<{ userBought?: boolean }>(),
+  { userBought: false }
+);
+
 const route = useRoute();
 const messageResponse = ref<IResponseDataMessage>();
+const isLoading = ref(true);
 
 const newStars = ref(0);
 const hoverStars = ref(0);
@@ -14,8 +20,10 @@ const submitting = ref(false);
 const submitError = ref('');
 
 const loadMessages = async () => {
+  isLoading.value = true;
   const message = await MessageService.getAllMessageByCategory(Number(route.params.id));
   messageResponse.value = message;
+  isLoading.value = false;
 };
 
 onMounted(loadMessages);
@@ -30,9 +38,7 @@ const averageRating = computed(() => {
 const ratingPercentages = computed(() => {
   const counts: any = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
   const messages = messageResponse.value?.messages || [];
-  messages.forEach(msg => {
-    counts[msg.stars] = (counts[msg.stars] || 0) + 1;
-  });
+  messages.forEach(msg => { counts[msg.stars] = (counts[msg.stars] || 0) + 1; });
   const total = messages.length;
   const percentages: { [key: number]: number } = {};
   for (let i = 1; i <= 5; i++) {
@@ -41,9 +47,9 @@ const ratingPercentages = computed(() => {
   return percentages;
 });
 
-const canComment = computed(() => {
-  return messageResponse.value?.is_login && !messageResponse.value?.is_comment;
-});
+const canComment = computed(() =>
+  messageResponse.value?.is_login && !messageResponse.value?.is_comment && props.userBought
+);
 
 const submitReview = async () => {
   if (newStars.value === 0 || !newMessage.value.trim()) {
@@ -69,124 +75,160 @@ const submitReview = async () => {
 </script>
 
 <template>
-  <div>
-    <!-- Sección de calificación principal -->
-    <div class="text-sm">
-      <p>Las opiniones y calificaciones están verificadas y provienen de personas que compraron</p>
-    </div>
-    <div class="flex justify-center items-center">
-      <div class="flex items-center gap-4 rounded-lg w-full">
-        <!-- Calificación promedio -->
-        <div class="flex items-center space-x-1 flex-col">
-          <span class="text-3xl font-bold">{{ averageRating }}</span>
-          <div class="flex text-yellow-500">
-            <!-- Mostrar estrellas según la calificación promedio (redondeado) -->
-            <template v-for="index in 5" :key="index">
-              <span v-if="index <= Math.round(Number(averageRating))">★</span>
-              <span v-else class="text-gray-300">★</span>
-            </template>
+  <div class="space-y-6">
+
+    <!-- Skeleton carga -->
+    <div v-if="isLoading" class="space-y-4">
+      <div class="flex items-center gap-6">
+        <div class="flex flex-col items-center gap-2">
+          <div class="h-12 w-16 bg-gray-200 rounded-lg animate-pulse"></div>
+          <div class="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
+        </div>
+        <div class="flex-1 space-y-2">
+          <div v-for="i in 5" :key="i" class="flex items-center gap-2">
+            <div class="h-3 w-3 bg-gray-200 rounded animate-pulse"></div>
+            <div class="h-2 flex-1 bg-gray-200 rounded-full animate-pulse"></div>
           </div>
         </div>
-        <!-- Barras de calificación dinámica -->
-        <div class="mt-4 mb-4 space-y-1 w-full">
-          <!-- Iteramos de 5 a 1 -->
-          <div v-for="star in [5,4,3,2,1]" :key="star" class="flex items-center">
-            <span class="w-4 text-sm">{{ star }}</span>
-            <div class="w-full h-2 bg-blue-200 ml-2 rounded-full">
+      </div>
+      <div v-for="i in 2" :key="i" class="bg-gray-50 rounded-2xl p-4 space-y-2">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full bg-gray-200 animate-pulse"></div>
+          <div class="h-4 w-28 bg-gray-200 rounded animate-pulse"></div>
+        </div>
+        <div class="h-3 w-24 bg-gray-200 rounded animate-pulse"></div>
+        <div class="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
+        <div class="h-4 w-3/4 bg-gray-200 rounded animate-pulse"></div>
+      </div>
+    </div>
+
+    <template v-else>
+      <!-- Resumen de calificaciones -->
+      <div class="flex items-center gap-6 p-5 bg-slate-50 rounded-2xl border border-slate-100">
+        <!-- Promedio -->
+        <div class="flex flex-col items-center shrink-0">
+          <span class="text-5xl font-black text-[#0d1b2a] leading-none">{{ averageRating }}</span>
+          <div class="flex text-yellow-400 mt-1.5 text-lg">
+            <template v-for="i in 5" :key="i">
+              <span :class="i <= Math.round(Number(averageRating)) ? 'text-yellow-400' : 'text-gray-200'">★</span>
+            </template>
+          </div>
+          <span class="text-xs text-slate-400 mt-1">{{ messageResponse?.messages?.length ?? 0 }} reseñas</span>
+        </div>
+        <!-- Barras -->
+        <div class="flex-1 space-y-1.5">
+          <div v-for="star in [5,4,3,2,1]" :key="star" class="flex items-center gap-2">
+            <span class="text-xs font-semibold text-slate-500 w-2 shrink-0">{{ star }}</span>
+            <span class="text-yellow-400 text-xs leading-none">★</span>
+            <div class="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
               <div
-                class="h-2 bg-blue-600 rounded-full"
+                class="h-full bg-yellow-400 rounded-full transition-all duration-500"
                 :style="{ width: ratingPercentages[star] + '%' }"
               ></div>
             </div>
-            <!-- Puedes mostrar también el porcentaje o la cantidad si lo deseas -->
+            <span class="text-[0.65rem] text-slate-400 w-7 text-right shrink-0">{{ ratingPercentages[star] }}%</span>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Formulario de reseña -->
-    <div v-if="canComment" class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-      <h4 class="font-semibold text-sm mb-3">Deja tu reseña</h4>
-      <!-- Selector de estrellas -->
-      <div class="flex items-center gap-1 mb-3">
-        <button
-          v-for="i in 5"
-          :key="i"
-          type="button"
-          class="text-2xl transition-colors"
-          :class="i <= (hoverStars || newStars) ? 'text-yellow-500' : 'text-gray-300'"
-          @mouseenter="hoverStars = i"
-          @mouseleave="hoverStars = 0"
-          @click="newStars = i"
-        >★</button>
-        <span v-if="newStars > 0" class="ml-2 text-sm text-gray-600">{{ newStars }} de 5</span>
-      </div>
-      <!-- Campo de texto -->
-      <textarea
-        v-model="newMessage"
-        placeholder="Escribe tu opinión sobre este curso..."
-        rows="3"
-        class="w-full border border-gray-300 rounded-lg p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"
-      ></textarea>
-      <!-- Error -->
-      <p v-if="submitError" class="text-red-500 text-xs mt-1">{{ submitError }}</p>
-      <!-- Botón enviar -->
-      <button
-        @click="submitReview"
-        :disabled="submitting"
-        class="mt-3 bg-[#FFBF2B] hover:bg-[#FACC15] text-slate-900 font-semibold py-2 px-6 rounded-lg text-sm transition-all disabled:opacity-50"
+      <!-- Estado: no logueado -->
+      <div
+        v-if="!messageResponse?.is_login"
+        class="flex items-center gap-3 p-4 bg-blue-50 border border-blue-100 rounded-xl text-sm text-blue-700"
       >
-        {{ submitting ? 'Enviando...' : 'Enviar reseña' }}
-      </button>
-    </div>
-
-    <!-- Mensaje si ya comentó -->
-    <div v-if="messageResponse?.is_login && messageResponse?.is_comment" class="mb-4 text-sm text-green-600 flex items-center gap-1">
-      <span>✓</span> Ya dejaste tu reseña para este curso.
-    </div>
-
-    <!-- Lista de mensajes de usuarios -->
-    <div class="grid gap-4 overflow-auto max-h-[300px]">
-      <div class="grid gap-2" v-for="(item, index) in messageResponse?.messages" :key="index">
-        <div class="flex items-center gap-3">
-          <img class="w-8 h-8 rounded-full" :src="item.user.picture" alt="" loading="lazy" width="32" height="32" />
-          <p class="text-sm">{{ item.user.name }}</p>
-        </div>
-        <div class="flex items-center">
-          <!-- Estrellas llenas según el número de estrellas evaluadas -->
-          <div v-for="index2 in item.stars" :key="index2">
-            <svg width="10" height="7" viewBox="0 0 10 7" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <g clip-path="url(#clip0_113_467)">
-                <path
-                  d="M5 0L6.5 2.33333L9.5 2.625L7.44 4.42167L8 7L5 5.83333L2 7L2.565 4.42167L0.5 2.625L3.5 2.33333L5 0Z"
-                  fill="black" />
-              </g>
-              <defs>
-                <clipPath id="clip0_113_467">
-                  <rect width="10" height="7" fill="white" />
-                </clipPath>
-              </defs>
-            </svg>
-          </div>
-          <!-- Estrellas vacías para completar hasta 5 -->
-          <div v-for="index2 in (5 - item.stars)" :key="'empty-' + index2">
-            <svg width="12" height="9" viewBox="0 0 12 9" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <g clip-path="url(#clip0_491_358)">
-                <path
-                  d="M3.70794 7.33169L6.00036 6.27363L8.29279 7.34561L7.69239 5.34087L9.71191 4.00439L7.05561 3.8234L6.00036 1.93004L4.94512 3.80948L2.28882 3.99046L4.30834 5.34087L3.70794 7.33169ZM2.59811 8.5L3.50053 5.54135L0.5 3.55221L4.45243 3.29048L6.00036 0.5L7.5483 3.28992L11.5 3.55165L8.49947 5.54079L9.40261 8.49944L6.00036 6.92907L2.59811 8.5Z"
-                  fill="black" />
-              </g>
-              <defs>
-                <clipPath id="clip0_491_358">
-                  <rect width="12" height="9" fill="white" />
-                </clipPath>
-              </defs>
-            </svg>
-          </div>
-          <div class="ml-2 text-[12px]">{{ item.created_at }}</div>
-        </div>
-        <p class="text-sm">{{ item.message }}</p>
+        <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        Inicia sesión para dejar tu reseña.
       </div>
-    </div>
+
+      <!-- Estado: logueado pero no compró -->
+      <div
+        v-else-if="messageResponse?.is_login && !userBought && !messageResponse?.is_comment"
+        class="flex items-center gap-3 p-4 bg-amber-50 border border-amber-100 rounded-xl text-sm text-amber-700"
+      >
+        <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+        Solo los estudiantes que compraron este curso pueden dejar una reseña.
+      </div>
+
+      <!-- Estado: ya comentó -->
+      <div
+        v-else-if="messageResponse?.is_login && messageResponse?.is_comment"
+        class="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-100 rounded-xl text-sm text-emerald-700"
+      >
+        <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        Ya dejaste tu reseña para este curso. ¡Gracias!
+      </div>
+
+      <!-- Formulario de reseña -->
+      <div v-if="canComment" class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-4">
+        <h4 class="font-[Poppins] font-bold text-[#0d1b2a] text-base">Deja tu reseña</h4>
+        <!-- Estrellas -->
+        <div class="flex items-center gap-1">
+          <button
+            v-for="i in 5"
+            :key="i"
+            type="button"
+            class="text-3xl transition-colors leading-none"
+            :class="i <= (hoverStars || newStars) ? 'text-yellow-400' : 'text-gray-200'"
+            @mouseenter="hoverStars = i"
+            @mouseleave="hoverStars = 0"
+            @click="newStars = i"
+          >★</button>
+          <span v-if="newStars > 0" class="ml-2 text-sm font-semibold text-slate-500">{{ newStars }} / 5</span>
+        </div>
+        <!-- Textarea -->
+        <textarea
+          v-model="newMessage"
+          placeholder="Cuéntanos tu experiencia con este curso..."
+          rows="3"
+          class="w-full border border-slate-200 rounded-xl p-3.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent bg-slate-50 placeholder:text-slate-400"
+        ></textarea>
+        <p v-if="submitError" class="text-red-500 text-xs">{{ submitError }}</p>
+        <button
+          @click="submitReview"
+          :disabled="submitting"
+          class="bg-[#FFBF2B] hover:bg-[#FACC15] text-slate-900 font-semibold py-2.5 px-7 rounded-xl text-sm transition-all disabled:opacity-50 shadow-sm"
+        >
+          {{ submitting ? 'Enviando...' : 'Enviar reseña' }}
+        </button>
+      </div>
+
+      <!-- Sin reseñas -->
+      <div v-if="!messageResponse?.messages?.length" class="text-center py-10 text-slate-400">
+        <svg class="w-12 h-12 mx-auto mb-3 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+        </svg>
+        <p class="text-sm">Aún no hay reseñas. ¡Sé el primero!</p>
+      </div>
+
+      <!-- Lista de reseñas -->
+      <div v-else class="space-y-4 max-h-[480px] overflow-y-auto pr-1">
+        <div
+          v-for="(item, index) in messageResponse?.messages"
+          :key="index"
+          class="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm"
+        >
+          <div class="flex items-start gap-3">
+            <img class="w-9 h-9 rounded-full object-cover shrink-0" :src="item.user.picture" :alt="item.user.name" loading="lazy" width="36" height="36" />
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between gap-2 flex-wrap">
+                <span class="font-semibold text-sm text-[#0d1b2a] truncate">{{ item.user.name }}</span>
+                <span class="text-[0.65rem] text-slate-400 shrink-0">{{ item.created_at }}</span>
+              </div>
+              <!-- Estrellas -->
+              <div class="flex gap-0.5 mt-1">
+                <span v-for="s in 5" :key="s" class="text-sm" :class="s <= item.stars ? 'text-yellow-400' : 'text-gray-200'">★</span>
+              </div>
+              <p class="text-sm text-slate-600 mt-2 leading-relaxed">{{ item.message }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
   </div>
 </template>

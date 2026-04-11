@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { RouterView, useRouter } from 'vue-router';
 import HeaderComponent from './components/header/header.component.vue';
+import ChatbotWidgetComponent from './components/common/chatbot-widget.component.vue';
 import { GoogleLogin } from 'vue3-google-login'; // Added GoogleLogin import
 
 import { onMounted, watch } from 'vue';
@@ -129,6 +130,9 @@ watch(() => store.profile?.user?.google_id, (id) => {
         </div>
       </div>
     </Transition>
+
+    <!-- ═══ CHATBOT WIDGET (Clarita) ═══ -->
+    <ChatbotWidgetComponent />
 
   </div>
 

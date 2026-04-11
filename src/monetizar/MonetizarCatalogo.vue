@@ -37,7 +37,7 @@ const categories = ref<ICategory[]>([]);
 
 const loadCategories = async () => {
   isLoading.value = true;
-  const list = await CategoryService.getAllCategories(1000, 0, activeFilter.value) as ICategory[];
+  const list = await CategoryService.getAllCategories(100, 0, activeFilter.value) as ICategory[];
   categories.value = list;
   categorStore.setCategories(categories.value);
   isLoading.value = false;

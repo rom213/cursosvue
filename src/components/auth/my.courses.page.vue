@@ -5,6 +5,7 @@ import CategoryService from '../../services/CategorieService';
 import MessageService from '../../services/MessageService';
 
 const courseBougth = ref<ICategory[]>([])
+const isLoading = ref(true)
 import FooterComponent from '../../components/footer/footer.component.vue';
 import { useRouter } from 'vue-router';
 import AffiliatyMessageComponent from '../../components/auth/affiliaty.message.component.vue';
@@ -23,7 +24,11 @@ const reviewSuccess = ref('');
 const reviewAlreadyCommented = ref(false);
 
 onMounted(async () => {
-  courseBougth.value = await CategoryService.getMyCourses();
+  try {
+    courseBougth.value = await CategoryService.getMyCourses();
+  } finally {
+    isLoading.value = false;
+  }
 });
 
 const hadleLinkCoursesDrive = (link: string | undefined) => {
@@ -94,14 +99,36 @@ const submitReview = async () => {
     <div class="flex-grow pt-8 pb-16">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
+        <!-- ESQUELETO DE CARGA -->
+        <div v-if="isLoading">
+          <div class="text-center md:text-left mb-10">
+            <div class="h-9 md:h-10 w-48 bg-gray-200 rounded-lg animate-pulse mx-auto md:mx-0"></div>
+            <div class="mt-3 h-5 w-80 max-w-full bg-gray-200 rounded animate-pulse mx-auto md:mx-0"></div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div v-for="n in 6" :key="n" class="flex flex-col bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+              <div class="w-full aspect-video bg-gray-200 animate-pulse"></div>
+              <div class="flex flex-col flex-grow p-6">
+                <div class="h-6 w-3/4 bg-gray-200 rounded animate-pulse"></div>
+                <div class="h-4 w-1/2 bg-gray-200 rounded animate-pulse mt-3"></div>
+                <div class="h-8 w-40 bg-gray-100 rounded-lg animate-pulse mt-4"></div>
+                <div class="mt-6 pt-5 border-t border-gray-50 flex flex-col gap-3">
+                  <div class="h-11 w-full bg-gray-200 rounded-xl animate-pulse"></div>
+                  <div class="h-10 w-full bg-gray-100 rounded-xl animate-pulse"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- ENCABEZADO -->
-        <div v-if="courseBougth.length > 0" class="text-center md:text-left mb-10">
+        <div v-if="!isLoading && courseBougth.length > 0" class="text-center md:text-left mb-10">
           <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">Mis Cursos</h1>
           <p class="mt-2 text-base md:text-lg text-gray-500">Cada gran logro comienza con un pequeño paso. ¡Continúa aprendiendo!</p>
         </div>
 
         <!-- ESTADO VACÍO (NO HAY CURSOS) -->
-        <div v-if="courseBougth.length === 0" class="flex flex-col items-center justify-center min-h-[50vh] text-center px-4 mt-8">
+        <div v-if="!isLoading && courseBougth.length === 0" class="flex flex-col items-center justify-center min-h-[50vh] text-center px-4 mt-8">
           <div class="bg-white p-10 md:p-16 rounded-3xl shadow-sm border border-gray-100 max-w-xl w-full flex flex-col items-center">
             <div class="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mb-6 text-blue-500">
               <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -117,7 +144,7 @@ const submitReview = async () => {
         </div>
 
         <!-- GRILLA DE CURSOS -->
-        <div v-if="courseBougth.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div v-if="!isLoading && courseBougth.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           <div v-for="(item, index) in courseBougth" :key="index" 
                class="group flex flex-col bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden transform hover:-translate-y-1">
             

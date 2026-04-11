@@ -92,7 +92,7 @@ const props = defineProps<{ item: IRecordItemRefund | null }>();
       <div class="flex justify-center">
         <a
           v-if="props.item?.image"
-          :href="`http://127.0.0.1:5002/api/managment/${props.item.image}`"
+          :href="props.item.image"
           target="_blank"
           class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg shadow"
         >

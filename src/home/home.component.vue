@@ -6,6 +6,9 @@ import HomeCta from '../components/cta/HomeCta.vue';
 import PricingLevels from './PricingLevels.vue';
 import { icons } from './section_one/section.one.data';
 
+// Loading state for smooth transitions
+const isLoading = ref(true);
+
 // Tooltip tap-to-toggle para móvil
 const activeTooltip = ref<string | null>(null);
 
@@ -202,6 +205,11 @@ onMounted(() => {
   window.addEventListener('mousemove', onTestimonialsMouseMove);
   window.addEventListener('mouseup',   onTestimonialsMouseUp);
   document.addEventListener('click', closeTooltips);
+
+  // Simula carga de página - muestra skeleton por 300ms
+  setTimeout(() => {
+    isLoading.value = false;
+  }, 300);
 });
 
 onBeforeUnmount(() => {
@@ -215,11 +223,20 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="home-root">
+    <!-- Skeleton Loader for smooth transition -->
+    <div v-if="isLoading" class="w-full">
+      <div class="h-64 md:h-96 bg-slate-200 animate-pulse"></div>
+      <div class="px-4 md:px-8 space-y-4 py-8">
+        <div class="h-8 bg-slate-200 rounded animate-pulse w-3/4"></div>
+        <div class="h-4 bg-slate-200 rounded animate-pulse w-full"></div>
+        <div class="h-4 bg-slate-200 rounded animate-pulse w-5/6"></div>
+      </div>
+    </div>
 
     <!-- ═══════════════════════════════════════════
          HERO — Wave CSS "agujero negro"
     ════════════════════════════════════════════ -->
-    <section class="hero-section">
+    <section v-if="!isLoading" class="hero-section">
       <!-- Fondo de olas (CSS puro, sin JS) -->
       <div class="hero-wave" aria-hidden="true">
         <span></span>
@@ -304,6 +321,8 @@ onBeforeUnmount(() => {
       </div>
     </section>
 
+    <!-- Main content wrapper - hidden while loading -->
+    <template v-if="!isLoading">
     <!-- ═══════════════════════════════════════════
          CARRUSEL DE MARCAS
     ════════════════════════════════════════════ -->
@@ -403,6 +422,7 @@ onBeforeUnmount(() => {
       </div>
 
     </section>
+    </template>
 
     <FooterComponent />
   </div>

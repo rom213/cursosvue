@@ -64,7 +64,7 @@ const borderClasses = props.variant === 'card'
 
 
 <template>
-    <div @click="validateLinkAfiliaty(id_category)" class="flex gap-3 justify-center py-3 cursor-pointer transition-colors" :class="borderClasses">
+    <div v-if="storeAuth.getProfile()?.user" @click="validateLinkAfiliaty(id_category)" class="flex gap-3 justify-center py-3 cursor-pointer transition-colors" :class="borderClasses">
         <div>
             <p class="font-light">Compartir link de afiliado</p>
         </div>

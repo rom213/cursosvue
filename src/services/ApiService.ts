@@ -58,5 +58,5 @@ class ApiService {
         return this.api.delete<T>(endpoint);
     }
 }
-
-export default new ApiService('http://localhost:5002')
+//http://localhost:5002
+export default new ApiService('https://53d2-24-152-58-172.ngrok-free.app')

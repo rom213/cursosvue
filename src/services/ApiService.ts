@@ -10,6 +10,7 @@ class ApiService {
             baseURL,
             headers: {
                 "Content-Type": "application/json",
+                "ngrok-skip-browser-warning": "true",
             },
             withCredentials: true,
         });
@@ -58,5 +59,5 @@ class ApiService {
         return this.api.delete<T>(endpoint);
     }
 }
-//http://localhost:5002
+
 export default new ApiService('https://53d2-24-152-58-172.ngrok-free.app')

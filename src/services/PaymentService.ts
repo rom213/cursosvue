@@ -87,9 +87,9 @@ class PaymentService {
       }
   }
 
-  static async verifyWompiTransaction(transactionId: string): Promise<{ status: string; wompi_status?: string } | null> {
+  static async verifyWompiTransaction(transactionId: string): Promise<{ status: string; wompi_status?: string; categories?: { id: number }[] } | null> {
     try {
-      const response: AxiosResponse<{ status: string; wompi_status?: string }> = await ApiService.post("/wompi/verify-transaction", { transaction_id: transactionId });
+      const response: AxiosResponse<{ status: string; wompi_status?: string; categories?: { id: number }[] }> = await ApiService.post("/wompi/verify-transaction", { transaction_id: transactionId });
       return response.data;
     } catch (error) {
       console.error("Error verificando transaccion Wompi:", error);

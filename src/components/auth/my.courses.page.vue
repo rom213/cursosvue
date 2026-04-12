@@ -34,10 +34,18 @@ const loadCourses = async () => {
   courseBougth.value = await CategoryService.getMyCourses();
 }
 
+const purchasedCategoryIds = ref<number[]>([])
+
+const hasMissingCategories = () => {
+  if (purchasedCategoryIds.value.length === 0) return false;
+  const ownedIds = courseBougth.value.map(c => c.id);
+  return purchasedCategoryIds.value.some(id => !ownedIds.includes(id));
+}
+
 const reloadCourses = async () => {
   isReloading.value = true;
   await loadCourses();
-  if (courseBougth.value.length > 0) {
+  if (!hasMissingCategories()) {
     showPaymentBanner.value = false;
   }
   isReloading.value = false;
@@ -53,14 +61,15 @@ onMounted(async () => {
         PaymentService.verifyWompiTransaction(transactionId),
       ]);
 
-      if (verifyResult?.status === 'completed' && courseBougth.value.length === 0) {
-        showPaymentBanner.value = true;
-        paymentBannerMessage.value = 'Tu pago fue procesado exitosamente. Tus cursos pueden tardar unos segundos en aparecer.';
+      if (verifyResult?.status === 'completed') {
+        purchasedCategoryIds.value = (verifyResult.categories || []).map((c: any) => c.id);
+        if (hasMissingCategories()) {
+          showPaymentBanner.value = true;
+          paymentBannerMessage.value = 'Tu pago fue procesado exitosamente. Tus cursos pueden tardar unos segundos en aparecer.';
+        }
       } else if (verifyResult?.status === 'pending') {
         showPaymentBanner.value = true;
         paymentBannerMessage.value = 'Tu pago aun esta siendo procesado. Por favor espera unos momentos y recarga.';
-      } else if (courseBougth.value.length > 0) {
-        showPaymentBanner.value = false;
       }
     } else {
       await loadCourses();

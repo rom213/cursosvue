@@ -59,5 +59,5 @@ class ApiService {
         return this.api.delete<T>(endpoint);
     }
 }
-
+//https://server.cursosestudiaytrabaja.store
 export default new ApiService('https://server.cursosestudiaytrabaja.store')

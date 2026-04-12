@@ -2492,9 +2492,10 @@ const contentHeading = computed(() => {
               </div>
 
               <!-- ══ SELECTOR DE OPCIONES + CTA UNICO ══ -->
-              <div class="space-y-3">
+              <div class="space-y-3" >
                 <!-- Opcion 1: Producto actual (siempre visible) -->
                 <label
+                  v-if="!selectedCategory?.user_bought"
                   class="block w-full rounded-xl px-4 py-3 border-2 cursor-pointer transition-all"
                   :class="
                     selectedOption === 'current'
@@ -2508,7 +2509,7 @@ const contentHeading = computed(() => {
                     value="current"
                     class="sr-only"
                   />
-                  <div class="flex items-center gap-3 w-full">
+                  <div  class="flex items-center gap-3 w-full">
                     <div
                       class="w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center transition-colors"
                       :class="
@@ -2759,6 +2760,7 @@ const contentHeading = computed(() => {
 
                 <!-- BOTON UNICO DE COMPRA -->
                 <button
+                  v-if="!selectedCategory?.user_bought"
                   @click="handleBuySelected"
                   class="w-full py-3.5 px-4 rounded-xl border-none text-sm sm:text-base font-bold text-white cursor-pointer transition-all duration-200 hover:-translate-y-0.5 text-center"
                   :class="{
@@ -2774,6 +2776,7 @@ const contentHeading = computed(() => {
                 </button>
 
                 <button
+                  v-if="!selectedCategory?.user_bought"
                   @click="handleAddToCartSelected"
                   class="w-full py-3 px-4 rounded-xl border-2 border-blue-700 bg-transparent text-sm font-bold text-blue-700 cursor-pointer transition-all hover:bg-blue-50/50 hover:border-blue-800"
                 >

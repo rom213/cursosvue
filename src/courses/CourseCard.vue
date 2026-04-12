@@ -260,7 +260,7 @@ const upsellBenefits = computed(() => {
       </div>
 
       <!-- ══ 3. TITULO + SUBTITULO ══ -->
-      <div class="px-5 pt-4">
+      <div @click="emit('click', category.id)" class="px-5 pt-4">
         <h3
           class="text-[#0d1b2a] line-clamp-2 cursor-pointer hover:text-blue-600 transition-colors"
           :class="{
@@ -284,6 +284,7 @@ const upsellBenefits = computed(() => {
 
       <!-- ══ 4. FRASE TRANSFORMACIONAL ══ -->
       <p
+        @click="emit('click', category.id)"
         v-if="category.frase_2"
         class="mx-5 text-slate-400 italic mt-2 mb-1"
         :class="{
@@ -297,7 +298,7 @@ const upsellBenefits = computed(() => {
       </p>
 
       <!-- ══ 5. METRICAS DE VALOR ══ -->
-      <div class="px-5 pt-3 space-y-2.5">
+      <div @click="emit('click', category.id)" class="px-5 pt-3 space-y-2.5">
 
         <!-- Volumen: bloques + cursos (siempre) -->
         <div class="flex items-center gap-2.5">

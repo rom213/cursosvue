@@ -104,12 +104,7 @@ const handleChangeAccount = () => {
                     <span class="nav-icon" v-html="icons.monetizar" />
                     <span class="nav-label">Monetizar</span>
                 </RouterLink>
-                <RouterLink
-                    v-if="userStore.getProfile()?.user?.is_bought"
-                    :to="{ name: 'mycourses' }"
-                    class="nav-link"
-                    :class="{ 'nav-active': positionNavigate === 3 }"
-                >
+                <RouterLink  :to="{ name: 'mycourses' }" class="nav-link" :class="{ 'nav-active': positionNavigate === 3 }">
                     <span class="nav-icon" v-html="icons.misCursos" />
                     <span class="nav-label">Mis Cursos</span>
                 </RouterLink>
@@ -469,6 +464,8 @@ const handleChangeAccount = () => {
     display: none;
     padding: 0.4rem 0.75rem 0.5rem;
     border-top: 1px solid rgba(30, 64, 175, 0.06);
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 /* ══ RESPONSIVE ═══════════════════════════════════════════ */

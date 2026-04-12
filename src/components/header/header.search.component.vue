@@ -101,6 +101,9 @@ const handleClickOutside = () => {
 /* ── CONTENEDOR (para posicionar el dropdown) ───────── */
 .search-outer {
     position: relative;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 /* ── ANILLO GIRATORIO ────────────────────────────────── */

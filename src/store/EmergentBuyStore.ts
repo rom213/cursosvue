@@ -21,7 +21,7 @@ export const emergentBuyStore = defineStore('emergentBuy', () => {
     const emergentBuy = ref({
         emergent: false,
         optionsEmergentBuy: OptionsEmergentBuy.UserInternal,
-        optionBuyPay: OptionBuyPay.PayU,
+        optionBuyPay: OptionBuyPay.Wompi,
         correo: '',
         user_google_id:''
       })

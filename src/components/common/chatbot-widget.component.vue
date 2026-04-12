@@ -317,7 +317,7 @@ onBeforeUnmount(() => {
       <!-- Área de mensajes -->
       <div ref="messagesArea" class="messages-area">
         <!-- Preguntas predefinidas (solo al inicio) -->
-        <div v-if="suggestionsVisible && messages.length === 0 && !isLoading" class="suggestions-container">
+        <div v-if="suggestionsVisible && messages.length <= 1 && !isLoading" class="suggestions-container">
           <p class="suggestions-title">Hoy · Conversación reiniciada</p>
           <button
             v-for="question in predefinedQuestions"
@@ -551,6 +551,7 @@ onBeforeUnmount(() => {
 /* ────── ÁREA DE MENSAJES ────── */
 .messages-area {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: 16px 14px;
   display: flex;
@@ -739,6 +740,8 @@ onBeforeUnmount(() => {
   padding: 8px 12px;
   font-size: 0.875rem;
   font-family: inherit;
+  color: #111827;
+  background: #ffffff;
   resize: none;
   outline: none;
   transition: border-color 0.15s;

@@ -3,13 +3,20 @@ import { onMounted, ref } from 'vue';
 import type { ICategory } from '../../types/Categorie';
 import CategoryService from '../../services/CategorieService';
 import MessageService from '../../services/MessageService';
+import PaymentService from '../../services/PaymentService';
 
 const courseBougth = ref<ICategory[]>([])
 const isLoading = ref(true)
 import FooterComponent from '../../components/footer/footer.component.vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import AffiliatyMessageComponent from '../../components/auth/affiliaty.message.component.vue';
 const router = useRouter()
+const route = useRoute()
+
+// Payment verification state
+const showPaymentBanner = ref(false)
+const paymentBannerMessage = ref('')
+const isReloading = ref(false)
 
 // Review dialog state
 const showReviewDialog = ref(false);
@@ -23,9 +30,41 @@ const reviewError = ref('');
 const reviewSuccess = ref('');
 const reviewAlreadyCommented = ref(false);
 
+const loadCourses = async () => {
+  courseBougth.value = await CategoryService.getMyCourses();
+}
+
+const reloadCourses = async () => {
+  isReloading.value = true;
+  await loadCourses();
+  if (courseBougth.value.length > 0) {
+    showPaymentBanner.value = false;
+  }
+  isReloading.value = false;
+}
+
 onMounted(async () => {
   try {
-    courseBougth.value = await CategoryService.getMyCourses();
+    const transactionId = route.query.id as string | undefined;
+
+    if (transactionId) {
+      const [_, verifyResult] = await Promise.all([
+        loadCourses(),
+        PaymentService.verifyWompiTransaction(transactionId),
+      ]);
+
+      if (verifyResult?.status === 'completed' && courseBougth.value.length === 0) {
+        showPaymentBanner.value = true;
+        paymentBannerMessage.value = 'Tu pago fue procesado exitosamente. Tus cursos pueden tardar unos segundos en aparecer.';
+      } else if (verifyResult?.status === 'pending') {
+        showPaymentBanner.value = true;
+        paymentBannerMessage.value = 'Tu pago aun esta siendo procesado. Por favor espera unos momentos y recarga.';
+      } else if (courseBougth.value.length > 0) {
+        showPaymentBanner.value = false;
+      }
+    } else {
+      await loadCourses();
+    }
   } finally {
     isLoading.value = false;
   }
@@ -98,7 +137,30 @@ const submitReview = async () => {
     <!-- Main Content pushing footer down -->
     <div class="flex-grow pt-8 pb-16">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
+        <!-- BANNER DE PAGO PROCESADO -->
+        <div v-if="showPaymentBanner" class="mb-8 bg-blue-50 border border-blue-200 rounded-2xl p-6 flex flex-col sm:flex-row items-center gap-4">
+          <div class="flex items-center gap-3 flex-grow">
+            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            <p class="text-sm sm:text-base text-blue-800 font-medium">{{ paymentBannerMessage }}</p>
+          </div>
+          <button
+            @click="reloadCourses"
+            :disabled="isReloading"
+            class="flex-shrink-0 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-xl text-sm transition-all disabled:opacity-50 flex items-center gap-2"
+          >
+            <svg v-if="isReloading" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+            {{ isReloading ? 'Recargando...' : 'Recargar' }}
+          </button>
+        </div>
+
         <!-- ESQUELETO DE CARGA -->
         <div v-if="isLoading">
           <div class="text-center md:text-left mb-10">

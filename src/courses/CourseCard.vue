@@ -86,7 +86,7 @@ const bloquesCount = computed(() => getBloquesCountForCategory(props.category.id
 const cursosCount = computed(() => props.category.cantidad_cursos ?? 200);
 const cuposCount = computed(() => props.category.num_per ?? 23);
 const cuposMax = computed(() => props.category.cupos_google ?? 200);
-const cuposPercent = computed(() => Math.min(100, Math.round((cuposCount.value / cuposMax.value) * 100)));
+const cuposPercent = computed(() => Math.min(100, Math.round(((cuposMax.value - cuposCount.value) / cuposMax.value) * 100)));
 const isLowStock = computed(() => cuposCount.value < 30);
 const commentsCount = computed(() => props.category.pregunta_respuesta?.length ?? 0);
 
@@ -321,7 +321,7 @@ const upsellBenefits = computed(() => {
               <div class="w-5 h-5" v-html="courseIcons.cupos" />
             </div>
             <div class="flex items-baseline gap-1">
-              <span class="text-sm text-slate-500">Cupos Google Drive:</span>
+              <span class="text-sm text-slate-500">Cupos Libres Google Drive:</span>
               <span
                 class="text-base font-bold"
                 :class="isLowStock ? 'text-red-600' : 'text-slate-900'"
@@ -331,12 +331,12 @@ const upsellBenefits = computed(() => {
               <span class="text-xs text-slate-400 font-medium">/ {{ cuposMax }}</span>
               <span v-if="isLowStock" class="cupos-pulse-dot ml-1 w-2 h-2 rounded-full bg-red-500 inline-block" />
             </div>
-          </div>
+          </div>  
           <!-- Barra de progreso -->
-          <div class="ml-10 w-auto h-1 bg-slate-100 rounded-full overflow-hidden">
+          <div class="ml-10 w-auto h-1 rounded-full overflow-hidden" :class="isLowStock ? 'bg-red-500' : 'bg-slate-100'">
             <div
               class="h-full rounded-full transition-all duration-700"
-              :class="isLowStock ? 'bg-red-500' : colors.progressBar"
+              :class="colors.progressBar"
               :style="{ width: `${cuposPercent}%` }"
             />
           </div>

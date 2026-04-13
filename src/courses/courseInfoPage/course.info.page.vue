@@ -290,9 +290,9 @@ const tierInfo = computed(() => {
 });
 
 const cuposCount = computed(() => category.value?.num_per ?? 23);
-const cuposMax = 200;
+const cuposMax = computed(() => category.value?.cupos_google ?? 200);
 const cuposPercent = computed(() =>
-  Math.min(100, Math.round((cuposCount.value / cuposMax) * 100)),
+  Math.min(100, Math.round(((cuposMax.value - cuposCount.value) / cuposMax.value) * 100)),
 );
 const isLowStock = computed(() => cuposCount.value < 30);
 
@@ -2474,12 +2474,9 @@ const contentHeading = computed(() => {
                     >{{ cuposCount }} / {{ cuposMax }}</span
                   >
                 </div>
-                <div
-                  class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden"
-                >
+                <div class="w-full h-1 rounded-full overflow-hidden" :class="isLowStock ? 'bg-red-500' : 'bg-slate-100'">
                   <div
-                    class="h-full rounded-full transition-all duration-700"
-                    :class="isLowStock ? 'bg-red-500' : 'bg-emerald-500'"
+                    class="h-full rounded-full transition-all duration-700 bg-emerald-500"
                     :style="{ width: `${cuposPercent}%` }"
                   />
                 </div>

@@ -7,7 +7,9 @@ import { cartStore } from '../../../store/CartStore';
 import { authStore } from '../../../store/AuthStore';
 
 import AffiliatyMessageComponent from '../../../components/auth/affiliaty.message.component.vue';
+import { useTracking } from '../../../composables/useTracking';
 const router = useRouter();
+const { trackAddToCart } = useTracking();
 
 const category = ref<ICategory>()
 
@@ -44,6 +46,7 @@ const addCarCategory = (item: ICategory | undefined) => {
         }
         if (cartSt.validateCart(item)) {
             cartSt.setCart(item)
+            trackAddToCart(item)
         }
     }
 }

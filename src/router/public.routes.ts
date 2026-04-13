@@ -78,6 +78,12 @@ export default [
       meta: { showHeader: true }
     },
     {
+      path: '/payment-response',
+      name: 'payment-response',
+      component: () => import('../pages/PaymentSuccess.vue'),
+      meta: { showHeader: true }
+    },
+    {
       path: '/:pathMach(.*)*',
       component: () => import('../components/notfound.vue'),
       meta: { showHeader: true }

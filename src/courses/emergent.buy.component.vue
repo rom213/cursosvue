@@ -7,9 +7,11 @@ import AlertNotification from '../components/common/AlertNotification.vue';
 
 
 import { ref, watch, computed } from 'vue';
+import { useTracking } from '../composables/useTracking';
 
 const storeemergentBuy = emergentBuyStore();
 const userAuth = authStore();
+const { trackBeginCheckout, trackAddPaymentInfo } = useTracking();
 
 const emailVerified = ref(false);
 const tieneCupon = ref(false);
@@ -117,6 +119,14 @@ const handleBuy = async () => {
         storeemergentBuy.emergentBuy.optionBuyPay = OptionBuyPay.Paypal;
     }
     isProcessingPayment.value = true;
+    const cat = storeemergentBuy.getCategoryEmergent();
+    if (cat) {
+      const price = finalPrice.value;
+      const payMethod = storeemergentBuy.emergentBuy.optionBuyPay === OptionBuyPay.Paypal ? 'PayPal'
+        : storeemergentBuy.emergentBuy.optionBuyPay === OptionBuyPay.Wompi ? 'Wompi' : 'PayU';
+      trackBeginCheckout([cat], price);
+      trackAddPaymentInfo([cat], price, payMethod);
+    }
     storeemergentBuy.buyCategory();
     // Si hay fallo y no hay redirección, desbloquea UI para reintento.
     window.setTimeout(() => {

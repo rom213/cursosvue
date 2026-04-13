@@ -6,8 +6,10 @@ import { authStore } from '../store/AuthStore';
 import { cartStore } from '../store/CartStore';
 import ItemComponent from './item.component.vue';
 import type { ICategory } from '../types/Categorie';
+import { useTracking } from '../composables/useTracking';
 const storeCart = cartStore()
 const userAuth = authStore()
+const { trackBeginCheckout, trackAddPaymentInfo, persistPurchaseData } = useTracking()
 //const { generatePayUForm } = usePayU();
 
 const cart = ref<ICategory[]>([]);
@@ -32,6 +34,9 @@ onMounted(() => {
     }
     valueCart.value += item.precio || 0
   });
+  if (cart.value?.length) {
+    trackBeginCheckout(cart.value, valueCart.value)
+  }
 })
 
 onUnmounted(() => {
@@ -92,7 +97,10 @@ watch(
 const buyCategoriesWompi = async () => {
   if (isProcessingPayment.value) return;
   isProcessingPayment.value = true;
-  let data = storeCart.getCart().map(item => ({ id_category: item.id }));
+  const items = storeCart.getCart();
+  trackAddPaymentInfo(items, valueCart.value, 'Wompi');
+  persistPurchaseData(items, valueCart.value);
+  let data = items.map(item => ({ id_category: item.id }));
   await PaymentService.generate_link_pay_wompy({ categories: data }).then((res) => {
     if (res?.approval_url) window.location.href = res.approval_url
   }).finally(() => {
@@ -103,7 +111,10 @@ const buyCategoriesWompi = async () => {
 const buyCategoriesPayPal = async () => {
   if (isProcessingPayment.value) return;
   isProcessingPayment.value = true;
-  let data = storeCart.getCart().map(item => ({ id_category: item.id }));
+  const items = storeCart.getCart();
+  trackAddPaymentInfo(items, valueCart.value, 'PayPal');
+  persistPurchaseData(items, valueCart.value);
+  let data = items.map(item => ({ id_category: item.id }));
   await PaymentService.generate_link_pay_paypal({ categories: data }).then((res) => {
     if (res?.approval_url) window.location.href = res.approval_url
   }).finally(() => {

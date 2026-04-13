@@ -26,10 +26,12 @@ import {
 } from "../courseFilterData";
 import type { PilarKey } from "../courseFilterData";
 import { usePromoQuery } from "../../composables/usePromoQuery";
+import { useTracking } from "../../composables/useTracking";
 import descripcionesRaw from "./descripcionCursos.json";
 
 const cartSt = cartStore();
 const storeemergentBuy = emergentBuyStore();
+const { trackViewItem, trackAddToCart } = useTracking();
 enum Navegacion {
   Contenido = 1,
   Preguntas = 2,
@@ -133,6 +135,7 @@ const addCarCategory = (item: ICategory) => {
   }
   if (cartSt.validateCart(item)) {
     cartSt.setCart(item);
+    trackAddToCart(item);
   }
 };
 const syncCategoryFromRoute = async () => {
@@ -153,6 +156,7 @@ const syncCategoryFromRoute = async () => {
     category.value = fullCategory;
   }
   categoryLoading.value = false;
+  if (category.value) trackViewItem(category.value);
 };
 onMounted(() => {
   let index = Number(route.params.id);
@@ -490,6 +494,7 @@ const handleBuySelected = () => {
   }
   storeemergentBuy.handleEmergentBuy();
   storeemergentBuy.setCategoryEmergent(item);
+  trackAddToCart(item);
 };
 
 const handleAddToCartSelected = () => {

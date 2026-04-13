@@ -31,7 +31,7 @@ defineProps<{
                 <div class="flex items-start justify-between gap-2">
                     <div>
                         <h3 class="font-bold text-slate-900 line-clamp-2">{{ item.titulo }}</h3>
-                        <p class="mt-1 text-xs text-slate-500">{{ item.courses.length }} cursos incluidos</p>
+                        <p class="mt-1 text-xs text-slate-500">{{ item.courses?.length ?? 0 }} cursos incluidos</p>
                     </div>
                     <button
                         class="shrink-0 rounded-lg border border-rose-200 bg-rose-50 p-2 text-rose-600 transition hover:bg-rose-100"

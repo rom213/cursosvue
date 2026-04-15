@@ -6,8 +6,8 @@ import { authStore } from "../../store/AuthStore";
 import { cartStore } from "../../store/CartStore";
 import AffiliatyMessageComponent from "../../components/auth/affiliaty.message.component.vue";
 import { emergentBuyStore } from "../../store/EmergentBuyStore";
-import type { ICategory } from "../../types/Categorie";
-import { onMounted, onBeforeUnmount, ref, watch, computed } from "vue";
+import type { ICategory, ICategoryCourseDetail } from "../../types/Categorie";
+import { onMounted, onBeforeUnmount, ref, watch, computed, nextTick } from "vue";
 import { categoryStore } from "../../store/CategoryStore";
 import EmergentBuyComponent from "../emergent.buy.component.vue";
 import AuthService from "../../services/AuthServices";
@@ -64,9 +64,18 @@ const currentPages = ref({
 });
 
 const searchTermLista = ref("");
+/** Curso de la promo (banner): ordenar al frente y resaltar; no filtra la lista */
+const promoHighlightTerm = ref("");
+/** Contenedor scroll de "Lista completa" (para anclar arriba al buscar) */
+const listaCompletaScrollRef = ref<HTMLElement | null>(null);
 
-watch(searchTermLista, () => {
+watch(searchTermLista, (val) => {
   currentPages.value.listaCompleta = 1;
+  if (val.trim()) {
+    nextTick(() => {
+      listaCompletaScrollRef.value?.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  }
 });
 
 const paginatedPlataformas = computed(() => {
@@ -98,20 +107,69 @@ const totalPagesBloques = computed(() =>
 
 const filteredListaCompleta = computed(() => {
   const list = category.value?.seccion_lista_completa?.lista_completa || [];
-  if (!searchTermLista.value) return list;
-  const term = searchTermLista.value.toLowerCase();
-  return list.filter((item) =>
-    item.name_del_curso?.toLowerCase().includes(term),
-  );
+
+  // Extraer el item de promo para anclarlo siempre al inicio
+  const promoTerm = promoHighlightTerm.value.trim().toLowerCase();
+  const promoIndex = promoTerm
+    ? list.findIndex((item) =>
+        item.name_del_curso?.toLowerCase().includes(promoTerm),
+      )
+    : -1;
+  const promoItem = promoIndex !== -1 ? list[promoIndex] : null;
+
+  const searchTerm = searchTermLista.value.trim().toLowerCase();
+
+  if (searchTerm) {
+    // Filtrar por búsqueda excluyendo el item promo para no duplicarlo
+    const results = list.filter(
+      (item, idx) =>
+        idx !== promoIndex &&
+        item.name_del_curso?.toLowerCase().includes(searchTerm),
+    );
+    return promoItem ? [promoItem, ...results] : results;
+  }
+
+  if (promoItem) {
+    const rest = list.filter((_, idx) => idx !== promoIndex);
+    return [promoItem, ...rest];
+  }
+
+  return list;
 });
+
+type ListaCompletaRow = ICategoryCourseDetail & { vistaListaIndex: number };
+
+/** Lista completa en modo búsqueda: estilo de cabecera / contenedor */
+const isListaBuscando = computed(() => searchTermLista.value.trim().length > 0);
+
+/** El item promo siempre queda en pos 0 de filteredListaCompleta cuando está activo */
+const firstPromoListaIndex = computed(() =>
+  promoHighlightTerm.value.trim() ? 0 : -1,
+);
+
+const isPromoItem = (curso: ListaCompletaRow) => {
+  if (!promoHighlightTerm.value.trim()) return false;
+  const term = promoHighlightTerm.value.toLowerCase();
+  if (!curso.name_del_curso?.toLowerCase().includes(term)) return false;
+  const first = firstPromoListaIndex.value;
+  return first !== -1 && curso.vistaListaIndex === first;
+};
+
+/** Solo el primer resultado de búsqueda (global) lleva el estilo sky fuerte en la fila */
+const isListaBusquedaDestacado = (curso: ListaCompletaRow) =>
+  isListaBuscando.value && curso.vistaListaIndex === 0;
 
 const paginatedListaCompleta = computed(() => {
   const list = filteredListaCompleta.value;
   const start = (currentPages.value.listaCompleta - 1) * itemsPerPageLista;
-  return list.slice(start, start + itemsPerPageLista).map((item, idx) => ({
-    ...item,
-    originalIndex: start + idx,
-  }));
+  return list.slice(start, start + itemsPerPageLista).map((item, idx) => {
+    const vistaListaIndex = start + idx;
+    return {
+      ...item,
+      originalIndex: vistaListaIndex,
+      vistaListaIndex,
+    };
+  });
 });
 const totalPagesListaCompleta = computed(() =>
   Math.ceil((filteredListaCompleta.value.length || 0) / itemsPerPageLista),
@@ -129,10 +187,6 @@ const openInNewTab = (url?: string) => {
 };
 
 const addCarCategory = (item: ICategory) => {
-  if (userAuth.getProfile() == null) {
-    router.push("/login");
-    return;
-  }
   if (cartSt.validateCart(item)) {
     cartSt.setCart(item);
     trackAddToCart(item);
@@ -172,27 +226,20 @@ onMounted(() => {
   }
 });
 
-const { promoName, promoType } = usePromoQuery();
+const { promoName, promoType, promoBannerClicked, consumeBannerClick } = usePromoQuery();
 
 watch(
   [
     () => route.params.id,
     () => storeCategory.categories.length,
     () => route.query._t,
+    () => route.query.q_course,
   ],
   async () => {
+    promoHighlightTerm.value = "";
     openedFolders.value["section-lista-completa"] = true;
     if (route.query.q_course) {
       searchTermLista.value = route.query.q_course as string;
-      setTimeout(() => {
-        const el = document.getElementById("lista-completa-header");
-        if (el) {
-          const y = el.getBoundingClientRect().top + window.scrollY - 180;
-          window.scrollTo({ top: y, behavior: "smooth" });
-        }
-      }, 600);
-    } else if (promoType.value === "curso" && promoName.value) {
-      searchTermLista.value = promoName.value;
       setTimeout(() => {
         const el = document.getElementById("lista-completa-header");
         if (el) {
@@ -206,8 +253,44 @@ watch(
     await syncCategoryFromRoute();
     await loadUpsellCategory();
     await loadBloques();
+    // Aplicar highlight de promo DESPUÉS de cargar los datos.
+    // Esto cubre el caso: usuario hace click en el banner → navega a página nueva.
+    // markBannerClicked() se llama antes de navegar, así que promoBannerClicked ya es true al montar.
+    if (promoBannerClicked.value && promoType.value === "curso" && promoName.value) {
+      consumeBannerClick();
+      promoHighlightTerm.value = promoName.value;
+      setTimeout(() => {
+        const el = document.getElementById("lista-completa-header");
+        if (el) {
+          const y = el.getBoundingClientRect().top + window.scrollY - 180;
+          window.scrollTo({ top: y, behavior: "smooth" });
+        }
+      }, 600);
+    }
   },
   { immediate: true },
+);
+
+// Watch separado para dos casos:
+// 1. dismissIntro: el usuario cierra el diálogo estando ya en la página → route no cambia.
+// 2. Click en el banner estando ya en la página del promo → router.push no navega (mismo route).
+// Sin immediate: el caso de navegación nueva lo maneja el watch principal al final del await.
+watch(
+  () => promoBannerClicked.value,
+  (clicked) => {
+    if (!clicked || promoType.value !== "curso" || !promoName.value) return;
+    consumeBannerClick();
+    promoHighlightTerm.value = promoName.value;
+    searchTermLista.value = "";
+    openedFolders.value["section-lista-completa"] = true;
+    setTimeout(() => {
+      const el = document.getElementById("lista-completa-header");
+      if (el) {
+        const y = el.getBoundingClientRect().top + window.scrollY - 180;
+        window.scrollTo({ top: y, behavior: "smooth" });
+      }
+    }, 600);
+  },
 );
 
 // ── Tier detection ──
@@ -488,10 +571,6 @@ const selectedCategory = computed(() =>
 const handleBuySelected = () => {
   const item = selectedCategory.value;
   if (!item) return;
-  if (userAuth.getProfile() == null) {
-    router.push("/login");
-    return;
-  }
   storeemergentBuy.handleEmergentBuy();
   storeemergentBuy.setCategoryEmergent(item);
   trackAddToCart(item);
@@ -1202,7 +1281,7 @@ const contentHeading = computed(() => {
                                 </svg>
                                 <span
                                   class="font-semibold text-xs text-[#0d1b2a]"
-                                  >Plataformas Integradas</span
+                                  >Autores</span
                                 >
                               </div>
                               <div class="flex items-center gap-2">
@@ -1257,7 +1336,7 @@ const contentHeading = computed(() => {
                                     plat.cursos?.length ??
                                     0
                                   }}
-                                  lecciones</span
+                                  cursos</span
                                 >
                               </div>
                             </div>
@@ -1348,7 +1427,15 @@ const contentHeading = computed(() => {
                                     )
                                   "
                                 >
-                                  {{ isLoadingDrive ? "Preparando..." : "Recursos" }}
+                                  <template v-if="isLoadingDrive">Preparando...</template>
+                                  <template v-else>
+                                    <svg class="inline-block w-3 h-3 mr-1 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-1px">
+                                      <path d="M7.71 3.5L1.15 15l3.3 5.5 6.57-11.5-3.31-5.5z" fill="#0066DA"/>
+                                      <path d="M16.29 3.5H7.71l6.57 11.5h8.57L16.29 3.5z" fill="#00AC47"/>
+                                      <path d="M4.45 20.5h15.1l3.3-5.5H7.75L4.45 20.5z" fill="#FFBA00"/>
+                                    </svg>
+                                    Ver en Google Drive
+                                  </template>
                                 </button>
                               </div>
                             </div>
@@ -1371,7 +1458,7 @@ const contentHeading = computed(() => {
                 @click="toggleFolder('section-plataformas')"
               >
                 <span class="font-[Poppins] text-base font-bold text-[#0d1b2a]"
-                  >Plataformas Integradas</span
+                  >Autores</span
                 >
                 <span class="flex items-center gap-3">
                   <span
@@ -1382,7 +1469,7 @@ const contentHeading = computed(() => {
                       category?.seccion_plataformas?.plataformas?.length ??
                       0
                     }}
-                    clases
+                    autores
                   </span>
                   <svg
                     class="w-5 h-5 text-slate-400 transition-transform duration-300"
@@ -1451,7 +1538,7 @@ const contentHeading = computed(() => {
                           plataforma.cursos?.length ??
                           0
                         }}
-                        lecciones</span
+                        cursos</span
                       >
                       <svg
                         class="w-4 h-4 text-slate-400 transition-transform"
@@ -1502,7 +1589,15 @@ const contentHeading = computed(() => {
                           handlePreview(category, curso.info_tecnica.url)
                         "
                       >
-                        {{ isLoadingDrive ? "Preparando..." : "Recursos" }}
+                        <template v-if="isLoadingDrive">Preparando...</template>
+                        <template v-else>
+                          <svg class="inline-block w-3 h-3 mr-1 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-1px">
+                            <path d="M7.71 3.5L1.15 15l3.3 5.5 6.57-11.5-3.31-5.5z" fill="#0066DA"/>
+                            <path d="M16.29 3.5H7.71l6.57 11.5h8.57L16.29 3.5z" fill="#00AC47"/>
+                            <path d="M4.45 20.5h15.1l3.3-5.5H7.75L4.45 20.5z" fill="#FFBA00"/>
+                          </svg>
+                          Ver en Google Drive
+                        </template>
                       </button>
                     </div>
                   </div>
@@ -1647,7 +1742,7 @@ const contentHeading = computed(() => {
                           bloque.cursos?.length ??
                           0
                         }}
-                        lecciones</span
+                        cursos</span
                       >
                       <svg
                         class="w-4 h-4 text-slate-400 transition-transform"
@@ -1698,7 +1793,15 @@ const contentHeading = computed(() => {
                           handlePreview(category, curso.info_tecnica.url)
                         "
                       >
-                        {{ isLoadingDrive ? "Preparando..." : "Recursos" }}
+                        <template v-if="isLoadingDrive">Preparando...</template>
+                        <template v-else>
+                          <svg class="inline-block w-3 h-3 mr-1 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-1px">
+                            <path d="M7.71 3.5L1.15 15l3.3 5.5 6.57-11.5-3.31-5.5z" fill="#0066DA"/>
+                            <path d="M16.29 3.5H7.71l6.57 11.5h8.57L16.29 3.5z" fill="#00AC47"/>
+                            <path d="M4.45 20.5h15.1l3.3-5.5H7.75L4.45 20.5z" fill="#FFBA00"/>
+                          </svg>
+                          Ver en Google Drive
+                        </template>
                       </button>
                     </div>
                   </div>
@@ -1800,18 +1903,29 @@ const contentHeading = computed(() => {
                 </span>
               </button>
               <div
+                ref="listaCompletaScrollRef"
                 v-show="isFolderOpen('section-lista-completa')"
-                class="accordion-body border-t border-slate-100 p-4 lg:px-6 max-h-[600px] overflow-y-auto bg-slate-50/40"
+                class="accordion-body border-t p-4 lg:px-6 max-h-[600px] overflow-y-auto transition-colors duration-200"
+                :class="
+                  isListaBuscando
+                    ? 'border-sky-200 bg-gradient-to-b from-sky-50/95 to-sky-100/40 ring-2 ring-inset ring-sky-300/50'
+                    : 'border-slate-100 bg-slate-50/40'
+                "
               >
+                <!-- Barra anclada arriba al buscar -->
+
                 <!-- Buscador -->
-                <div class="mb-5 relative w-full lg:w-2/3 mx-auto">
+                <div
+                  class="mb-5 relative w-full lg:w-2/3 mx-auto rounded-xl transition-shadow"
+                  :class="isListaBuscando ? 'ring-2 ring-sky-400/40 shadow-md shadow-sky-200/30' : ''"
+                >
                   <div
                     class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
                   >
                     <svg
-                      class="h-5 w-5 text-slate-400"
-                      fi
-                      ll="none"
+                      class="h-5 w-5"
+                      :class="isListaBuscando ? 'text-sky-500' : 'text-slate-400'"
+                      fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
                     >
@@ -1827,7 +1941,12 @@ const contentHeading = computed(() => {
                     v-model="searchTermLista"
                     type="text"
                     placeholder="Buscar un curso especifico en este paquete..."
-                    class="w-full py-3 pl-10 pr-10 border border-slate-200 rounded-xl text-sm bg-white text-[#0d1b2a] transition-all shadow-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10"
+                    class="w-full py-3 pl-10 pr-10 rounded-xl text-sm transition-all shadow-sm focus:outline-none focus:ring-2"
+                    :class="
+                      isListaBuscando
+                        ? 'border-2 border-sky-400 bg-white text-[#0d1b2a] focus:border-sky-500 focus:ring-sky-300/40'
+                        : 'border border-slate-200 bg-white text-[#0d1b2a] focus:border-blue-500 focus:ring-blue-500/10'
+                    "
                   />
                   <button
                     v-if="searchTermLista"
@@ -1874,18 +1993,45 @@ const contentHeading = computed(() => {
 
                 <div
                   v-for="curso in paginatedListaCompleta"
-                  :key="curso.originalIndex"
-                  class="mb-1.5 bg-white rounded-xl border border-slate-100 overflow-hidden transition-all hover:border-blue-200 hover:shadow-sm group"
+                  :key="'lc-' + curso.vistaListaIndex + '-' + (curso.name_del_curso ?? '')"
+                  class="mb-1.5 rounded-xl border overflow-hidden transition-all group"
+                  :class="
+                    isPromoItem(curso)
+                      ? 'bg-amber-50/60 border-amber-300 ring-1 ring-amber-200 hover:border-amber-400 hover:shadow-sm'
+                      : isListaBusquedaDestacado(curso)
+                        ? 'bg-white border-sky-300 ring-1 ring-sky-200/90 shadow-sm shadow-sky-100 hover:border-sky-400 hover:shadow-md'
+                        : 'bg-white border-slate-100 hover:border-blue-200 hover:shadow-sm'
+                  "
                 >
                   <div class="flex items-center justify-between px-4 py-3">
                     <div class="flex items-center gap-3 min-w-0">
                       <span
-                        class="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 text-xs font-bold group-hover:bg-blue-100 transition-colors"
+                        class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold transition-colors"
+                        :class="
+                          isPromoItem(curso)
+                            ? 'bg-amber-100 text-amber-800 group-hover:bg-amber-200'
+                            : isListaBusquedaDestacado(curso)
+                              ? 'bg-sky-600 text-white group-hover:bg-sky-700'
+                              : 'bg-blue-50 text-blue-600 group-hover:bg-blue-100'
+                        "
                       >
-                        {{ curso.originalIndex + 1 }}
+                        {{ curso.vistaListaIndex + 1 }}
                       </span>
                       <span
-                        class="text-sm font-medium text-slate-700 group-hover:text-[#0d1b2a] transition-colors truncate"
+                        v-if="isPromoItem(curso)"
+                        class="shrink-0 text-[0.65rem] font-bold uppercase tracking-wide text-amber-900 bg-amber-200/80 px-2 py-0.5 rounded-md"
+                      >
+                        Tu curso
+                      </span>
+                      <span
+                        class="text-sm font-medium transition-colors truncate"
+                        :class="
+                          isPromoItem(curso)
+                            ? 'text-amber-950 group-hover:text-amber-950'
+                            : isListaBusquedaDestacado(curso)
+                              ? 'text-sky-950 group-hover:text-sky-950'
+                              : 'text-slate-700 group-hover:text-[#0d1b2a]'
+                        "
                         >{{ curso.name_del_curso || "Curso" }}</span
                       >
                     </div>
@@ -1897,7 +2043,15 @@ const contentHeading = computed(() => {
                         handlePreview(category, curso.info_tecnica.url)
                       "
                     >
-                      {{ isLoadingDrive ? "Preparando..." : "Recursos" }}
+                      <template v-if="isLoadingDrive">Preparando...</template>
+                      <template v-else>
+                        <svg class="inline-block w-3 h-3 mr-1 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-1px">
+                          <path d="M7.71 3.5L1.15 15l3.3 5.5 6.57-11.5-3.31-5.5z" fill="#0066DA"/>
+                          <path d="M16.29 3.5H7.71l6.57 11.5h8.57L16.29 3.5z" fill="#00AC47"/>
+                          <path d="M4.45 20.5h15.1l3.3-5.5H7.75L4.45 20.5z" fill="#FFBA00"/>
+                        </svg>
+                        Ver en Google Drive
+                      </template>
                     </button>
                   </div>
                 </div>

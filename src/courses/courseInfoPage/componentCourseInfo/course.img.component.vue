@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import { categoryStore } from '../../../store/CategoryStore';
 import type { ICategory } from '../../../types/Categorie';
 import { cartStore } from '../../../store/CartStore';
@@ -8,7 +8,6 @@ import { authStore } from '../../../store/AuthStore';
 
 import AffiliatyMessageComponent from '../../../components/auth/affiliaty.message.component.vue';
 import { useTracking } from '../../../composables/useTracking';
-const router = useRouter();
 const { trackAddToCart } = useTracking();
 
 const category = ref<ICategory>()
@@ -40,10 +39,6 @@ watch(() => storeCategory.categories, () => {
 
 const addCarCategory = (item: ICategory | undefined) => {
     if (item) {
-        if (userAuth.getProfile() == null) {
-            router.push("/login")
-            return
-        }
         if (cartSt.validateCart(item)) {
             cartSt.setCart(item)
             trackAddToCart(item)

@@ -22,7 +22,6 @@ import {
 } from './courseFilterData';
 import type { FilterType, PilarKey } from './courseFilterData';
 import { OptionsEmergentBuy } from '../types/Payment';
-import { usePromoQuery } from '../composables/usePromoQuery';
 import SkeletonLoaderComponent from '../components/common/skeleton-loader.component.vue';
 
 const storeemergentBuy = emergentBuyStore();
@@ -31,9 +30,8 @@ const storeAuth = authStore();
 const cartSt = cartStore();
 const router = useRouter();
 
-// ── Promo desde redes sociales ──
-const { promoName, promoType } = usePromoQuery();
-const searchTerm = ref(promoType.value === 'curso' ? (promoName.value ?? '') : '');
+// Búsqueda en catálogo (sin pre-rellenar desde promo: el banner/dialog ya orienta al usuario)
+const searchTerm = ref('');
 
 // ── Carga de categorías ──
 const isLoading = ref(false);
@@ -95,6 +93,7 @@ const SECTION_ORDER = [
   'pilares',
   'combos',
   'toda-la-tienda',
+  'otros',
 ] as const;
 
 const SECTION_META: Record<string, { title: string; description: string; filterType: FilterType; accentColor: string; label?: string }> = {
@@ -135,6 +134,12 @@ const SECTION_META: Record<string, { title: string; description: string; filterT
     accentColor: 'section-accent-premium',
     label: 'Recomendado',
   },
+  'otros': {
+    title: 'Mas cursos',
+    description: 'Productos del catalogo que aun no estan en las secciones anteriores.',
+    filterType: 'all',
+    accentColor: 'bg-slate-400',
+  },
 };
 
 // ── Agrupar categorias en secciones ──
@@ -154,6 +159,8 @@ const buildSections = (cats: ICategory[]): CatalogSection[] => {
       buckets['combos'].push(cat);
     } else if (type === 'toda-la-tienda') {
       buckets['toda-la-tienda'].push(cat);
+    } else {
+      buckets['otros'].push(cat);
     }
   }
 
@@ -174,13 +181,25 @@ const buildSections = (cats: ICategory[]): CatalogSection[] => {
 const displayedCategories = computed(() => {
   const term = searchTerm.value.trim().toLowerCase();
   if (!term) return categories.value;
-  return categories.value.filter(cat =>
-    cat.titulo?.toLowerCase().includes(term) ||
-    cat.pack_nombre?.toLowerCase().includes(term)
-  );
+  return categories.value.filter((cat) => {
+    const t = (cat.titulo ?? '').toLowerCase();
+    const p = (cat.pack_nombre ?? '').toLowerCase();
+    return t.includes(term) || p.includes(term);
+  });
 });
 
 const visibleSections = computed(() => buildSections(displayedCategories.value));
+
+const showCatalogEmptyState = computed(
+  () => !isLoading.value && categories.value.length === 0,
+);
+
+const showNoSectionsState = computed(
+  () =>
+    !isLoading.value &&
+    categories.value.length > 0 &&
+    visibleSections.value.length === 0,
+);
 
 // ── Derivar props de card desde ID ──
 function getCardProps(category: ICategory) {
@@ -227,6 +246,10 @@ function getCardProps(category: ICategory) {
     includesResale = true;
     includesDiscount = true;
     isPremium = true;
+  } else {
+    pillarColor = 'blue';
+    pillarLabel = '📚 Curso';
+    typeLabel = 'Curso';
   }
 
   return { pillarColor, pillarLabel, typeLabel, includesResale, includesDiscount, isPremium };
@@ -239,10 +262,6 @@ const currencySuffix = computed(() =>
 
 // ── Event handlers ──
 const addCarCategory = (item: ICategory) => {
-  if (storeAuth.getProfile() == null) {
-    router.push('/login');
-    return;
-  }
   if (cartSt.validateCart(item)) {
     cartSt.setCart(item);
   }
@@ -253,11 +272,7 @@ const handleClickCourseItem = (id: number) => {
 };
 
 const handleBuy = (item: ICategory) => {
-  if (storeAuth.getProfile() == null) {
-    router.push('/login');
-    return;
-  }
-  storeemergentBuy.esVentaTercero=false 
+  storeemergentBuy.esVentaTercero = false
   storeemergentBuy.handleChangeOptionsEmergentBuy(OptionsEmergentBuy.UserInternal)
   storeemergentBuy.handleEmergentBuy();
   storeemergentBuy.setCategoryEmergent(item);
@@ -373,9 +388,9 @@ onMounted(async () => {
         </section>
       </template>
 
-      <!-- Estado vacio -->
+      <!-- Sin resultados de busqueda (hay categorias cargadas pero el filtro no deja ninguna) -->
       <div
-        v-if="!isLoading && categories.length === 0"
+        v-if="showNoSectionsState"
         class="text-center py-20"
       >
         <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-slate-100 flex items-center justify-center">
@@ -384,10 +399,32 @@ onMounted(async () => {
           </svg>
         </div>
         <p class="font-[Poppins] text-xl font-semibold text-[#0d1b2a]">
-          {{ searchTerm ? 'Sin resultados para "' + searchTerm + '"' : 'No hay cursos disponibles' }}
+          {{ searchTerm.trim() ? 'Sin resultados para "' + searchTerm + '"' : 'No se pudo mostrar el catalogo' }}
         </p>
         <p class="text-sm text-slate-400 mt-1">
-          {{ searchTerm ? 'Prueba con otro termino o limpia el buscador.' : 'Intenta con otro filtro o vuelve mas tarde.' }}
+          {{
+            searchTerm.trim()
+              ? 'Prueba con otro termino o limpia el buscador.'
+              : 'Los datos llegaron pero no encajan en las secciones habituales. Prueba otro filtro o recarga la pagina.'
+          }}
+        </p>
+      </div>
+
+      <!-- Estado vacio: servidor sin categorias (o todas compradas) -->
+      <div
+        v-if="showCatalogEmptyState"
+        class="text-center py-20"
+      >
+        <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-slate-100 flex items-center justify-center">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5">
+            <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </div>
+        <p class="font-[Poppins] text-xl font-semibold text-[#0d1b2a]">
+          No hay cursos disponibles
+        </p>
+        <p class="text-sm text-slate-400 mt-1">
+          Intenta con otro filtro o vuelve mas tarde.
         </p>
       </div>
     </div>

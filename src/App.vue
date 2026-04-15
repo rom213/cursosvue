@@ -2,6 +2,7 @@
 import { RouterView, useRouter } from 'vue-router';
 import HeaderComponent from './components/header/header.component.vue';
 import ChatbotWidgetComponent from './components/common/chatbot-widget.component.vue';
+import PromoIntroDialogComponent from './components/common/promo-intro-dialog.component.vue';
 import { GoogleLogin } from 'vue3-google-login'; // Added GoogleLogin import
 
 import { onMounted, watch } from 'vue';
@@ -13,9 +14,10 @@ import { usePromoQuery } from './composables/usePromoQuery';
 const store = authStore() // Renamed storeAuth to store for consistency with new code
 const catStore = categoryStore()
 const appRouter = useRouter()
-const { promoName, promoRoute, promoType, isPromoActive, clearPromo } = usePromoQuery()
+const { promoName, promoRoute, promoType, showPromoBanner, clearPromo, markBannerClicked } = usePromoQuery()
 
 const goToPromo = () => {
+  markBannerClicked()
   appRouter.push(promoRoute.value ?? '/courses')
 }
 
@@ -86,7 +88,7 @@ watch(() => store.profile?.user?.google_id, (id) => {
       leave-to-class="opacity-0 translate-y-full"
     >
       <div
-        v-if="isPromoActive"
+        v-if="showPromoBanner"
         class="promo-toast fixed bottom-16 md:bottom-4 left-3 right-3 md:left-auto md:right-6 md:max-w-xl z-[60] rounded-2xl shadow-2xl shadow-blue-900/25 border border-blue-400/30 overflow-hidden backdrop-blur-md"
       >
         <div class="flex items-center gap-2 md:gap-3 pr-2">
@@ -130,6 +132,9 @@ watch(() => store.profile?.user?.google_id, (id) => {
         </div>
       </div>
     </Transition>
+
+    <!-- ═══ DIALOG DE INTRODUCCION A LA PROMO ═══ -->
+    <PromoIntroDialogComponent />
 
     <!-- ═══ CHATBOT WIDGET (Clarita) ═══ -->
     <ChatbotWidgetComponent />

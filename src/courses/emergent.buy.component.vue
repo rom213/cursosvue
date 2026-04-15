@@ -1,12 +1,14 @@
 <script lang="ts" setup>
 import AuthService from '../services/AuthServices';
+import GuestCheckoutService from '../services/GuestCheckoutService';
 import { authStore } from '../store/AuthStore';
 import { emergentBuyStore } from '../store/EmergentBuyStore';
 import { OptionsEmergentBuy, OptionBuyPay } from '../types/Payment';
 import AlertNotification from '../components/common/AlertNotification.vue';
+import WhatsAppInput from '../components/common/WhatsAppInput.vue';
 
 
-import { ref, watch, computed } from 'vue';
+import { ref, watch, computed, onMounted } from 'vue';
 import { useTracking } from '../composables/useTracking';
 
 const storeemergentBuy = emergentBuyStore();
@@ -18,11 +20,18 @@ const tieneCupon = ref(false);
 const loadingVerify = ref(false);
 const isProcessingPayment = ref(false);
 const cupon = ref('');
+const guestEmail = ref('');
+const guestEmailConfirm = ref('');
+const guestEmailError = ref('');
+const guestEmailConfirmError = ref('');
+const whatsappError = ref('');
 const alert = ref({
     show: false,
     message: '',
     type: 'success' // 'success' | 'error' | 'warning'
 });
+
+const EMAIL_RE = /^[^@\s]+@gmail\.com$/i;
 
 // Computed properties for Coupon Logic
 const couponFullData = computed(() => {
@@ -53,6 +62,7 @@ const discountAmount = computed(() => {
 
 const isCouponApplied = computed(() => !!couponFullData.value);
 const isOnlyPaypal = computed(() => {
+    if (isGuest.value) return false; // guests always use Wompi
     const country = (userAuth.getProfile()?.user?.country || '').toUpperCase();
     return country !== 'CO';
 });
@@ -62,6 +72,18 @@ const isOnlyPaypal = computed(() => {
 
 
 
+
+const isGuest = computed(() => !userAuth.getProfile());
+
+onMounted(() => {
+    const profile = userAuth.getProfile()?.user;
+    if (profile?.num_whatsapp) {
+        const prefix = profile.prefix || '+57';
+        storeemergentBuy.emergentBuy.num_whatsapp = profile.num_whatsapp.startsWith('+')
+            ? profile.num_whatsapp
+            : `${prefix} ${profile.num_whatsapp}`;
+    }
+});
 
 const showAlert = (type: string, message: string) => {
     alert.value = { show: true, type, message };
@@ -109,9 +131,52 @@ const resetVerification = () => {
 
 const handleBuy = async () => {
     if (isProcessingPayment.value) return;
+
+    // Validar WhatsApp obligatorio
+    const wa = storeemergentBuy.emergentBuy.num_whatsapp;
+    if (!wa || wa.replace(/\D/g, '').length < 7) {
+        whatsappError.value = 'Ingresa un número de WhatsApp válido para recibir el recibo.';
+        showAlert('error', whatsappError.value);
+        return;
+    }
+    whatsappError.value = '';
+
+    // Flujo guest: registrar usuario TERCERO primero
+    if (isGuest.value) {
+        const email = guestEmail.value.trim().toLowerCase();
+        const emailConfirm = guestEmailConfirm.value.trim().toLowerCase();
+
+        if (!email || !EMAIL_RE.test(email)) {
+            guestEmailError.value = 'Ingresa un correo Gmail válido (ejemplo@gmail.com).';
+            showAlert('error', guestEmailError.value);
+            return;
+        }
+        guestEmailError.value = '';
+
+        if (!emailConfirm || emailConfirm !== email) {
+            guestEmailConfirmError.value = 'Los correos no coinciden.';
+            showAlert('error', guestEmailConfirmError.value);
+            return;
+        }
+        guestEmailConfirmError.value = '';
+
+        isProcessingPayment.value = true;
+        // Para guests siempre usar Wompi
+        storeemergentBuy.emergentBuy.optionBuyPay = OptionBuyPay.Wompi;
+        const regResult = await GuestCheckoutService.register({ email, num_whatsapp: wa });
+        if (!regResult?.google_id) {
+            showAlert('error', 'No pudimos registrarte. Verifica el correo e intenta de nuevo.');
+            isProcessingPayment.value = false;
+            return;
+        }
+        storeemergentBuy.emergentBuy.guest_email = email;
+        storeemergentBuy.emergentBuy.guest_google_id = regResult.google_id;
+    }
+
     if (storeemergentBuy.emergentBuy.optionsEmergentBuy === OptionsEmergentBuy.UserExternal) {
         if (!emailVerified.value) {
-            showAlert('error', 'Debe verificar el correo antes de realizar la compra.');
+            showAlert('error', 'Debe verificar el correo del beneficiario antes de realizar la compra.');
+            isProcessingPayment.value = false;
             return;
         }
     }
@@ -208,12 +273,12 @@ watch(()=>storeemergentBuy.emergentBuy.emergent, ()=>{
 
             <div class="p-6 overflow-y-auto space-y-6">
                 
-                <div class="text-sm text-gray-500 font-medium">
+                <div v-if="!isGuest" class="text-sm text-gray-500 font-medium">
                     ¿Quién tendrá acceso al curso?
                 </div>
 
-                <!-- Selection Cards -->
-                <div class="space-y-3">
+                <!-- Selection Cards (solo logueados) -->
+                <div v-if="!isGuest" class="space-y-3">
                     
                     <!-- Option 1: Internal User -->
                     <div
@@ -304,8 +369,8 @@ watch(()=>storeemergentBuy.emergentBuy.emergent, ()=>{
                     </div>
                 </div>
 
-                <!-- Coupon Section (Internal Only) -->
-                <div v-if="storeemergentBuy.emergentBuy.optionsEmergentBuy !== OptionsEmergentBuy.UserExternal" class="pt-2 border-t border-gray-100">
+                <!-- Coupon Section (Internal Only, only for logged-in users) -->
+                <div v-if="!isGuest && storeemergentBuy.emergentBuy.optionsEmergentBuy !== OptionsEmergentBuy.UserExternal" class="pt-2 border-t border-gray-100">
                     <label class="flex items-center gap-3 cursor-pointer group mb-3">
                         <div class="relative flex items-center">
                             <input type="checkbox" v-model="tieneCupon" class="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-gray-300 transition-all checked:border-emerald-600 checked:bg-emerald-600 hover:border-emerald-500">
@@ -342,7 +407,52 @@ watch(()=>storeemergentBuy.emergentBuy.emergent, ()=>{
                     </transition>
                 </div>
 
-            <div class="pt-4 border-t border-gray-100 space-y-4">
+            <!-- WhatsApp (siempre obligatorio) -->
+            <div class="pt-4 border-t border-gray-100">
+                <WhatsAppInput
+                    v-model="storeemergentBuy.emergentBuy.num_whatsapp"
+                    :disabled="isProcessingPayment"
+                    :error="whatsappError"
+                />
+            </div>
+
+            <!-- Formulario guest (solo sin sesión) -->
+            <div
+                v-if="isGuest"
+                class="space-y-3"
+            >
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Correo electrónico <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                        v-model="guestEmail"
+                        type="email"
+                        placeholder="tucorreo@gmail.com"
+                        :disabled="isProcessingPayment"
+                        class="w-full border rounded-md px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 disabled:bg-gray-100"
+                        :class="guestEmailError ? 'border-red-400' : 'border-gray-300'"
+                    />
+                    <p v-if="guestEmailError" class="text-xs text-red-500 mt-1">{{ guestEmailError }}</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Confirmar correo <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                        v-model="guestEmailConfirm"
+                        type="email"
+                        placeholder="tucorreo@gmail.com"
+                        :disabled="isProcessingPayment"
+                        class="w-full border rounded-md px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 disabled:bg-gray-100"
+                        :class="guestEmailConfirmError ? 'border-red-400' : 'border-gray-300'"
+                    />
+                    <p v-if="guestEmailConfirmError" class="text-xs text-red-500 mt-1">{{ guestEmailConfirmError }}</p>
+                    <p v-else class="text-xs text-gray-400 mt-1">Recibirás el recibo y acceso a tus cursos aquí.</p>
+                </div>
+            </div>
+
+            <div v-if="!isGuest" class="pt-4 border-t border-gray-100 space-y-4">
                  <div class="text-sm text-gray-500 font-medium">
                     Selecciona tu método de pago
                 </div>
@@ -370,7 +480,8 @@ watch(()=>storeemergentBuy.emergentBuy.emergent, ()=>{
                         </div>
                         <span class="text-sm font-bold text-gray-700">Tarjeta / PSE</span>
                     </div> -->
-
+                    
+                    <!-- WOMPY -->
                     <div 
                         v-if="!isOnlyPaypal"
                         @click="storeemergentBuy.emergentBuy.optionBuyPay = OptionBuyPay.Wompi"
@@ -386,13 +497,29 @@ watch(()=>storeemergentBuy.emergentBuy.emergent, ()=>{
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                             </svg>
                         </div>
-                         <!-- Credit Card Icon -->
-                        <div class="h-8 w-8 text-gray-700">
-                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                            </svg>  
-                        </div>      
-                        <span class="text-sm font-bold text-gray-700">Wompy</span>
+                        <!-- Métodos Wompi -->
+                        <div class="flex flex-wrap justify-center gap-1.5">
+                          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white" style="background:#3B3F8C;">
+                            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/><path fill="white" d="M9 8l3 3-3 3M12 11h3" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+                            Nequi
+                          </span>
+                          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-gray-900" style="background:#FDCD00;">
+                            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="5" width="20" height="14" rx="2"/><path fill="#FDCD00" d="M2 9h20"/></svg>
+                            Bancolombia
+                          </span>
+                          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white" style="background:#E3001B;">
+                            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2z"/></svg>
+                            Daviplata
+                          </span>
+                          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white" style="background:linear-gradient(135deg,#1A56DB 0%,#F5A623 100%);">
+                            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                            Tarjeta
+                          </span>
+                          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white" style="background:#00693C;">
+                            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h18v18H3z" rx="2"/><text x="3" y="16" font-size="9" fill="white" font-weight="bold">PSE</text></svg>
+                            PSE
+                          </span>
+                        </div>
                     </div>                  
 
                     <!-- PayPal Option -->
@@ -442,16 +569,58 @@ watch(()=>storeemergentBuy.emergentBuy.emergent, ()=>{
                         Ahorras ${{ discountAmount?.toLocaleString() || 0 }}
                     </span>
                  </div>
-                 <button
+
+                <!-- Botón Wompi (guest o usuario CO) -->
+                <button
+                    v-if="isGuest || storeemergentBuy.emergentBuy.optionBuyPay === OptionBuyPay.Wompi"
                     @click="handleBuy()"
                     :disabled="isProcessingPayment"
-                    class="w-full bg-emerald-700 hover:bg-emerald-600 disabled:opacity-70 disabled:cursor-not-allowed text-white font-bold text-lg py-3 rounded-lg shadow-lg shadow-emerald-700/20 transition-all transform active:scale-[0.99] flex justify-center items-center"
-                 >
-                    <span>{{ isProcessingPayment ? 'Lo estamos alistando para ti...' : 'Pagar' }}</span>
-                    <span class="ml-2 bg-emerald-800/50 px-2 py-0.5 rounded text-sm">
-                        ${{ finalPrice?.toLocaleString() || 0 }}
-                    </span>
+                    class="w-full rounded-xl border-2 border-emerald-600 bg-emerald-50 hover:bg-emerald-100 disabled:opacity-70 disabled:cursor-not-allowed transition-all transform active:scale-[0.99] px-4 py-3 flex flex-col items-center gap-2 shadow-md shadow-emerald-200"
+                >
+                    <div class="flex items-center gap-2 w-full justify-center">
+                        <svg class="w-5 h-5 text-emerald-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m0 0v2m0-2h2m-2 0H10m9-7V7a2 2 0 00-2-2H7a2 2 0 00-2 2v3m14 0H5m14 0a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2"/>
+                        </svg>
+                        <span class="font-extrabold text-emerald-800 text-base">
+                            {{ isProcessingPayment ? 'Lo estamos alistando...' : `Pagar $${finalPrice?.toLocaleString() || 0}` }}
+                        </span>
+                    </div>
+                    <div v-if="!isProcessingPayment" class="flex flex-wrap justify-center gap-1.5">
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white" style="background:#3B3F8C;">Nequi</span>
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-gray-900" style="background:#FDCD00;">Bancolombia</span>
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white" style="background:#E3001B;">Daviplata</span>
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white" style="background:linear-gradient(135deg,#1A56DB 0%,#F5A623 100%);">Tarjeta</span>
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white" style="background:#00693C;">PSE</span>
+                    </div>
+                    <div v-else class="h-4 w-4 rounded-full border-2 border-emerald-600 border-t-transparent animate-spin"></div>
                 </button>
+
+                <!-- Botón PayPal -->
+                <button
+                    v-else-if="storeemergentBuy.emergentBuy.optionBuyPay === OptionBuyPay.Paypal"
+                    @click="handleBuy()"
+                    :disabled="isProcessingPayment"
+                    class="w-full rounded-xl border-2 border-blue-500 bg-blue-50 hover:bg-blue-100 disabled:opacity-70 disabled:cursor-not-allowed transition-all transform active:scale-[0.99] px-4 py-3 flex items-center justify-center gap-3 shadow-md shadow-blue-200"
+                >
+                    <div class="h-6 w-6 text-[#003087] shrink-0">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7.076 19.95L8.237 12.65H5.80801L4.646 19.95H7.076Z" fill="#003087"/><path d="M11.238 12.65L12.399 5.35H9.97001L8.80798 12.65H11.238Z" fill="#003087"/><path d="M9.36295 2H14.139C17.729 2 20.656 4.898 20.656 8.509C20.656 12.12 17.729 15.018 14.139 15.018H11.709L12.871 7.718H15.301C16.463 7.718 17.399 6.782 17.399 5.62C17.399 4.458 16.463 3.522 15.301 3.522H11.729L9.36295 2Z" fill="#009CDE"/></svg>
+                    </div>
+                    <span class="font-extrabold text-[#003087] text-base">
+                        {{ isProcessingPayment ? 'Lo estamos alistando...' : `Pagar $${finalPrice?.toLocaleString() || 0} con PayPal` }}
+                    </span>
+                    <span v-if="isProcessingPayment" class="h-4 w-4 rounded-full border-2 border-blue-500 border-t-transparent animate-spin"></span>
+                </button>
+
+                <!-- Botón genérico fallback -->
+                <button
+                    v-else
+                    @click="handleBuy()"
+                    :disabled="isProcessingPayment"
+                    class="w-full bg-emerald-700 hover:bg-emerald-600 disabled:opacity-70 disabled:cursor-not-allowed text-white font-bold text-lg py-3 rounded-lg transition-all transform active:scale-[0.99] flex justify-center items-center"
+                >
+                    <span>{{ isProcessingPayment ? 'Lo estamos alistando...' : `Pagar $${finalPrice?.toLocaleString() || 0}` }}</span>
+                </button>
+
                 <div class="text-center mt-3">
                     <p class="text-xs text-gray-400">
                         Al continuar aceptas nuestros <a href="#" class="underline hover:text-gray-600">Términos y Condiciones</a>.

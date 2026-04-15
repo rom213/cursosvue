@@ -8,7 +8,11 @@ class CategoryService {
     static async getAllCategories(limit: number = 6, offset: number = 0, filterType: FilterType = 'all'): Promise<ICategory[] | []> {
         try {
           const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
-          if (filterType !== 'all') params.append('filter_type', filterType);
+          // El SP MySQL espera "temas" para bloques (tipo_categoria = 4), no "bloques"
+          if (filterType !== 'all') {
+            const apiFilter = filterType === 'bloques' ? 'temas' : filterType;
+            params.append('filter_type', apiFilter);
+          }
           const response: AxiosResponse<ICategory[]> = await ApiService.get<ICategory[]>(
             `api/category/all-categories?${params.toString()}`
           );

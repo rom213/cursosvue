@@ -11,6 +11,7 @@ const { trackPurchaseFromPending, getPendingPurchase } = useTracking()
 
 const status = ref<'success' | 'pending' | 'error'>('pending')
 const transactionId = ref('')
+const receiptCode = ref('')
 
 onMounted(() => {
   // PayU sends: transactionState (4=approved, 6=declined, 5=expired, 7=pending)
@@ -18,6 +19,7 @@ onMounted(() => {
   const txState = route.query.transactionState as string | undefined
   const refCode = route.query.referenceCode as string || route.query.ref as string || ''
   transactionId.value = refCode
+  receiptCode.value = route.query.receipt_code as string || ''
 
   if (txState === '4' || txState === undefined) {
     // 4 = approved (PayU), undefined = Wompi/PayPal (assume success if redirected back)
@@ -61,8 +63,15 @@ onMounted(() => {
             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h1 class="text-2xl font-bold text-slate-800 mb-2">Pago exitoso</h1>
-        <p class="text-slate-500 mb-6">Tu compra ha sido procesada correctamente. Ya puedes acceder a tus cursos.</p>
+        <h1 class="text-2xl font-bold text-slate-800 mb-2">¡Pago exitoso!</h1>
+        <p class="text-slate-500 mb-2">Tu compra ha sido procesada correctamente. Ya puedes acceder a tus cursos.</p>
+        <p class="text-sm text-emerald-700 font-medium mb-1">
+          📩 Te enviamos el recibo por WhatsApp y correo electrónico.
+        </p>
+        <p v-if="receiptCode" class="text-xs text-slate-400 mb-6">
+          N° de orden: <span class="font-mono font-semibold text-slate-600">{{ receiptCode }}</span>
+        </p>
+        <div v-else class="mb-6"></div>
         <RouterLink to="/mis-courses"
           class="inline-block px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors no-underline">
           Ir a Mis Cursos

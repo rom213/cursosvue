@@ -4,12 +4,23 @@ import type { ICategory } from '../../types/Categorie';
 import CategoryService from '../../services/CategorieService';
 import MessageService from '../../services/MessageService';
 import PaymentService from '../../services/PaymentService';
+import GuestCheckoutService, { type GuestCourse } from '../../services/GuestCheckoutService';
+import { authStore } from '../../store/AuthStore';
 
 const courseBougth = ref<ICategory[]>([])
 const isLoading = ref(true)
 import FooterComponent from '../../components/footer/footer.component.vue';
 import { useRoute, useRouter } from 'vue-router';
 import AffiliatyMessageComponent from '../../components/auth/affiliaty.message.component.vue';
+
+const userAuth = authStore()
+const isGuestFlow = ref(false)
+const guestCourses = ref<GuestCourse[]>([])
+const guestTransactionPending = ref(false)
+const guestEmail = ref<string | null>(null)
+const guestTransactionId = ref<string | null>(null)
+const copiedEmail = ref(false)
+const copiedTransaction = ref(false)
 const router = useRouter()
 const route = useRoute()
 
@@ -54,7 +65,23 @@ const reloadCourses = async () => {
 onMounted(async () => {
   try {
     const transactionId = route.query.id as string | undefined;
+    const isGuest = userAuth.getProfile() == null;
 
+    // Flujo guest: mostrar cursos comprados directamente sin necesidad de sesion
+    if (transactionId && isGuest) {
+      isGuestFlow.value = true;
+      guestTransactionId.value = transactionId;
+      const result = await GuestCheckoutService.getCoursesByTransaction(transactionId);
+      if (result?.status === 'completed') {
+        guestCourses.value = result.categories || [];
+        guestEmail.value = result.email ?? null;
+      } else {
+        guestTransactionPending.value = true;
+      }
+      return;
+    }
+
+    // Flujo normal (usuario logueado)
     if (transactionId) {
       const [_, verifyResult] = await Promise.all([
         loadCourses(),
@@ -85,6 +112,10 @@ const hadleLinkCoursesDrive = (link: string | undefined) => {
   }
 }
 
+const openExternalLink = (url: string | undefined) => {
+  if (url) window.open(url, '_blank')
+}
+
 const handleClickItem = (id: number) => {
   router.push({ name: 'courses-description', params: { id: id } })
 }
@@ -109,6 +140,21 @@ const openReviewDialog = async (category: ICategory) => {
 
 const closeReviewDialog = () => {
   showReviewDialog.value = false;
+};
+
+const copyToClipboard = async (text: string, type: 'email' | 'transaction') => {
+  try {
+    await navigator.clipboard.writeText(text);
+    if (type === 'email') {
+      copiedEmail.value = true;
+      setTimeout(() => { copiedEmail.value = false; }, 2000);
+    } else {
+      copiedTransaction.value = true;
+      setTimeout(() => { copiedTransaction.value = false; }, 2000);
+    }
+  } catch {
+    // fallback silencioso
+  }
 };
 
 const submitReview = async () => {
@@ -147,8 +193,117 @@ const submitReview = async () => {
     <div class="flex-grow pt-8 pb-16">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
+        <!-- FLUJO GUEST: cursos comprados sin sesion -->
+        <div v-if="isGuestFlow">
+          <!-- Pago pendiente -->
+          <div v-if="guestTransactionPending" class="flex flex-col items-center justify-center min-h-[50vh] text-center px-4">
+            <div class="bg-white p-10 rounded-3xl shadow-sm border border-gray-100 max-w-xl w-full flex flex-col items-center">
+              <div class="w-16 h-16 bg-yellow-50 rounded-full flex items-center justify-center mb-5">
+                <svg class="w-8 h-8 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+              <h2 class="text-2xl font-bold text-gray-900 mb-2">Pago en proceso</h2>
+              <p class="text-gray-500 text-sm leading-relaxed">Tu pago aún está siendo verificado. Pronto recibirás tus cursos por correo y WhatsApp.</p>
+            </div>
+          </div>
+
+          <!-- Cursos comprados -->
+          <div v-else>
+            <div class="text-center md:text-left mb-10">
+              <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">Tus cursos adquiridos</h1>
+              <p class="mt-2 text-base md:text-lg text-gray-500">¡Gracias por tu compra! Accede a tus cursos con el siguiente botón.</p>
+            </div>
+
+            <!-- Banner de email y código de transacción -->
+            <div v-if="guestEmail || guestTransactionId" class="mb-8 bg-blue-50 border border-blue-200 rounded-2xl p-5 flex flex-col gap-4">
+              <div v-if="guestEmail" class="flex flex-col sm:flex-row sm:items-center gap-2">
+                <span class="text-sm text-blue-700 font-medium shrink-0">Con este correo realizaste la compra:</span>
+                <div class="flex items-center gap-2 bg-white border border-blue-200 rounded-xl px-3 py-2 flex-1 min-w-0">
+                  <span class="text-sm text-gray-800 font-mono truncate flex-1">{{ guestEmail }}</span>
+                  <button
+                    @click="copyToClipboard(guestEmail!, 'email')"
+                    class="shrink-0 flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors"
+                    :title="copiedEmail ? 'Copiado' : 'Copiar correo'"
+                  >
+                    <svg v-if="!copiedEmail" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                    </svg>
+                    <svg v-else class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <span>{{ copiedEmail ? 'Copiado' : 'Copiar' }}</span>
+                  </button>
+                </div>
+              </div>
+              <div v-if="guestTransactionId" class="flex flex-col sm:flex-row sm:items-center gap-2">
+                <span class="text-sm text-blue-700 font-medium shrink-0">Código de transacción:</span>
+                <div class="flex items-center gap-2 bg-white border border-blue-200 rounded-xl px-3 py-2 flex-1 min-w-0">
+                  <span class="text-sm text-gray-800 font-mono truncate flex-1">{{ guestTransactionId }}</span>
+                  <button
+                    @click="copyToClipboard(guestTransactionId!, 'transaction')"
+                    class="shrink-0 flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors"
+                    :title="copiedTransaction ? 'Copiado' : 'Copiar código'"
+                  >
+                    <svg v-if="!copiedTransaction" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                    </svg>
+                    <svg v-else class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <span>{{ copiedTransaction ? 'Copiado' : 'Copiar' }}</span>
+                  </button>
+                </div>
+              </div>
+              <p class="text-xs text-blue-600 leading-relaxed">
+                Si no puedes ingresar con tu correo electrónico,
+                <a href="https://wa.me/573226670701" target="_blank" rel="noopener" class="underline font-medium hover:text-blue-800">contáctanos por soporte</a>.
+              </p>
+            </div>
+
+            <div v-if="guestCourses.length === 0" class="flex flex-col items-center justify-center min-h-[30vh] text-center px-4">
+              <p class="text-gray-400 text-sm">No encontramos cursos asociados a esta transacción.</p>
+            </div>
+
+            <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div
+                v-for="item in guestCourses"
+                :key="item.id"
+                class="group flex flex-col bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden transform hover:-translate-y-1"
+              >
+                <div class="relative w-full aspect-video overflow-hidden bg-gray-100">
+                  <img class="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" :src="item.imagen_url" :alt="item.titulo" />
+                  <div class="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors duration-300"></div>
+                </div>
+                <div class="flex flex-col flex-grow p-6">
+                  <div class="flex-grow">
+                    <h3 class="text-xl font-bold text-gray-800 line-clamp-2 leading-snug">{{ item.titulo }}</h3>
+                    <div class="flex items-center gap-2 mt-3 text-xs md:text-sm text-gray-600 font-medium bg-gray-50 max-w-max px-3 py-1.5 rounded-lg border border-gray-100">
+                      <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                      </svg>
+                      <span>{{ item.cantidad_cursos }} {{ item.cantidad_cursos === 1 ? 'curso incluido' : 'cursos incluidos' }}</span>
+                    </div>
+                  </div>
+                  <div class="mt-6 pt-5 border-t border-gray-50">
+                    <button
+                      @click="openExternalLink(item.url)"
+                      class="w-full flex items-center justify-center gap-2 bg-[#FFBF2B] hover:bg-[#FACC15] text-slate-900 font-semibold py-3 px-4 rounded-xl shadow-sm hover:shadow transition-all duration-200"
+                    >
+                      <span>Ver Mis Cursos</span>
+                      <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- BANNER DE PAGO PROCESADO -->
-        <div v-if="showPaymentBanner" class="mb-8 bg-blue-50 border border-blue-200 rounded-2xl p-6 flex flex-col sm:flex-row items-center gap-4">
+        <div v-if="!isGuestFlow && showPaymentBanner" class="mb-8 bg-blue-50 border border-blue-200 rounded-2xl p-6 flex flex-col sm:flex-row items-center gap-4">
           <div class="flex items-center gap-3 flex-grow">
             <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
               <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -171,7 +326,7 @@ const submitReview = async () => {
         </div>
 
         <!-- ESQUELETO DE CARGA -->
-        <div v-if="isLoading">
+        <div v-if="!isGuestFlow && isLoading">
           <div class="text-center md:text-left mb-10">
             <div class="h-9 md:h-10 w-48 bg-gray-200 rounded-lg animate-pulse mx-auto md:mx-0"></div>
             <div class="mt-3 h-5 w-80 max-w-full bg-gray-200 rounded animate-pulse mx-auto md:mx-0"></div>
@@ -193,13 +348,13 @@ const submitReview = async () => {
         </div>
 
         <!-- ENCABEZADO -->
-        <div v-if="!isLoading && courseBougth.length > 0" class="text-center md:text-left mb-10">
+        <div v-if="!isGuestFlow && !isLoading && courseBougth.length > 0" class="text-center md:text-left mb-10">
           <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">Mis Cursos</h1>
           <p class="mt-2 text-base md:text-lg text-gray-500">Cada gran logro comienza con un pequeño paso. ¡Continúa aprendiendo!</p>
         </div>
 
         <!-- ESTADO VACÍO (NO HAY CURSOS) -->
-        <div v-if="!isLoading && courseBougth.length === 0" class="flex flex-col items-center justify-center min-h-[50vh] text-center px-4 mt-8">
+        <div v-if="!isGuestFlow && !isLoading && courseBougth.length === 0" class="flex flex-col items-center justify-center min-h-[50vh] text-center px-4 mt-8">
           <div class="bg-white p-10 md:p-16 rounded-3xl shadow-sm border border-gray-100 max-w-xl w-full flex flex-col items-center">
             <div class="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mb-6 text-blue-500">
               <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -215,7 +370,7 @@ const submitReview = async () => {
         </div>
 
         <!-- GRILLA DE CURSOS -->
-        <div v-if="!isLoading && courseBougth.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div v-if="!isGuestFlow && !isLoading && courseBougth.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           <div v-for="(item, index) in courseBougth" :key="index" 
                class="group flex flex-col bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden transform hover:-translate-y-1">
             

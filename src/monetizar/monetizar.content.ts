@@ -134,7 +134,7 @@ export const securityBox = {
 export const monetizationTitle = "MONETIZACIÓN — gana un ingreso extra.";
 
 export const monetizationLead =
-  "¡Transforma tu aprendizaje en un negocio rentable! Al adquirir cualquier paquete desde $47.500 COP en adelante, desbloqueas automáticamente tu perfil de Revendedor Oficial. Tienes dos rutas probadas para generar ingresos masivos:";
+  "¡Transforma tu aprendizaje en un negocio rentable! Al adquirir cualquier paquete desde $48.500 COP en adelante, desbloqueas automáticamente tu perfil de Revendedor Oficial. Tienes dos rutas probadas para generar ingresos masivos:";
 
 export const monetizationOptions: MonetizationOption[] = [
   {

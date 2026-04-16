@@ -6,6 +6,7 @@ import { authStore } from "../../store/AuthStore";
 import { cartStore } from "../../store/CartStore";
 import AffiliatyMessageComponent from "../../components/auth/affiliaty.message.component.vue";
 import { emergentBuyStore } from "../../store/EmergentBuyStore";
+import { toastStore } from "../../store/ToastStore";
 import type { ICategory, ICategoryCourseDetail } from "../../types/Categorie";
 import { onMounted, onBeforeUnmount, ref, watch, computed, nextTick } from "vue";
 import { categoryStore } from "../../store/CategoryStore";
@@ -31,6 +32,7 @@ import descripcionesRaw from "./descripcionCursos.json";
 
 const cartSt = cartStore();
 const storeemergentBuy = emergentBuyStore();
+const toasts = toastStore();
 const { trackViewItem, trackAddToCart } = useTracking();
 enum Navegacion {
   Contenido = 1,
@@ -50,9 +52,7 @@ const openedFolders = ref<Record<string, boolean>>({});
 const isLoadingDrive = ref(false);
 const showPreviewWarning = ref(false);
 const pendingUrl = ref<string>("");
-const showTimeExpiredBanner = ref(false);
 let previewTimeoutId: ReturnType<typeof setTimeout> | null = null;
-let bannerTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
 const itemsPerPage = 5;
 const itemsPerPageLista = 10;
@@ -637,22 +637,13 @@ const handleCancelPreview = () => {
 };
 
 const showBannerWithAutoClose = () => {
-  showTimeExpiredBanner.value = true;
-  if (bannerTimeoutId) {
-    clearTimeout(bannerTimeoutId);
-  }
-  bannerTimeoutId = setTimeout(() => {
-    showTimeExpiredBanner.value = false;
-  }, 4000);
+  toasts.add('guarantee', 8000);
 };
 
 // Limpiar timeouts al desmontar el componente
 onBeforeUnmount(() => {
   if (previewTimeoutId) {
     clearTimeout(previewTimeoutId);
-  }
-  if (bannerTimeoutId) {
-    clearTimeout(bannerTimeoutId);
   }
 });
 
@@ -719,40 +710,38 @@ const contentHeading = computed(() => {
       class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
     >
       <div class="bg-white rounded-lg shadow-2xl p-8 max-w-md">
-        <!-- Icono de advertencia -->
+        <!-- Icono amigable (cronómetro) -->
         <div class="mb-4 flex justify-center">
-          <div class="bg-yellow-100 rounded-full p-3">
+          <div class="bg-blue-100 rounded-full p-3">
             <svg
-              class="w-8 h-8 text-yellow-600"
-              fill="currentColor"
-              viewBox="0 0 20 20"
+              class="w-8 h-8 text-blue-600"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              viewBox="0 0 24 24"
             >
-              <path
-                fill-rule="evenodd"
-                d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                clip-rule="evenodd"
-              ></path>
+              <circle cx="12" cy="12" r="9" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 7v5l3 2" />
             </svg>
           </div>
         </div>
 
         <!-- Título -->
         <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">
-          Acceso a Vista Previa
+          ¡Vistazo rápido activado!
         </h3>
 
         <!-- Mensaje principal -->
         <p class="text-gray-700 text-center mb-6 leading-relaxed">
-          Tienes <strong>solo una oportunidad</strong> de ver el curso y tienes
-          un <strong>tiempo de 30 segundos</strong> para hacerlo.
+          Tienes un <strong>acceso temporal de 2 minutos</strong> para explorar
+          la calidad del contenido de este curso. ¡Aprovéchalo!
         </p>
 
         <!-- Nota de garantía -->
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
           <p class="text-sm text-blue-800">
-            ✓ <strong>No te preocupes</strong> - Tienes la garantía de
-            <strong>7 días</strong> para cuando lo adquieras. Lo hacemos por
-            nuestra seguridad.
+            ✓ <strong>Garantía total:</strong> Recuerda que al comprar tienes 7
+            días de garantía de reembolso. Explora con tranquilidad.
           </p>
         </div>
 
@@ -762,7 +751,7 @@ const contentHeading = computed(() => {
             @click="handleCancelPreview"
             class="flex-1 px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg hover:bg-gray-300 transition-colors"
           >
-            Buscar otro curso
+            Cancelar
           </button>
           <button
             @click="handleConfirmPreview"
@@ -775,77 +764,8 @@ const contentHeading = computed(() => {
       </div>
     </div>
 
-    <!-- Banner de tiempo agotado -->
-    <Transition
-      enter-active-class="transition-all duration-400 ease-out"
-      enter-from-class="opacity-0 translate-y-full"
-      enter-to-class="opacity-100 translate-y-0"
-      leave-active-class="transition-all duration-300 ease-in"
-      leave-from-class="opacity-100 translate-y-0"
-      leave-to-class="opacity-0 translate-y-full"
-    >
-      <div
-        v-if="showTimeExpiredBanner"
-        class="time-expired-toast fixed bottom-16 md:bottom-4 left-3 right-3 md:left-auto md:right-6 md:max-w-2xl z-[60] rounded-2xl shadow-2xl shadow-sky-900/25 border border-sky-400/30 overflow-hidden backdrop-blur-md"
-      >
-        <div class="flex items-center gap-2 md:gap-3 pr-2">
-          <!-- Zona contenido -->
-          <div
-            class="flex-1 flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2.5 md:py-3 min-w-0"
-          >
-            <!-- Icono -->
-            <div class="flex-shrink-0 w-8 h-8 md:w-9 md:h-9 rounded-xl bg-white/15 flex items-center justify-center">
-              <svg
-                class="w-4 h-4 text-white"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                ></path>
-              </svg>
-            </div>
-            <!-- Texto -->
-            <div class="text-white text-xs md:text-sm leading-snug min-w-0">
-              <p class="font-bold text-sky-100 mb-1">
-                ¡No te preocupes!
-              </p>
-              <p class="text-sky-50">
-                No te preocupes, al adquirir el paquete de cursos tendrás acceso
-                <strong>para siempre</strong>. Y recuerda: si no estás satisfecho,
-                tienes <strong>7 días de garantía</strong> o
-                <strong>devolución de dinero</strong>.
-              </p>
-            </div>
-          </div>
-          <!-- Cerrar -->
-          <button
-            type="button"
-            class="flex-shrink-0 w-7 h-7 md:w-8 md:h-8 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 transition-colors cursor-pointer border-none text-white/70 hover:text-white"
-            @click="showTimeExpiredBanner = false"
-            title="Cerrar"
-          >
-            <svg
-              class="w-3.5 h-3.5 md:w-4 md:h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M6 18L18 6M6 6l12 12"
-              ></path>
-            </svg>
-          </button>
-        </div>
-      </div>
-    </Transition>
+    <!-- Toast de garantía: renderizado en el stack global (App.vue) vía toastStore -->
+
 
     <!-- ═══ ESQUELETO DE CARGA ═══ -->
     <template v-if="categoryLoading">
@@ -3049,7 +2969,8 @@ const contentHeading = computed(() => {
     <!-- ═══ BARRA FLOTANTE DE COMPRA ═══ -->
     <Teleport to="body">
       <div
-        class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-[0_-4px_20px_rgba(15,23,42,0.08)] px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] lg:hidden"
+        v-if="!storeemergentBuy.emergentBuy.emergent"
+        class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-[0_-4px_20px_rgba(15,23,42,0.08)] px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] lg:hidden"
       >
         <div class="max-w-xl mx-auto flex items-center justify-between gap-4">
           <div class="flex items-baseline gap-1.5 shrink-0">
@@ -3144,13 +3065,4 @@ const contentHeading = computed(() => {
   background: #cbd5e1;
 }
 
-/* Estilo para el banner de tiempo agotado */
-.time-expired-toast {
-  background: rgba(30, 93, 159, 0.92);
-}
-@media (min-width: 768px) {
-  .time-expired-toast {
-    background: linear-gradient(135deg, #1e5d9f 0%, #3b82f6 100%);
-  }
-}
 </style>

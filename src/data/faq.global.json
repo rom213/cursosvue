@@ -3,6 +3,16 @@
         {
             "preguntas_frecuentes": [
                 {
+                    "categoria": "QUÉ ES GOOGLE DRIVE Y POR QUÉ LO USAMOS",
+                    "palabras_clave": ["google drive", "drive", "nube", "almacenamiento", "que es", "por que"],
+                    "preguntas_frecuentes": [
+                        {
+                            "pregunta": "¿Qué es y por qué usamos Google Drive?",
+                            "respuesta": "Google Drive es la plataforma de almacenamiento en la nube más segura y seria del mundo. La usamos para entregarte tus cursos porque te da tres grandes ventajas:\n\n💾 No llena tu memoria: Puedes ver todos los videos directamente en línea sin consumir el espacio de tu celular o PC.\n\n📱 Acceso en cualquier pantalla: Inicias sesión con tu correo y puedes ver tus clases en tu teléfono, tablet o computadora en cualquier momento.\n\n⬇️ Tú decides: Si prefieres ser el dueño de los archivos, también tienes la opción de descargarlos (solo para esto necesitarás tener espacio en tu equipo)."
+                        }
+                    ]
+                },
+                {
                     "categoria": "COMO ACCEDO A LOS CURSOS",
                     "palabras_clave": ["acceso", "gmail", "drive", "mis cursos", "correo", "comprar"],
                     "preguntas_frecuentes": [

@@ -8,6 +8,29 @@ interface ChatbotResponse {
   message?: string;
 }
 
+const GUEST_SESSION_KEY = "guest_session_id";
+
+function generateGuestId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function getGuestSessionId(): string {
+  if (typeof localStorage === "undefined") return generateGuestId();
+  let id = localStorage.getItem(GUEST_SESSION_KEY);
+  if (!id) {
+    id = generateGuestId();
+    localStorage.setItem(GUEST_SESSION_KEY, id);
+  }
+  return id;
+}
+
+function buildGuestEmail(): string {
+  return `guest_${getGuestSessionId()}@invitado.local`;
+}
+
 class ChatbotService {
   /**
    * Envía un mensaje al chatbot Clarita a través de FastAPI
@@ -15,16 +38,33 @@ class ChatbotService {
   static async sendMessage(
     message: string,
     userEmail: string,
-    userName: string
+    userName: string,
+    isAuthenticated: boolean = true
   ): Promise<ChatbotResponse | null> {
     try {
+      const payload = isAuthenticated
+        ? {
+            message,
+            user_email: userEmail,
+            user_name: userName,
+            chat_id: userEmail,
+            is_guest: false,
+            profesion: "",
+            intereses: ""
+          }
+        : {
+            message,
+            user_email: buildGuestEmail(),
+            user_name: "Invitado",
+            chat_id: getGuestSessionId(),
+            is_guest: true,
+            profesion: "",
+            intereses: ""
+          };
+
       const response: AxiosResponse<ChatbotResponse> = await ApiService.post<ChatbotResponse>(
         "/chatbot/message",
-        {
-          message,
-          user_email: userEmail,
-          user_name: userName
-        }
+        payload
       );
       return response.data;
     } catch (error) {
@@ -41,10 +81,14 @@ class ChatbotService {
    */
   static async resetConversation(userEmail: string): Promise<ChatbotResponse | null> {
     try {
+      const isGuest = !userEmail;
+      const emailToReset = isGuest ? buildGuestEmail() : userEmail;
+      const chatIdToReset = isGuest ? getGuestSessionId() : userEmail;
       const response: AxiosResponse<ChatbotResponse> = await ApiService.post<ChatbotResponse>(
         "/chatbot/reset",
         {
-          user_email: userEmail
+          user_email: emailToReset,
+          chat_id: chatIdToReset
         }
       );
       return response.data;
@@ -55,6 +99,15 @@ class ChatbotService {
         message: "Conversación reiniciada"
       };
     }
+  }
+
+  /**
+   * Limpia el seudo-email de invitado. Llamar tras login exitoso para que
+   * las próximas conversaciones usen la identidad real del usuario.
+   */
+  static clearGuestSession(): void {
+    if (typeof localStorage === "undefined") return;
+    localStorage.removeItem(GUEST_SESSION_KEY);
   }
 }
 

@@ -73,11 +73,17 @@ function onNumberInput(e: Event) {
     <label class="block text-sm font-medium text-gray-700">
       WhatsApp <span class="text-red-500">*</span>
     </label>
-    <div class="flex gap-2">
+    <div
+      class="flex border rounded-md overflow-hidden transition-colors focus-within:border-green-500 focus-within:ring-1 focus-within:ring-green-500"
+      :class="[
+        disabled ? 'bg-gray-100 border-gray-200' : 'border-gray-300',
+        error && !isValid && numberInput ? 'border-red-400' : ''
+      ]"
+    >
       <select
         v-model="selectedPrefix"
         :disabled="disabled"
-        class="border border-gray-300 rounded-md px-2 py-2 text-sm bg-white outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 disabled:bg-gray-100 disabled:text-gray-400 min-w-[100px]"
+        class="border-0 bg-gray-50 px-2 py-2 text-sm outline-none focus:outline-none disabled:text-gray-400 disabled:bg-gray-100 border-r border-gray-200 min-w-[100px]"
       >
         <option v-for="p in PREFIXES" :key="p.value" :value="p.value">
           {{ p.label }}
@@ -91,13 +97,7 @@ function onNumberInput(e: Event) {
         inputmode="numeric"
         placeholder="3101234567"
         maxlength="15"
-        class="flex-1 border rounded-md px-3 py-2 text-sm outline-none transition-colors"
-        :class="[
-          disabled
-            ? 'bg-gray-100 text-gray-400 border-gray-200'
-            : 'border-gray-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500',
-          error && !isValid && numberInput ? 'border-red-400' : ''
-        ]"
+        class="flex-1 border-0 bg-transparent px-3 py-2 text-sm outline-none focus:outline-none disabled:text-gray-400"
       />
     </div>
     <p v-if="error" class="text-xs text-red-500">{{ error }}</p>

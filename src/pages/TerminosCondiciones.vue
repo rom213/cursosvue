@@ -62,9 +62,9 @@ import { RouterLink } from 'vue-router'
           <p><strong>Nombre o Razón Social:</strong> [RAZÓN SOCIAL EN TRÁMITE DE REGISTRO]</p>
           <p><strong>NIT:</strong> [EN TRÁMITE]</p>
           <p><strong>Domicilio:</strong> Bogotá D.C., Colombia</p>
-          <p><strong>Correo electrónico:</strong> cursosestudiaytrabaja@gmail.com</p>
+          <p><strong>Correo electrónico:</strong> cursosestudiaytrabajalatam@gmail.com</p>
           <p><strong>WhatsApp:</strong> +57 313 414 1912</p>
-          <p><strong>Sitio web:</strong> cursosestudiaytrabaja.com</p>
+          <p><strong>Sitio web:</strong> cursosestudiaytrabaja.store</p>
         </div>
 
         <h3 class="legal-subsection-title">1.2 Definiciones</h3>
@@ -260,7 +260,7 @@ import { RouterLink } from 'vue-router'
           <li>Comunicarse dentro del plazo de siete (7) días calendario a través de:
             <ul>
               <li><strong>WhatsApp:</strong> +57 313 414 1912</li>
-              <li><strong>Correo electrónico:</strong> cursosestudiaytrabaja@gmail.com</li>
+              <li><strong>Correo electrónico:</strong> cursosestudiaytrabajalatam@gmail.com</li>
             </ul>
           </li>
           <li>Indicar su nombre completo, correo electrónico registrado y el número o referencia de la transacción.</li>
@@ -355,7 +355,7 @@ import { RouterLink } from 'vue-router'
           que dicho contenido infringe sus derechos, puede enviar una notificación de retiro a:
         </p>
         <div class="legal-info-box">
-          <p><strong>Correo electrónico:</strong> cursosestudiaytrabaja@gmail.com</p>
+          <p><strong>Correo electrónico:</strong> cursosestudiaytrabajalatam@gmail.com</p>
           <p><strong>WhatsApp:</strong> +57 313 414 1912</p>
         </div>
         <p>La notificación deberá contener:</p>
@@ -545,11 +545,11 @@ import { RouterLink } from 'vue-router'
           <li>
             <strong>Arreglo directo:</strong> Las partes intentarán resolver la controversia mediante comunicación
             directa a través de los canales de atención de la Plataforma (WhatsApp: +57 313 414 1912,
-            email: cursosestudiaytrabaja@gmail.com) en un plazo de quince (15) días hábiles.
+            email: cursosestudiaytrabajalatam@gmail.com) en un plazo de quince (15) días hábiles.
           </li>
           <li>
             <strong>Queja formal:</strong> Si no se logra un acuerdo, el Usuario podrá presentar una queja formal
-            por escrito a cursosestudiaytrabaja@gmail.com, la cual será atendida en un plazo máximo de quince (15)
+            por escrito a cursosestudiaytrabajalatam@gmail.com, la cual será atendida en un plazo máximo de quince (15)
             días hábiles.
           </li>
           <li>
@@ -610,7 +610,7 @@ import { RouterLink } from 'vue-router'
         <h3 class="legal-subsection-title">14.4 Contacto</h3>
         <div class="legal-info-box">
           <p>Para cualquier consulta relacionada con estos Términos y Condiciones:</p>
-          <p><strong>Correo electrónico:</strong> cursosestudiaytrabaja@gmail.com</p>
+          <p><strong>Correo electrónico:</strong> cursosestudiaytrabajalatam@gmail.com</p>
           <p><strong>WhatsApp:</strong> +57 313 414 1912</p>
           <p><strong>Horario de atención:</strong> Lunes a viernes de 8:00 a.m. a 6:00 p.m. (hora Colombia, GMT-5)</p>
         </div>

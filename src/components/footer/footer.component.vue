@@ -3,9 +3,38 @@ import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
 
 const openContact = ref<string | null>(null)
+const emailCopied = ref(false)
+const supportEmail = 'cursosestudiaytrabajalatam@gmail.com'
+let copiedTimeout: ReturnType<typeof setTimeout> | null = null
 
 function toggleContact(key: string) {
     openContact.value = openContact.value === key ? null : key
+}
+
+async function handleEmailClick(event: MouseEvent) {
+    event.preventDefault()
+    try {
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(supportEmail)
+        } else {
+            const textarea = document.createElement('textarea')
+            textarea.value = supportEmail
+            textarea.style.position = 'fixed'
+            textarea.style.opacity = '0'
+            document.body.appendChild(textarea)
+            textarea.select()
+            document.execCommand('copy')
+            document.body.removeChild(textarea)
+        }
+        emailCopied.value = true
+        if (copiedTimeout) clearTimeout(copiedTimeout)
+        copiedTimeout = setTimeout(() => {
+            emailCopied.value = false
+        }, 2000)
+    } catch (err) {
+        console.error('No se pudo copiar el correo', err)
+    }
+    window.location.href = `mailto:${supportEmail}`
 }
 </script>
 
@@ -87,11 +116,12 @@ function toggleContact(key: string) {
                             <path d="M17.47 14.38c-.28-.14-1.64-.81-1.9-.9-.25-.09-.44-.14-.62.14-.18.28-.71.9-.87 1.08-.16.18-.32.2-.6.07-.28-.14-1.18-.44-2.25-1.4-.83-.74-1.39-1.66-1.55-1.94-.16-.28-.02-.43.12-.57.13-.13.28-.32.42-.48.14-.16.18-.28.28-.46.09-.18.05-.34-.02-.48-.07-.14-.62-1.5-.85-2.05-.22-.54-.45-.46-.62-.47H8.3c-.18 0-.46.07-.7.34-.25.27-.94.92-.94 2.24s.96 2.6 1.1 2.78c.13.18 1.89 2.88 4.58 4.04.64.28 1.14.44 1.53.56.64.2 1.23.17 1.69.1.52-.08 1.64-.67 1.87-1.32.23-.65.23-1.2.16-1.32-.07-.12-.25-.18-.53-.32z" fill="white"/>
                         </svg>
                     </a>
-                    <a href="mailto:cursosestudiaytrabaja@gmail.com" class="social-link" aria-label="Correo de soporte">
+                    <a href="mailto:cursosestudiaytrabajalatam@gmail.com" @click="handleEmailClick" class="social-link email-link" aria-label="Correo de soporte">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" fill="#EA4335"/>
                             <polyline points="22,6 12,13 2,6" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
+                        <span v-if="emailCopied" class="copied-tooltip">Correo copiado</span>
                     </a>
                     <a href="#" class="social-link" aria-label="YouTube">
                         <svg width="20" height="14" viewBox="0 0 31 22" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -175,8 +205,8 @@ function toggleContact(key: string) {
                         </button>
                         <div v-if="openContact === 'email'" class="contact-detail">
                             Escríbenos tus dudas y sugerencias, ¡feliz día! 😊
-                            <a href="mailto:cursosestudiaytrabaja@gmail.com" class="contact-detail-link">
-                                cursosestudiaytrabaja@gmail.com
+                            <a href="mailto:cursosestudiaytrabajalatam@gmail.com" class="contact-detail-link">
+                                cursosestudiaytrabajalatam@gmail.com
                             </a>
                         </div>
                     </div>
@@ -301,6 +331,44 @@ function toggleContact(key: string) {
     background: rgba(30, 64, 175, 0.35);
     border-color: rgba(59, 130, 246, 0.4);
     transform: translateY(-2px);
+}
+
+.email-link {
+    position: relative;
+}
+
+.copied-tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1e293b;
+    color: #f1f5f9;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.35rem 0.6rem;
+    border-radius: 6px;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    animation: copiedFade 0.2s ease;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.copied-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #1e293b;
+}
+
+@keyframes copiedFade {
+    from { opacity: 0; transform: translate(-50%, 4px); }
+    to   { opacity: 1; transform: translate(-50%, 0); }
 }
 
 /* Column */

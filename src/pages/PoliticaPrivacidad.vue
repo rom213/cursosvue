@@ -57,9 +57,9 @@ import { RouterLink } from 'vue-router'
           <p><strong>Nombre o Razón Social:</strong> [RAZÓN SOCIAL EN TRÁMITE DE REGISTRO]</p>
           <p><strong>NIT:</strong> [EN TRÁMITE]</p>
           <p><strong>Domicilio:</strong> Bogotá D.C., Colombia</p>
-          <p><strong>Correo electrónico para asuntos de datos personales:</strong> cursosestudiaytrabaja@gmail.com</p>
+          <p><strong>Correo electrónico para asuntos de datos personales:</strong> cursosestudiaytrabajalatam@gmail.com</p>
           <p><strong>WhatsApp:</strong> +57 313 414 1912</p>
-          <p><strong>Sitio web:</strong> cursosestudiaytrabaja.com</p>
+          <p><strong>Sitio web:</strong> cursosestudiaytrabaja.store</p>
         </div>
         <p>
           El Responsable del Tratamiento es la persona natural o jurídica que decide sobre la base de datos y/o el
@@ -371,7 +371,7 @@ import { RouterLink } from 'vue-router'
         <h3 class="legal-subsection-title">7.2 Procedimiento para Ejercer los Derechos</h3>
         <p>Para ejercer cualquiera de los derechos mencionados, el Titular deberá:</p>
         <ol>
-          <li>Enviar una solicitud escrita al correo electrónico: <strong>cursosestudiaytrabaja@gmail.com</strong></li>
+          <li>Enviar una solicitud escrita al correo electrónico: <strong>cursosestudiaytrabajalatam@gmail.com</strong></li>
           <li>
             Incluir en la solicitud:
             <ul>
@@ -557,7 +557,7 @@ import { RouterLink } from 'vue-router'
         </p>
         <p>
           Si usted es padre, madre o tutor legal y tiene conocimiento de que un menor bajo su responsabilidad
-          se ha registrado en la Plataforma, le rogamos se comunique a cursosestudiaytrabaja@gmail.com para
+          se ha registrado en la Plataforma, le rogamos se comunique a cursosestudiaytrabajalatam@gmail.com para
           proceder con la eliminación de los datos.
         </p>
       </section>
@@ -645,7 +645,7 @@ import { RouterLink } from 'vue-router'
         <h3 class="legal-subsection-title">12.1 Contacto para Asuntos de Privacidad</h3>
         <div class="legal-info-box">
           <p>Para cualquier consulta, solicitud o reclamo relacionado con el tratamiento de sus datos personales:</p>
-          <p><strong>Correo electrónico:</strong> cursosestudiaytrabaja@gmail.com</p>
+          <p><strong>Correo electrónico:</strong> cursosestudiaytrabajalatam@gmail.com</p>
           <p><strong>WhatsApp:</strong> +57 313 414 1912</p>
           <p><strong>Horario de atención:</strong> Lunes a viernes de 8:00 a.m. a 6:00 p.m. (hora Colombia, GMT-5)</p>
           <p><strong>Domicilio:</strong> Bogotá D.C., Colombia</p>

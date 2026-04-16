@@ -206,6 +206,7 @@ function parseAnswerBlocks(text: string): AnswerBlock[] {
 
 /** Icono por bloque (título de categoría) */
 type IconKey =
+  | "drive"
   | "acceso"
   | "tutorial"
   | "problema"
@@ -220,6 +221,7 @@ type IconKey =
 
 function iconKeyForCategory(titulo: string): IconKey {
   const u = titulo.toUpperCase();
+  if (u.includes("GOOGLE DRIVE") || u.includes("QUÉ ES GOOGLE")) return "drive";
   if (u.includes("TUTORIAL")) return "tutorial";
   if (u.includes("MEDIOS DE PAGO") || u.includes("SEGURIDAD")) return "pago";
   if (u.includes("PROBLEMAS TÉCNICO")) return "tecnico";
@@ -402,9 +404,24 @@ const sugerenciasBusqueda = [
             class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white shadow-md sm:h-12 sm:w-12"
             :class="paletteForIndex(catIndex).iconBg"
           >
+            <!-- Drive / Nube -->
+            <svg
+              v-if="iconKeyForCategory(cat.categoria) === 'drive'"
+              class="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="1.75"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"
+              />
+            </svg>
             <!-- Acceso -->
             <svg
-              v-if="iconKeyForCategory(cat.categoria) === 'acceso'"
+              v-else-if="iconKeyForCategory(cat.categoria) === 'acceso'"
               class="h-6 w-6"
               fill="none"
               viewBox="0 0 24 24"

@@ -434,7 +434,9 @@ onBeforeUnmount(() => {
 <style scoped>
 /* ────── BOTÓN FLOTANTE ────── */
 .chat-toggle {
-  position: relative;
+  position: fixed;
+  bottom: 96px; /* mobile: deja espacio para la barra "Comprar ahora" */
+  right: 16px;
   width: 56px;
   height: 56px;
   border-radius: 50%;
@@ -448,6 +450,14 @@ onBeforeUnmount(() => {
   transition: transform 0.2s, box-shadow 0.2s;
   padding: 0;
   color: white;
+  z-index: 50;
+}
+
+@media (min-width: 768px) {
+  .chat-toggle {
+    bottom: 24px;
+    right: 24px;
+  }
 }
 
 .chat-toggle:hover {

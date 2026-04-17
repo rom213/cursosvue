@@ -181,10 +181,6 @@ const toggleFolder = (key: string) => {
 
 const isFolderOpen = (key: string) => Boolean(openedFolders.value[key]);
 
-const openInNewTab = (url?: string) => {
-  if (!url) return;
-  window.open(url, "_blank", "noopener,noreferrer");
-};
 
 const addCarCategory = (item: ICategory) => {
   if (cartSt.validateCart(item)) {
@@ -546,6 +542,7 @@ for (const group of Object.values(descripcionesRaw)) {
 }
 
 const showDescripcion = ref(false);
+const showLoginModal = ref(false);
 
 const descripcionCurso = computed(() => {
   const titulo = category.value?.titulo;
@@ -584,6 +581,12 @@ const handleAddToCartSelected = () => {
 
 const handlePreview = async (item: ICategory | undefined, url: string) => {
   if (!item || !url) return;
+
+  // Si no está logueado, mostrar modal de login
+  if (!userAuth.getProfile()?.user) {
+    showLoginModal.value = true;
+    return;
+  }
 
   // Si no ha comprado pero tiene preview habilitado, mostrar advertencia
   if (
@@ -634,6 +637,19 @@ const handleConfirmPreview = async () => {
 const handleCancelPreview = () => {
   showPreviewWarning.value = false;
   pendingUrl.value = "";
+};
+
+const handleImagePreviewClick = () => {
+  const url = category.value?.url;
+  if (!url) return;
+
+  const user = userAuth.getProfile()?.user;
+  if (!user) {
+    showLoginModal.value = true;
+    return;
+  }
+
+  handlePreview(category.value, url);
 };
 
 const showBannerWithAutoClose = () => {
@@ -701,6 +717,42 @@ const contentHeading = computed(() => {
         <p class="text-sm text-gray-600">
           Estamos preparando todo para ti y generando el link para visualizar
         </p>
+      </div>
+    </div>
+
+    <!-- Modal: login requerido para vista previa -->
+    <div
+      v-if="showLoginModal"
+      class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+    >
+      <div class="bg-white rounded-lg shadow-2xl p-8 max-w-md w-full">
+        <div class="mb-4 flex justify-center">
+          <div class="bg-blue-100 rounded-full p-3">
+            <svg
+              class="w-8 h-8 text-blue-600"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </div>
+        </div>
+        <h3 class="text-xl font-bold text-gray-800 mb-3 text-center">
+          Vista previa disponible
+        </h3>
+        <p class="text-gray-600 text-center mb-6 leading-relaxed">
+          Para ver una vista previa del contenido debes
+          <strong>iniciar sesión con tu cuenta de Google</strong>.
+          ¡Es gratis y solo toma un segundo!
+        </p>
+        <button
+          @click="showLoginModal = false"
+          class="w-full px-4 py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          Entendido
+        </button>
       </div>
     </div>
 
@@ -2455,7 +2507,7 @@ const contentHeading = computed(() => {
             <!-- Imagen preview -->
             <div
               class="relative w-full aspect-video bg-slate-100 cursor-pointer overflow-hidden group"
-              @click="category?.url ? openInNewTab(category.url) : null"
+              @click="handleImagePreviewClick"
             >
               <img
                 v-if="category?.imagen_url"

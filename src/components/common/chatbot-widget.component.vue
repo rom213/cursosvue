@@ -5,19 +5,8 @@ import ChatbotService from '../../services/ChatbotService';
 
 const userStore = authStore();
 
-const emit = defineEmits<{
-  (e: 'update:open', value: boolean): void;
-}>();
-
 // Estado del widget
 const isOpen = ref(false);
-
-watch(isOpen, (value) => emit('update:open', value));
-
-function capitalize(str: string): string {
-  if (!str) return str;
-  return str.charAt(0).toUpperCase() + str.slice(1);
-}
 const isLoading = ref(false);
 const messageInput = ref<HTMLInputElement | null>(null);
 const messageText = ref('');
@@ -43,18 +32,18 @@ interface PredefinedQuestion {
 const predefinedQuestions: PredefinedQuestion[] = [
   {
     id: 'q1',
-    text: 'Recomiéndame un bloque de cursos según mi profesión',
-    blanks: 0
+    text: 'Recomendame un pack de cursos ya que me dedico a ______',
+    blanks: 1
   },
   {
     id: 'q2',
-    text: '¿cuales son mis garantias?',
-    blanks: 0
+    text: 'Recomendame unos cursos relacionados a ______',
+    blanks: 1
   },
   {
     id: 'q3',
-    text: '¿Qué es Google Drive y por qué usar Google Drive?',
-    blanks: 0
+    text: 'Tengo un problema con ______',
+    blanks: 1
   },
   {
     id: 'q4',
@@ -73,40 +62,24 @@ notifAudio.volume = 0.35;
 // Computed properties
 const userProfile = computed(() => userStore.getProfile()?.user);
 const isAuthenticated = computed(() => !!userProfile.value);
-const userFirstName = computed(() =>
-  isAuthenticated.value ? (userProfile.value?.given_name || 'Usuario') : 'Invitado'
-);
+const userFirstName = computed(() => userProfile.value?.given_name || 'Usuario');
 const userPhotoUrl = computed(() => userProfile.value?.picture || '');
 
 const showTyping = computed(() => isLoading.value);
 
-// Saludo inicial: personalizado si hay sesión, genérico si es invitado
-function pushWelcomeMessage() {
-  if (messages.value.length !== 0) return;
-
-  const profile = userStore.getProfile();
-  const content = profile?.user
-    ? `¡Hola! <strong>${capitalize(profile.user.given_name || 'Usuario')}</strong> 👋 Soy Clarita, tu asistente de cursos. ¿En qué puedo ayudarte hoy?`
-    : `¡Hola! 👋 Soy Clarita, tu asistente de cursos. ¿En qué puedo ayudarte hoy?`;
-
-  messages.value.push({
-    id: '1',
-    type: 'agent',
-    content,
-    timestamp: new Date()
-  });
-}
-
-// Inicializar mensaje de bienvenida cuando el usuario se loguee (o cambie estado).
-// Al detectar login, purgar el seudo-email de invitado para que las próximas
-// conversaciones usen la identidad real.
+// Inicializar mensaje de bienvenida cuando el usuario se loguee
 watch(
   () => userStore.getProfile(),
   (profile) => {
-    if (profile?.user) {
-      ChatbotService.clearGuestSession();
+    if (profile?.user && messages.value.length === 0) {
+      const userName = profile.user.given_name || 'Usuario';
+      messages.value.push({
+        id: '1',
+        type: 'agent',
+        content: `¡Hola! <strong>${userName}</strong> 👋 Soy Clarita, tu asistente de cursos. ¿En qué puedo ayudarte hoy?`,
+        timestamp: new Date()
+      });
     }
-    pushWelcomeMessage();
   }
 );
 
@@ -177,7 +150,7 @@ function closeChat() {
 
 async function sendMessage() {
   const text = messageText.value.trim();
-  if (!text || isLoading.value) return;
+  if (!text || isLoading.value || !isAuthenticated.value) return;
 
   messageText.value = '';
 
@@ -194,14 +167,10 @@ async function sendMessage() {
   isLoading.value = true;
 
   try {
-    const email = isAuthenticated.value ? userProfile.value!.email : '';
-    const name = isAuthenticated.value ? userProfile.value!.name : 'Invitado';
-
     const response = await ChatbotService.sendMessage(
       text,
-      email,
-      name,
-      isAuthenticated.value
+      userProfile.value!.email,
+      userProfile.value!.name
     );
 
     if (response?.success && response.output) {
@@ -249,9 +218,9 @@ async function resetConversation() {
 
   suggestionsVisible.value = true;
 
-  await ChatbotService.resetConversation(
-    isAuthenticated.value ? userProfile.value!.email : ''
-  );
+  if (isAuthenticated.value) {
+    await ChatbotService.resetConversation(userProfile.value!.email);
+  }
 
   await scrollToBottom();
 }
@@ -283,9 +252,8 @@ function handleKeyDown(e: KeyboardEvent) {
   }
 }
 
-// Prevenir que se peguen imágenes + saludo inicial (cubre caso invitado)
+// Prevenir que se peguen imágenes
 onMounted(() => {
-  pushWelcomeMessage();
   const input = messageInput.value as HTMLInputElement;
   if (input) {
     input.addEventListener('paste', (e: ClipboardEvent) => {
@@ -307,16 +275,19 @@ onBeforeUnmount(() => {
 <template>
   <!-- Botón flotante -->
   <button
+    v-if="isAuthenticated"
     class="chat-toggle"
     @click="toggleChat"
     aria-label="Abrir chat con Clarita"
   >
-    <img src="../../assets/home/mujercurosagente.png" alt="Clarita" class="chat-toggle-avatar" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+    </svg>
   </button>
 
   <!-- Widget chat -->
   <Transition name="chat-widget">
-    <div v-if="isOpen" class="chat-widget fixed bottom-24 right-4 mt-4 w-96 max-h-[calc(100vh-200px)]">
+    <div v-if="isOpen && isAuthenticated" class="chat-widget">
       <!-- Header -->
       <div class="chat-header">
         <img src="../../assets/home/mujercursos.webp" alt="Clarita" class="header-avatar-img" />
@@ -344,14 +315,19 @@ onBeforeUnmount(() => {
       </div>
 
       <!-- Área de mensajes -->
-      <div ref="messagesArea" class="messages-area flex-1 overflow-y-auto">
-        <!-- Título "Hoy · Conversación reiniciada" (solo al inicio) -->
-        <p
-          v-if="suggestionsVisible && messages.length <= 1 && !isLoading"
-          class="suggestions-title"
-        >
-          Hoy · Conversación reiniciada
-        </p>
+      <div ref="messagesArea" class="messages-area">
+        <!-- Preguntas predefinidas (solo al inicio) -->
+        <div v-if="suggestionsVisible && messages.length <= 1 && !isLoading" class="suggestions-container">
+          <p class="suggestions-title">Hoy · Conversación reiniciada</p>
+          <button
+            v-for="question in predefinedQuestions"
+            :key="question.id"
+            class="suggestion-btn"
+            @click="selectPredefinedQuestion(question)"
+          >
+            {{ question.text }}
+          </button>
+        </div>
 
         <template v-for="msg in messages" :key="msg.id">
           <!-- Mensaje de usuario -->
@@ -369,7 +345,7 @@ onBeforeUnmount(() => {
           <!-- Mensaje del agente -->
           <div v-else-if="msg.type === 'agent'" class="bubble-row agent">
             <img src="../../assets/home/mujercurosagente.png" alt="Clarita" class="chat-avatar-img-agent" />
-            <div class="bubble rounded-bl-none" v-html="msg.content"></div>
+            <div class="bubble" v-html="msg.content"></div>
           </div>
 
           <!-- Mensaje del sistema -->
@@ -377,21 +353,6 @@ onBeforeUnmount(() => {
             <div class="bubble">{{ msg.content }}</div>
           </div>
         </template>
-
-        <!-- Preguntas predefinidas (después del saludo de Clarita) -->
-        <div
-          v-if="suggestionsVisible && messages.length <= 1 && !isLoading"
-          class="suggestions-container mt-4"
-        >
-          <button
-            v-for="question in predefinedQuestions"
-            :key="question.id"
-            class="suggestion-btn bg-white border border-blue-200 text-blue-600 text-sm py-2"
-            @click="selectPredefinedQuestion(question)"
-          >
-            {{ question.text }}
-          </button>
-        </div>
 
         <!-- Typing indicator -->
         <div v-if="showTyping" class="bubble-row agent">
@@ -435,12 +396,12 @@ onBeforeUnmount(() => {
 /* ────── BOTÓN FLOTANTE ────── */
 .chat-toggle {
   position: fixed;
-  bottom: 96px; /* mobile: deja espacio para la barra "Comprar ahora" */
-  right: 16px;
+  bottom: 24px;
+  right: 24px;
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: white;
+  background: #2563eb;
   border: none;
   cursor: pointer;
   box-shadow: 0 4px 18px rgba(37, 99, 235, 0.45);
@@ -448,16 +409,9 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   transition: transform 0.2s, box-shadow 0.2s;
+  z-index: 9999;
   padding: 0;
   color: white;
-  z-index: 50;
-}
-
-@media (min-width: 768px) {
-  .chat-toggle {
-    bottom: 24px;
-    right: 24px;
-  }
 }
 
 .chat-toggle:hover {
@@ -465,19 +419,17 @@ onBeforeUnmount(() => {
   box-shadow: 0 6px 24px rgba(37, 99, 235, 0.55);
 }
 
-.chat-toggle-avatar {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
-  display: block;
-  border: 3px solid #2563eb;
-  background: white;
-  box-sizing: border-box;
+.chat-toggle svg {
+  width: 26px;
+  height: 26px;
 }
 
 /* ────── WIDGET CHAT ────── */
 .chat-widget {
+  position: fixed;
+  bottom: 96px;
+  right: 24px;
+  width: 368px;
   height: 560px;
   background: #ffffff;
   border-radius: 22px;
@@ -485,7 +437,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  z-index: 40;
+  z-index: 9998;
 }
 
 /* ────── TRANSICIÓN ────── */
@@ -686,10 +638,6 @@ onBeforeUnmount(() => {
   color: #0369a1;
 }
 
-.bubble-row.agent .bubble.rounded-bl-none {
-  border-bottom-left-radius: 0;
-}
-
 .bubble-row.user .bubble {
   background: #ede9fe;
   color: #6d28d9;
@@ -856,9 +804,12 @@ onBeforeUnmount(() => {
 }
 
 .suggestion-btn {
+  background: #f0f4ff;
+  border: 1px solid #dbeafe;
   border-radius: 10px;
-  padding-left: 12px;
-  padding-right: 12px;
+  padding: 10px 12px;
+  font-size: 0.8rem;
+  color: #0369a1;
   cursor: pointer;
   transition: all 0.15s;
   text-align: left;
@@ -869,8 +820,8 @@ onBeforeUnmount(() => {
 }
 
 .suggestion-btn:hover {
-  background: #eff6ff;
-  border-color: #60a5fa;
+  background: #dbeafe;
+  border-color: #0369a1;
   transform: translateX(2px);
 }
 
@@ -884,11 +835,14 @@ onBeforeUnmount(() => {
   .chat-widget {
     width: calc(100vw - 32px);
     height: 70vh;
+    max-height: 500px;
+    bottom: 80px;
+    right: 16px;
   }
 
   .chat-toggle {
-    width: 52px;
-    height: 52px;
+    bottom: 20px;
+    right: 16px;
   }
 }
 </style>

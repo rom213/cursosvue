@@ -147,7 +147,7 @@ watch(() => store.profile?.user?.google_id, (id) => {
     <PromoIntroDialogComponent v-if="!buyStore.emergentBuy.emergent" />
 
     <!-- ═══ CHATBOT WIDGET (Clarita) ═══ -->
-    <ChatbotWidgetComponent v-if="!buyStore.emergentBuy.emergent" />
+    <ChatbotWidgetComponent v-if="false" />
 
   </div>
 

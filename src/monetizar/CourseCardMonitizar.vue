@@ -345,7 +345,8 @@ const copyDiscount = async () => {
             {{ discountPercent }}% Dto.
           </span>
           <span class="line-through text-slate-400 font-medium">
-            ${{ formatPrice(category.precio_desc) }}{{ currencySuffix }}
+            ${{ formatPrice(category.precio_desc) }}
+            <!-- {{ currencySuffix }} -->
           </span>
         </div>
 
@@ -366,7 +367,9 @@ const copyDiscount = async () => {
             @click="()=>{emit('buy', category)}"
           >
             <span class="text-lg">🤝</span>
-            <span>Venta a tercero ${{ formatPrice(category.precio) }}{{ currencySuffix }}</span>
+            <span>Venta a tercero ${{ formatPrice(category.precio) }}
+              <!-- {{ currencySuffix }} -->
+            </span>
           </button>
         </div>
 
@@ -378,7 +381,9 @@ const copyDiscount = async () => {
           :class="ctaBuyClasses"
           @click="upsellCategory ? emit('upsell-buy', upsellCategory) : emit('add-to-cart', category)"
         >
-          <span> ${{ formatPrice(upsellCategory?.precio ?? category.precio) }}{{ currencySuffix }}</span>
+          <span> ${{ formatPrice(upsellCategory?.precio ?? category.precio) }}
+            <!-- {{ currencySuffix }} -->
+          </span>
         </button>
       </div>
 

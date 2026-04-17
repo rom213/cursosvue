@@ -380,7 +380,8 @@ const cuposPercent = computed(() =>
 const isLowStock = computed(() => cuposCount.value < 30);
 
 const currencySuffix = computed(() =>
-  userAuth.getProfile()?.user?.country === "CO" ? "COP" : "USD",
+  ""
+  // userAuth.getProfile()?.user?.country === "CO" ? "COP" : "USD",
 );
 
 const formatPrice = (price: number | undefined) => {

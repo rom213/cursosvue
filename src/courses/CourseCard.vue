@@ -25,7 +25,7 @@ const props = withDefaults(defineProps<CourseCardProps>(), {
   typeLabel: '',
   includesResale: false,
   includesDiscount: false,
-  currencySuffix: ' USD',
+  currencySuffix: ' COP',
   isBlurred: false,
   isPremium: false,
   cardClasses: '',
@@ -383,7 +383,8 @@ const upsellBenefits = computed(() => {
             {{ discountPercent }}% Dto.
           </span>
           <span class="line-through text-slate-400 font-medium">
-            ${{ formatPrice(category.precio_desc) }}{{ currencySuffix }}
+            ${{ formatPrice(category.precio_desc) }}
+            <!-- {{ currencySuffix }} -->
           </span>
         </div>
 
@@ -554,7 +555,9 @@ const upsellBenefits = computed(() => {
             :class="ctaBuyClasses"
             @click="emit('buy', category)"
           >
-            <span>${{ formatPrice(category.precio) }}{{ currencySuffix }}</span>
+            <span>${{ formatPrice(category.precio) }}
+            <!-- {{ currencySuffix }} -->
+            </span>
           </button>
         </div>
 
@@ -566,7 +569,9 @@ const upsellBenefits = computed(() => {
           :class="ctaBuyClasses"
           @click="upsellCategory ? emit('upsell-buy', upsellCategory) : emit('add-to-cart', category)"
         >
-          <span> ${{ formatPrice(upsellCategory?.precio ?? category.precio) }}{{ currencySuffix }}</span>
+          <span> ${{ formatPrice(upsellCategory?.precio ?? category.precio) }}
+            <!-- {{ currencySuffix }} -->
+          </span>
         </button>
       </div>
 

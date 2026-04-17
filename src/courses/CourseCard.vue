@@ -87,8 +87,15 @@ const cursosCount = computed(() => props.category.cantidad_cursos ?? 200);
 const cuposCount = computed(() => props.category.num_per ?? 23);
 const cuposMax = computed(() => props.category.cupos_google ?? 200);
 const cuposPercent = computed(() => Math.min(100, Math.round(((cuposMax.value - cuposCount.value) / cuposMax.value) * 100)));
-const isLowStock = computed(() => cuposCount.value < 30);
+const isLowStock = computed(() => cuposCount.value < 100);
 const commentsCount = computed(() => props.category.pregunta_respuesta?.length ?? 0);
+
+// ── Keyword chips from temas ──
+const keywordChips = computed(() => {
+  const temas = props.category.seccion_temas?.temas;
+  if (!temas?.length) return [];
+  return temas.slice(0, 6).map(t => t.titulo_tema).filter(Boolean) as string[];
+});
 
 // ── Anclaje de precio ──
 const hasDiscount = computed(() =>
@@ -117,16 +124,16 @@ const ctaBuyClasses = computed(() => {
   if (tierLevel.value === 'premium')
     return 'cta-premium py-3.5 px-4 text-lg shadow-lg shadow-amber-500/25 hover:shadow-xl hover:shadow-amber-500/35 hover:-translate-y-1'
   if (tierLevel.value === 'advanced')
-    return 'bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 text-base shadow-lg shadow-emerald-600/20 hover:shadow-emerald-600/30 hover:-translate-y-0.5'
-  return 'bg-slate-700 hover:bg-slate-800 text-white py-2.5 px-4 text-sm shadow-md shadow-slate-700/15 hover:shadow-lg hover:-translate-y-0.5'
+    return 'bg-green-600 hover:bg-green-700 text-white py-3 px-4 text-base shadow-lg shadow-green-600/20 hover:shadow-green-600/30 hover:-translate-y-0.5'
+  return 'bg-green-600 hover:bg-green-700 text-white py-2.5 px-4 text-sm shadow-md shadow-green-600/15 hover:shadow-lg hover:-translate-y-0.5'
 });
 
 const ctaCartClasses = computed(() => {
   if (tierLevel.value === 'premium')
-    return 'bg-amber-500/15 border border-amber-400/40 text-amber-900 hover:bg-amber-500/25 py-3.5 px-3 text-lg shadow-md shadow-amber-500/15 hover:-translate-y-0.5'
+    return 'bg-white border-2 border-amber-300 text-amber-800 hover:border-green-600 hover:text-green-600 py-3.5 px-3 text-lg shadow-md hover:-translate-y-0.5'
   if (tierLevel.value === 'advanced')
-    return 'bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-3 text-base shadow-lg shadow-emerald-600/20 hover:shadow-emerald-600/30 hover:-translate-y-0.5'
-  return 'bg-slate-700 hover:bg-slate-800 text-white py-2.5 px-3 text-sm shadow-md shadow-slate-700/15 hover:shadow-lg hover:-translate-y-0.5'
+    return 'bg-white border-2 border-gray-200 text-gray-700 hover:border-green-600 hover:text-green-600 py-3 px-3 text-base shadow-md hover:-translate-y-0.5'
+  return 'bg-white border-2 border-gray-200 text-gray-700 hover:border-green-600 hover:text-green-600 py-2.5 px-3 text-sm shadow-md hover:-translate-y-0.5'
 });
 
 // ── Upsell helpers ──
@@ -282,6 +289,17 @@ const upsellBenefits = computed(() => {
         </p>
       </div>
 
+      <!-- ══ 3b. KEYWORD CHIPS ══ -->
+      <div v-if="keywordChips.length" class="px-5 pt-2 flex flex-wrap gap-1.5">
+        <span
+          v-for="keyword in keywordChips"
+          :key="keyword"
+          class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-md"
+        >
+          {{ keyword }}
+        </span>
+      </div>
+
       <!-- ══ 4. FRASE TRANSFORMACIONAL ══ -->
       <p
         @click="emit('click', category.id)"
@@ -323,8 +341,8 @@ const upsellBenefits = computed(() => {
             <div class="flex items-baseline gap-1">
               <span class="text-sm text-slate-500">Cupos Libres Google Drive:</span>
               <span
-                class="text-base font-bold"
-                :class="isLowStock ? 'text-red-600' : 'text-slate-900'"
+                class="text-base"
+                :class="isLowStock ? 'text-red-600 font-bold' : 'text-slate-900 font-bold'"
               >
                 {{ cuposCount }}
               </span>
@@ -333,10 +351,10 @@ const upsellBenefits = computed(() => {
             </div>
           </div>  
           <!-- Barra de progreso -->
-          <div class="ml-10 w-auto h-1 rounded-full overflow-hidden" :class="isLowStock ? 'bg-red-500' : 'bg-slate-100'">
+          <div class="ml-10 w-auto h-1.5 rounded-full overflow-hidden bg-slate-100">
             <div
               class="h-full rounded-full transition-all duration-700"
-              :class="colors.progressBar"
+              :class="isLowStock ? 'bg-red-500' : colors.progressBar"
               :style="{ width: `${cuposPercent}%` }"
             />
           </div>
@@ -555,9 +573,7 @@ const upsellBenefits = computed(() => {
             :class="ctaBuyClasses"
             @click="emit('buy', category)"
           >
-            <span>${{ formatPrice(category.precio) }}
-            <!-- {{ currencySuffix }} -->
-            </span>
+            <span>Desbloquear paquete — ${{ formatPrice(category.precio) }}</span>
           </button>
         </div>
 
@@ -569,9 +585,7 @@ const upsellBenefits = computed(() => {
           :class="ctaBuyClasses"
           @click="upsellCategory ? emit('upsell-buy', upsellCategory) : emit('add-to-cart', category)"
         >
-          <span> ${{ formatPrice(upsellCategory?.precio ?? category.precio) }}
-            <!-- {{ currencySuffix }} -->
-          </span>
+          <span>Desbloquear paquete — ${{ formatPrice(upsellCategory?.precio ?? category.precio) }}</span>
         </button>
       </div>
 

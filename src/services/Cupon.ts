@@ -35,6 +35,16 @@ class CuponService {
     }
   }
 
+  static async generate_signature_reference_code_cupon_guess(data: { categories: any[], cupon: string }): Promise<ICuponResponsePayu | null> {
+    try {
+      const response: AxiosResponse<ICuponResponsePayu> = await ApiService.post<ICuponResponsePayu>("/payu-firm-cupon-guess", data);
+      return response.data;
+    } catch (error) {
+      console.error("Error al verificar token:", error);
+      return null;
+    }
+  }
+
   static async generate_link_pay_paypal_cupon(data: { categories: any[], cupon: string }): Promise<IPaymentResponsePayPal | null> {
     try {
       const response: AxiosResponse<any> = await ApiService.post<IPaymentResponsePayPal>("/paypal-generate-link-pay-cupon", data);

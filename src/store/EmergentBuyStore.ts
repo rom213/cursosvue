@@ -179,13 +179,19 @@ export const emergentBuyStore = defineStore('emergentBuy', () => {
         }
     };
 
-    const validarCupon = (cupon:string):Promise<ICuponResponsePayu | null>=>{
+    const validarCupon = async (cupon:string):Promise<ICuponResponsePayu | null>=>{
         return CuponService.generate_signature_reference_code_cupon({ categories: [{id_category:category.value?.id}], cupon: cupon }).then((res) => {
-            console.log(res?.records[0]);
             cuponResponse.value = res
             return res
         })
     }
 
-    return { buyCategory, handleChangeOptionsEmergentBuy, handleEmergentBuy, emergentBuy, setCategoryEmergent, getCategoryEmergent, validarCupon, clearCupon, cuponResponse, esVentaTercero }
+    const validarCuponGuess = async (cupon:string):Promise<ICuponResponsePayu | null>=>{
+        return CuponService.generate_signature_reference_code_cupon_guess({ categories: [{id_category:category.value?.id}], cupon: cupon }).then((res) => {
+            cuponResponse.value = res
+            return res
+        })
+    }
+
+    return { buyCategory, validarCuponGuess,handleChangeOptionsEmergentBuy, handleEmergentBuy, emergentBuy, setCategoryEmergent, getCategoryEmergent, validarCupon, clearCupon, cuponResponse, esVentaTercero }
 })

@@ -17,7 +17,7 @@ const store = authStore() // Renamed storeAuth to store for consistency with new
 const catStore = categoryStore()
 const buyStore = emergentBuyStore()
 const appRouter = useRouter()
-const { promoName, promoRoute, promoType, showPromoBanner, clearPromo, markBannerClicked } = usePromoQuery()
+const {  promoRoute, showPromoBanner, clearPromo, markBannerClicked } = usePromoQuery()
 
 const goToPromo = () => {
   markBannerClicked()

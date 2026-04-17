@@ -293,7 +293,7 @@ const buyCategoriesPayPal = async () => {
               :disabled="isProcessingPayment"
               @click="handleBuyClick"
             >
-              {{ isProcessingPayment ? 'Lo estamos alistando para ti...' : 'Comprar ahora' }}
+              {{ isProcessingPayment ? 'Lo estamos alistando para ti...' : 'Desbloquear paquete' }}
             </button>
           </div>
         </div>

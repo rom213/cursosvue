@@ -2900,7 +2900,7 @@ const contentHeading = computed(() => {
                       selectedOption === 'current' && !tierInfo.isPremium,
                   }"
                 >
-                  Comprar ahora — ${{ formatPrice(selectedCategory?.precio) }}
+                  Desbloquear paquete — ${{ formatPrice(selectedCategory?.precio) }}
                   {{ currencySuffix }}
                 </button>
 
@@ -3053,7 +3053,7 @@ const contentHeading = computed(() => {
                 selectedOption === 'current' && !tierInfo.isPremium,
             }"
           >
-            Comprar ahora
+            Desbloquear paquete
           </button>
         </div>
       </div>

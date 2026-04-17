@@ -592,7 +592,7 @@ watch(()=>storeemergentBuy.emergentBuy.emergent, ()=>{
                                 ? 'Lo estamos alistando...'
                                 : (storeemergentBuy.emergentBuy.optionBuyPay === OptionBuyPay.Paypal
                                     ? `Pagar $${finalPrice?.toLocaleString() || 0} con PayPal`
-                                    : `Pagar $${finalPrice?.toLocaleString() || 0}`)
+                                    : `Desbloquear ahora $${finalPrice?.toLocaleString() || 0}`)
                         }}
                     </span>
                 </button>

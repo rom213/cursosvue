@@ -219,7 +219,7 @@ Página central del paquete:
 - Banner ámbar si compra con descuento de afiliado.
 - **Pestañas:** Contenido (temario), Preguntas (FAQ desde `category.pregunta_respuesta`), Comentarios (placeholder), Beneficios (texto fijo).
 - **Temario:** tres bloques colapsables — Plataformas, Temas, Lista completa — con paginación interna; lista completa con **buscador local** y soporte de `query.q_course` para scroll automático desde el buscador global.
-- Columna lateral sticky: imagen, precio (COP/USD según `user.country`), **Comprar ahora**, **Añadir al carrito**, `AffiliatyMessageComponent`, lista de inclusiones.
+- Columna lateral sticky: imagen, precio (COP/USD según `user.country`), **Desbloquear paquete**, **Añadir al carrito**, `AffiliatyMessageComponent`, lista de inclusiones.
 - Monta `EmergentBuyComponent`.
 
 ### `src/courses/courseInfoPage/componentCourseInfo/course.img.component.vue`

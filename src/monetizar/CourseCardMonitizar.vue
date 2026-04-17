@@ -360,7 +360,7 @@ const copyDiscount = async () => {
           <!-- Botón Carrito (30%) -->
 
 
-          <!-- Botón Comprar ahora (70%) -->
+          <!-- Botón Desbloquear paquete (70%) -->
           <button
             type="button"
             class="w-[100%] rounded-xl font-bold flex justify-center items-center gap-2 transition-all duration-200 bg-orange-50 hover:bg-orange-100 border border-orange-200 text-orange-700 py-2.5 px-4 text-sm"

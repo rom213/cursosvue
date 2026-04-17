@@ -548,7 +548,7 @@ const upsellBenefits = computed(() => {
             </svg>
           </button>
 
-          <!-- Botón Comprar ahora (70%) -->
+          <!-- Botón Desbloquear paquete (70%) -->
           <button
             type="button"
             class="w-[70%] rounded-xl font-bold flex justify-center items-center gap-2 transition-all duration-200"

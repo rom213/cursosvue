@@ -60,4 +60,4 @@ class ApiService {
     }
 }
 //https://server.cursosestudiaytrabaja.store
-export default new ApiService('http://localhost:5002')
+export default new ApiService('https://server.cursosestudiaytrabaja.store')

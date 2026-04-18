@@ -65,14 +65,23 @@ export const emergentBuyStore = defineStore('emergentBuy', () => {
                 console.warn('buyCategory guest: google_id vacío — se debe llamar a GuestCheckoutService.register primero.');
                 return;
             }
+            let cupon:any
+            if (cuponResponse.value && cuponResponse.value.records && cuponResponse.value.records.length) {
+                 cupon = cuponResponse.value.records[0].cupon
+            }
+             
             const gateway = emergentBuy.value.optionBuyPay === OptionBuyPay.Paypal ? 'paypal' : 'wompi';
-            if (category.value) persistPurchaseData([category.value], category.value.precio_desc);
+            if (category.value) persistPurchaseData([category.value], category.value.precio_desc);;
+
+            console.log('se metiossssss');
             GuestCheckoutService.initGuestCheckout({
                 google_id,
                 categories: [{ id_category: category.value?.id as number }],
                 gateway,
                 num_whatsapp: num_whatsapp || '',
+                cupon: cupon
             }).then((res) => {
+
                 if (res?.approval_url) {
                     window.location.href = res.approval_url;
                 }
@@ -140,7 +149,7 @@ export const emergentBuyStore = defineStore('emergentBuy', () => {
             }
 
             if (emergentBuy.value.optionBuyPay=== OptionBuyPay.Wompi) {
-                PaymentService.generate_link_pay_wompy_cupon({ categories: [{id_category:category.value?.id}], cupon: record.cupon, num_whatsapp }).then((res) => {
+                PaymentService.generate_link_pay_wompy_cupon({ categories: [{id_category:category.value?.id}], cupon: record.cupon, num_whatsapp}).then((res) => {
                     if (res?.approval_url) {
                         window.location.href = res.approval_url;
                     }

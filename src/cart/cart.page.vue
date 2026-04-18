@@ -179,6 +179,7 @@ const buyCategoriesWompi = async () => {
       categories: data,
       gateway: 'wompi',
       num_whatsapp: whatsappValue.value,
+      cupon:""
     })
     if (res?.approval_url) window.location.href = res.approval_url
   } else {
@@ -204,6 +205,7 @@ const buyCategoriesPayPal = async () => {
       categories: data,
       gateway: 'paypal',
       num_whatsapp: whatsappValue.value,
+      cupon: ""
     })
     if (res?.approval_url) window.location.href = res.approval_url
   } else {

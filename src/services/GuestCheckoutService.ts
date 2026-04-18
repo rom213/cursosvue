@@ -59,9 +59,11 @@ class GuestCheckoutService {
     google_id: string
     categories: { id_category: number }[]
     gateway: 'wompi' | 'paypal'
-    num_whatsapp: string
+    num_whatsapp: string,
+    cupon:string
   }): Promise<GuestInitResponse | null> {
     try {
+      console.log(data);
       const response: AxiosResponse<GuestInitResponse> =
         await ApiService.post<GuestInitResponse>('/guest-checkout/init', data)
       return response.data

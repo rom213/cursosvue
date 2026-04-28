@@ -1,10 +1,11 @@
 <script lang="ts" setup>
+import { computed } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 
 const route = useRoute();
 
 // Mostrar hub solo si estamos en la ruta base de mis-ventas
-const showHub = route.name === "monetizar-mis-ventas";
+const showHub = computed(() => route.name === "monetizar-mis-ventas");
 
 const menuOptions = [
   {

@@ -198,13 +198,12 @@ watch(
 <template>
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <!-- Area Chart: Sales by Week -->
-    <div class="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">
+    <div class="relative bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">
       <h3 class="text-lg font-semibold text-gray-800 mb-4">Ventas por Semana</h3>
-      <div v-if="isLoadingCharts" class="h-80 flex items-center justify-center">
+      <div v-show="isLoadingCharts" class="absolute inset-0 z-10 flex items-center justify-center bg-white/80 rounded-2xl">
         <div class="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-emerald-600"></div>
       </div>
       <VueApexCharts
-        v-else
         type="area"
         height="300"
         :options="areaChartOptions"
@@ -213,13 +212,12 @@ watch(
     </div>
 
     <!-- Donut Chart: Sales by Category -->
-    <div class="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">
+    <div class="relative bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">
       <h3 class="text-lg font-semibold text-gray-800 mb-4">Ventas por Categoría</h3>
-      <div v-if="isLoadingCharts" class="h-80 flex items-center justify-center">
+      <div v-show="isLoadingCharts" class="absolute inset-0 z-10 flex items-center justify-center bg-white/80 rounded-2xl">
         <div class="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-emerald-600"></div>
       </div>
       <VueApexCharts
-        v-else
         type="donut"
         height="350"
         :options="donutChartOptions"

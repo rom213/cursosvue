@@ -1,13 +1,13 @@
 <script lang="ts" setup>
 import { onMounted, ref, watch, computed } from 'vue';
 import RefundComponentEmergent from './refund.component.emergent.vue';
-import { AdminRefundService } from '../../../../services/AdminService';
-import type { IRecordItemRefund } from '../../../../types/admin/ReferAdmin';
+import RefundService from '../../../../services/Refund';
+import type { IRefund } from '../../../../types/Refund';
 import { authStore } from '../../../../store/AuthStore';
 
 // --- Estado ---
-const recordsRefund = ref<IRecordItemRefund[]>([]);
-const selectedRefund = ref<IRecordItemRefund | null>(null);
+const recordsRefund = ref<IRefund[]>([]);
+const selectedRefund = ref<IRefund | null>(null);
 const fechaInicio = ref('');
 const fechaFin = ref('');
 const isLoading = ref(false);
@@ -32,6 +32,11 @@ const paginationInfo = computed(() => {
     end,
     total: totalRecords.value
   };
+});
+
+const paginatedRecords = computed(() => {
+  const start = (currentPage.value - 1) * perPage.value;
+  return recordsRefund.value.slice(start, start + perPage.value);
 });
 
 // Calcular páginas visibles para la paginación
@@ -64,30 +69,11 @@ const fetchRefunds = async (resetPage = false) => {
   try {
     const dateInicio = new Date(fechaInicio.value);
     const dateFinObj = new Date(fechaFin.value);
-    const google_id = authstore.getProfile()?.user?.google_id ?? undefined;
-    const response = await AdminRefundService.getSearchRefunds(
-      dateInicio,
-      dateFinObj,
-      google_id,
-      currentPage.value,
-      perPage.value
-    );
+    const response = await RefundService.getRefundsByUserAndDate(dateInicio, dateFinObj);
 
-    if (response.status === 'success') {
-      recordsRefund.value = response.records.filter(dt=>{
-        return dt.user.google_id==google_id
-      });
-      if (response.pagination) {
-        totalRecords.value = response.pagination.total;
-        totalPages.value = response.pagination.pages;
-        currentPage.value = response.pagination.current_page;
-      }
-    } else {
-      console.error('Error:', response.message);
-      recordsRefund.value = [];
-      totalRecords.value = 0;
-      totalPages.value = 0;
-    }
+    recordsRefund.value = response;
+    totalRecords.value = response.length;
+    totalPages.value = Math.ceil(response.length / perPage.value);
   } catch (err) {
     console.error('Error al obtener reembolsos:', err);
     recordsRefund.value = [];
@@ -147,7 +133,7 @@ watch([fechaInicio, fechaFin], () => fetchRefunds(true));
 watch(searchTerm, handleSearch);
 
 // --- Handlers ---
-const openRefund = (refund: IRecordItemRefund) => selectedRefund.value = refund;
+const openRefund = (refund: IRefund) => selectedRefund.value = refund;
 
 const closeRefund = () => selectedRefund.value = null;
 
@@ -228,7 +214,7 @@ watch(()=>authstore.profile, (value) => {
                 </td>
               </tr>
               <tr 
-                v-for="refund in recordsRefund" 
+                v-for="refund in paginatedRecords" 
                 :key="refund.refund_id"
                 @click="openRefund(refund)"
                 class="cursor-pointer hover:bg-gray-50 transition-colors"
@@ -240,10 +226,10 @@ watch(()=>authstore.profile, (value) => {
                   {{ refund.google_id }}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                  {{ refund?.user?.name || 'N/A' }}
+                  N/A
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {{ refund?.user?.email || 'N/A' }}
+                  N/A
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
                   {{ refund?.value || refund.value }}

@@ -188,7 +188,7 @@ watch([startDate, endDate, () => props.googleId], () => {
     </div>
 
     <!-- Content -->
-    <div v-if="!isCollapsed" class="p-5 bg-white rounded-b-2xl">
+    <div v-show="!isCollapsed" class="p-5 bg-white rounded-b-2xl">
       <!-- Date Controls -->
       <div class="flex items-center gap-3 mb-6 bg-gray-50 p-2 rounded-xl border border-gray-100">
         <div class="flex-1">

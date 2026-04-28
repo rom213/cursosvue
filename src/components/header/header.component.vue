@@ -123,10 +123,11 @@ const handleChangeAccount = () => {
                 </div>
 
                 <!-- Auth: no logueado → Google + Facebook userStore.getProfile() == null -->
-                <div v-if="false" class="header-auth-btns">
+                <div v-if="userStore.getProfile() == null" class="header-auth-btns">
                     <!-- @ts-ignore -->
                     <GoogleLogin :callback="handleLoginSuccess" />
                     <button
+                        :class="false"
                         type="button"
                         class="fb-login-btn"
                         :disabled="facebookLoading"

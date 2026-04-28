@@ -1,5 +1,5 @@
 // src/services/AuthService.ts
-import type { AxiosResponse } from "axios";
+import axios, { type AxiosResponse } from "axios";
 import { AUTH_ACCESS_TOKEN_KEY } from "../constants/storageKeys";
 import ApiService from "./ApiService";
 import type { AuthResponse, IApiResponseVerifyEmail, IUserAfiliaty, LogoutResponse } from "../types/Auth";
@@ -16,6 +16,25 @@ class AuthService {
       return data;
     } catch (error) {
       console.error("Error al verificar token:", error);
+      return null;
+    }
+  }
+
+  static async verifyFacebookToken(accessToken: string): Promise<AuthResponse | null> {
+    try {
+      const response: AxiosResponse<AuthResponse> = await ApiService.post<AuthResponse>("/verify-facebook-token", {
+        access_token: accessToken,
+      });
+      const data = response.data;
+      if (data?.token) {
+        localStorage.setItem(AUTH_ACCESS_TOKEN_KEY, data.token);
+      }
+      return data;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 409) {
+        throw error;
+      }
+      console.error("Error al verificar token de Facebook:", error);
       return null;
     }
   }

@@ -13,6 +13,8 @@ import { categoryStore } from "../../store/CategoryStore";
 import EmergentBuyComponent from "../emergent.buy.component.vue";
 import AuthService from "../../services/AuthServices";
 import CategoryService from "../../services/CategorieService";
+import GuestCheckoutService from "../../services/GuestCheckoutService";
+import WhatsAppInput from "../../components/common/WhatsAppInput.vue";
 import CourseFaqSection from "./CourseFaqSection.vue";
 import CommentsBodyComponent from "./componentCourseInfo/comments.body.component.vue";
 import FooterComponent from "../../components/footer/footer.component.vue";
@@ -545,6 +547,69 @@ for (const group of Object.values(descripcionesRaw)) {
 const showDescripcion = ref(false);
 const showLoginModal = ref(false);
 
+const guestEmail = ref("");
+const guestEmailConfirm = ref("");
+const guestWhatsapp = ref("");
+const guestPreviewError = ref("");
+const isSubmittingGuestPreview = ref(false);
+
+const GUEST_EMAIL_RE = /^[^@\s]+@gmail\.com$/i;
+
+function resetGuestPreviewForm() {
+  guestEmail.value = "";
+  guestEmailConfirm.value = "";
+  guestWhatsapp.value = "";
+  guestPreviewError.value = "";
+}
+
+async function submitGuestPreview() {
+  guestPreviewError.value = "";
+  const email = guestEmail.value.trim().toLowerCase();
+  const confirm = guestEmailConfirm.value.trim().toLowerCase();
+  const wa = guestWhatsapp.value.trim();
+  const categoryId = category.value?.id;
+
+  if (!GUEST_EMAIL_RE.test(email)) {
+    guestPreviewError.value = "Ingresa un correo Gmail válido (ejemplo@gmail.com).";
+    return;
+  }
+  if (email !== confirm) {
+    guestPreviewError.value = "Los correos no coinciden.";
+    return;
+  }
+  if (!wa) {
+    guestPreviewError.value = "El número de WhatsApp es obligatorio.";
+    return;
+  }
+  if (!categoryId) {
+    guestPreviewError.value = "No se pudo identificar la categoría.";
+    return;
+  }
+
+  try {
+    isSubmittingGuestPreview.value = true;
+    isLoadingDrive.value = true;
+    const response = await GuestCheckoutService.registerDrivePreview({
+      email,
+      num_whatsapp: wa,
+      category_id: categoryId,
+    });
+    if (!response || !response.redirect_url) {
+      guestPreviewError.value = "No se pudo habilitar el acceso. Intenta de nuevo.";
+      isLoadingDrive.value = false;
+      return;
+    }
+    showLoginModal.value = false;
+    window.location.href = response.redirect_url;
+  } catch (error) {
+    console.error("Error en submitGuestPreview:", error);
+    guestPreviewError.value = "Ocurrió un error. Intenta nuevamente.";
+    isLoadingDrive.value = false;
+  } finally {
+    isSubmittingGuestPreview.value = false;
+  }
+}
+
 const descripcionCurso = computed(() => {
   const titulo = category.value?.titulo;
   if (!titulo) return null;
@@ -721,12 +786,12 @@ const contentHeading = computed(() => {
       </div>
     </div>
 
-    <!-- Modal: login requerido para vista previa -->
+    <!-- Modal: registro/login de invitado para vista previa de Drive -->
     <div
       v-if="showLoginModal"
       class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
     >
-      <div class="bg-white rounded-lg shadow-2xl p-8 max-w-md w-full">
+      <div class="bg-white rounded-lg shadow-2xl p-6 sm:p-8 max-w-md w-full">
         <div class="mb-4 flex justify-center">
           <div class="bg-blue-100 rounded-full p-3">
             <svg
@@ -740,20 +805,65 @@ const contentHeading = computed(() => {
             </svg>
           </div>
         </div>
-        <h3 class="text-xl font-bold text-gray-800 mb-3 text-center">
+        <h3 class="text-xl font-bold text-gray-800 mb-2 text-center">
           Vista previa disponible
         </h3>
-        <p class="text-gray-600 text-center mb-6 leading-relaxed">
-          Para ver una vista previa del contenido debes
-          <strong>iniciar sesión con tu cuenta de Google</strong>.
-          ¡Es gratis y solo toma un segundo!
+        <p class="text-gray-600 text-center mb-5 text-sm leading-relaxed">
+          Verifica tu correo de <strong>Gmail</strong> y tu WhatsApp para
+          habilitarte acceso temporal al contenido.
         </p>
-        <button
-          @click="showLoginModal = false"
-          class="w-full px-4 py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          Entendido
-        </button>
+
+        <form @submit.prevent="submitGuestPreview" class="space-y-3">
+          <div class="space-y-1">
+            <label class="block text-sm font-medium text-gray-700">
+              Correo Gmail <span class="text-red-500">*</span>
+            </label>
+            <input
+              v-model="guestEmail"
+              type="email"
+              required
+              placeholder="ejemplo@gmail.com"
+              class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
+
+          <div class="space-y-1">
+            <label class="block text-sm font-medium text-gray-700">
+              Confirma tu correo <span class="text-red-500">*</span>
+            </label>
+            <input
+              v-model="guestEmailConfirm"
+              type="email"
+              required
+              placeholder="ejemplo@gmail.com"
+              class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
+
+          <WhatsAppInput v-model="guestWhatsapp" :error="guestPreviewError && !guestWhatsapp ? 'WhatsApp obligatorio' : ''" />
+
+          <p v-if="guestPreviewError" class="text-sm text-red-500">
+            {{ guestPreviewError }}
+          </p>
+
+          <div class="flex gap-3 pt-2">
+            <button
+              type="button"
+              @click="showLoginModal = false; resetGuestPreviewForm()"
+              :disabled="isSubmittingGuestPreview"
+              class="flex-1 px-4 py-2.5 bg-gray-200 text-gray-800 font-semibold rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-60"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              :disabled="isSubmittingGuestPreview"
+              class="flex-1 px-4 py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-60"
+            >
+              {{ isSubmittingGuestPreview ? "Procesando..." : "Ver vista previa" }}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
 

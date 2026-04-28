@@ -64,7 +64,7 @@ const fetchRefunds = async (resetPage = false) => {
   try {
     const dateInicio = new Date(fechaInicio.value);
     const dateFinObj = new Date(fechaFin.value);
-    const google_id = authstore.getProfile()?.user?.google_id;
+    const google_id = authstore.getProfile()?.user?.google_id ?? undefined;
     const response = await AdminRefundService.getSearchRefunds(
       dateInicio,
       dateFinObj,

@@ -59,6 +59,36 @@ function dismiss(id: string) {
 
       <!-- Bienvenida / bonos — misma forma -->
       <div
+        v-else-if="item.type === 'error'"
+        class="pointer-events-auto rounded-2xl bg-white border-2 border-red-200 shadow-lg shadow-red-900/10 max-w-sm"
+      >
+        <div class="flex items-start gap-3 p-3 md:p-4 min-w-0">
+          <div
+            class="flex-shrink-0 w-10 h-10 rounded-full bg-red-500/10 text-red-600 flex items-center justify-center border-2 border-red-100"
+            aria-hidden="true"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+          </div>
+          <p class="text-red-800 text-sm md:text-[15px] leading-snug flex-1 min-w-0">
+            {{ item.message || 'Ha ocurrido un error. Intenta de nuevo.' }}
+          </p>
+          <button
+            type="button"
+            class="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-800 transition-colors cursor-pointer border-none focus:outline-none focus:ring-2 focus:ring-red-300"
+            @click="dismiss(item.id)"
+            aria-label="Cerrar notificación"
+            title="Cerrar"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div
         v-else-if="item.type === 'gift'"
         class="pointer-events-auto rounded-2xl bg-white border-2 border-blue-300 shadow-lg shadow-blue-900/10 hover:shadow-xl hover:shadow-blue-900/15 transition-shadow overflow-hidden"
       >

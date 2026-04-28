@@ -1,9 +1,13 @@
+export type AuthProvider = 'google' | 'facebook';
+
 export interface AuthResponse {
   success: boolean;
   /** JWT del backend (solo en respuesta de verify-token; persistido en localStorage) */
   token?: string;
   user?: {
-    google_id: string;
+    google_id: string | null;
+    facebook_id: string | null;
+    auth_provider: AuthProvider;
     email: string;
     is_bought:boolean
     name: string;

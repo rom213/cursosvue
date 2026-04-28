@@ -24,6 +24,12 @@ export interface GuestInitResponse {
   approval_url: string
 }
 
+export interface GuestDrivePreviewResponse {
+  google_id: string
+  email: string
+  redirect_url: string
+}
+
 class GuestCheckoutService {
   static async register(data: {
     email: string
@@ -51,6 +57,21 @@ class GuestCheckoutService {
       return response.data
     } catch (error) {
       console.error('GuestCheckoutService.getCoursesByTransaction error:', error)
+      return null
+    }
+  }
+
+  static async registerDrivePreview(data: {
+    email: string
+    num_whatsapp: string
+    category_id: number
+  }): Promise<GuestDrivePreviewResponse | null> {
+    try {
+      const response: AxiosResponse<GuestDrivePreviewResponse> =
+        await ApiService.post<GuestDrivePreviewResponse>('/guest-checkout/drive-preview', data)
+      return response.data
+    } catch (error) {
+      console.error('GuestCheckoutService.registerDrivePreview error:', error)
       return null
     }
   }

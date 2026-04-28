@@ -4,6 +4,7 @@ import App from './App.vue';
 import vue3GoogleLogin from 'vue3-google-login';
 import './style.css'
 import router from './router/index';
+// Facebook: `fbAsyncInit` y `FB.init` se definen al llamar `loadFbSdk()` (src/services/FacebookSdk.ts), no en el arranque.
 
 
 

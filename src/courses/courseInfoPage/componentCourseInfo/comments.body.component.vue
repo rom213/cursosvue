@@ -18,6 +18,8 @@ const hoverStars = ref(0);
 const newMessage = ref('');
 const submitting = ref(false);
 const submitError = ref('');
+const failedPictures = ref<Record<string, boolean>>({});
+const pastelColors = ['#F8D7DA', '#FCECC9', '#D9F0D8', '#D8ECF8', '#E6DCF8', '#F7D9E8', '#D9F4EF', '#F9E2D2'];
 
 const loadMessages = async () => {
   isLoading.value = true;
@@ -50,6 +52,29 @@ const ratingPercentages = computed(() => {
 const canComment = computed(() =>
   messageResponse.value?.is_login && !messageResponse.value?.is_comment && props.userBought
 );
+
+const getUserKey = (user: { google_id?: string; email?: string; name?: string }) =>
+  user.google_id || user.email || user.name || '';
+
+const hasPicture = (user: { picture?: string | null; google_id?: string; email?: string; name?: string }) => {
+  const key = getUserKey(user);
+  return Boolean(user.picture?.trim()) && !failedPictures.value[key];
+};
+
+const handlePictureError = (user: { google_id?: string; email?: string; name?: string }) => {
+  const key = getUserKey(user);
+  if (key) failedPictures.value[key] = true;
+};
+
+const getInitial = (name?: string | null) => {
+  const trimmedName = name?.trim();
+  return trimmedName ? trimmedName.charAt(0).toUpperCase() : '?';
+};
+
+const getPastelColor = (name?: string | null) => {
+  const seed = (name || 'user').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return pastelColors[seed % pastelColors.length];
+};
 
 const submitReview = async () => {
   if (newStars.value === 0 || !newMessage.value.trim()) {
@@ -214,7 +239,24 @@ const submitReview = async () => {
           class="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm"
         >
           <div class="flex items-start gap-3">
-            <img class="w-9 h-9 rounded-full object-cover shrink-0" :src="item.user.picture" :alt="item.user.name" loading="lazy" width="36" height="36" />
+            <img
+              v-if="hasPicture(item.user)"
+              class="w-9 h-9 rounded-full object-cover shrink-0"
+              :src="item.user.picture"
+              :alt="item.user.name"
+              loading="lazy"
+              width="36"
+              height="36"
+              @error="handlePictureError(item.user)"
+            />
+            <div
+              v-else
+              class="w-9 h-9 rounded-full shrink-0 flex items-center justify-center text-sm font-bold text-slate-700"
+              :style="{ backgroundColor: getPastelColor(item.user.name) }"
+              :aria-label="item.user.name"
+            >
+              {{ getInitial(item.user.name) }}
+            </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-center justify-between gap-2 flex-wrap">
                 <span class="font-semibold text-sm text-[#0d1b2a] truncate">{{ item.user.name }}</span>

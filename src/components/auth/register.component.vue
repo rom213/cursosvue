@@ -2,8 +2,11 @@
 import AuthService from '../../services/AuthServices';
 import FooterComponent from '../footer/footer.component.vue';
 import { authStore } from '../../store/AuthStore';
+import { useFacebookLogin } from '../../composables/useFacebookLogin';
 
 const userstore = authStore()
+
+const { loading: facebookLoading, handleFacebookLogin } = useFacebookLogin();
 
 
 // Esta función se ejecuta al autenticarse correctamente con Google
@@ -31,7 +34,7 @@ const handleError = () => {
             </div>
 
             <div class="flex justify-center relative">
-                <div class="w-[260px]">
+                <div class="w-[260px] flex flex-col gap-2">
                     <div class="flex text-[14px] gap-2 border border-gray-300 p-3 rounded-sm text-gray-7s00">
                         <svg width="25" height="24" viewBox="0 0 25 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path
@@ -52,6 +55,19 @@ const handleError = () => {
                     <div class="absolute top-0 opacity-0">
                         <GoogleLogin :callback="handleSuccess" @error="handleError" />
                     </div>
+                    <button
+                        type="button"
+                        class="fb-page-register-btn w-full"
+                        :disabled="facebookLoading"
+                        @click="handleFacebookLogin"
+                    >
+                        <span class="inline-flex shrink-0" aria-hidden="true">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                            </svg>
+                        </span>
+                        <span>{{ facebookLoading ? 'Conectando…' : 'Continuar con Facebook' }}</span>
+                    </button>
                 </div>
             </div>
 
@@ -95,3 +111,29 @@ const handleError = () => {
         </div>
     </div>
 </template>
+
+<style scoped>
+.fb-page-register-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.9rem;
+  min-height: 2.5rem;
+  background: #1877f2;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+.fb-page-register-btn:hover:not(:disabled) {
+  background: #166fe5;
+}
+.fb-page-register-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+</style>

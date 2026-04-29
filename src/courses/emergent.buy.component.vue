@@ -329,10 +329,10 @@ watch(
 <template>
   <div
     v-if="storeemergentBuy.emergentBuy.emergent"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+    class="emergent-buy-modal fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
   >
     <div
-      class="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]"
+      class="emergent-buy-panel bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]"
     >
       <!-- Header -->
       <div
@@ -451,6 +451,7 @@ watch(
 
           <!-- Option 2: External User -->
           <div
+            v-if="storeemergentBuy.esVentaTercero"
             @click="
               storeemergentBuy.handleChangeOptionsEmergentBuy(
                 OptionsEmergentBuy.UserExternal,
@@ -981,3 +982,31 @@ watch(
     @close="alert.show = false"
   />
 </template>
+
+<style scoped>
+.emergent-buy-panel {
+  color: #111827;
+}
+
+.emergent-buy-modal :deep(input:not([type="checkbox"]):not([type="radio"])),
+.emergent-buy-modal :deep(textarea),
+.emergent-buy-modal :deep(select) {
+  color: #111827;
+  -webkit-text-fill-color: #111827;
+}
+
+.emergent-buy-modal :deep(input:disabled),
+.emergent-buy-modal :deep(textarea:disabled),
+.emergent-buy-modal :deep(select:disabled) {
+  color: #6b7280;
+  -webkit-text-fill-color: #6b7280;
+  opacity: 1;
+}
+
+.emergent-buy-modal :deep(input::placeholder),
+.emergent-buy-modal :deep(textarea::placeholder) {
+  color: #9ca3af;
+  -webkit-text-fill-color: #9ca3af;
+  opacity: 1;
+}
+</style>

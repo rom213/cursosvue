@@ -1,9 +1,12 @@
 <script lang="ts" setup>
-import { ref, watch, onMounted } from "vue";
+import { computed } from "vue";
 import VueApexCharts from "vue3-apexcharts";
-import BalanceService from "../../services/BalanceService";
 import type { ISail } from "../../types/Sail";
-import { formatCOP } from "../utils";
+import {
+  formatCurrencyCOP,
+  groupSalesByCategory,
+  groupSalesByWeek,
+} from "./salesDashboardUtils";
 
 interface Props {
   sales: ISail[];
@@ -12,217 +15,187 @@ interface Props {
 
 const props = defineProps<Props>();
 
-// Area Chart - Sales by Week
-const areaChartSeries = ref<{ name: string; data: number[] }[]>([
-  { name: "Ventas", data: [] },
+const trendPoints = computed(() =>
+  groupSalesByWeek(props.sales, props.dateRange.start, props.dateRange.end)
+);
+
+const hasTrendData = computed(() =>
+  trendPoints.value.some((point) => point.sales > 0 || point.billing > 0 || point.commission > 0)
+);
+
+const trendSeries = computed(() => [
+  {
+    name: "Facturación",
+    data: trendPoints.value.map((point) => point.billing),
+  },
+  {
+    name: "Comisiones",
+    data: trendPoints.value.map((point) => point.commission),
+  },
+  {
+    name: "Ventas",
+    data: trendPoints.value.map((point) => point.sales),
+  },
 ]);
-const areaChartOptions = ref({
+
+const trendOptions = computed(() => ({
   chart: {
     type: "area" as const,
-    height: 300,
-    fontFamily: "Inter, sans-serif",
+    height: 360,
+    fontFamily: "Inter, system-ui, sans-serif",
     toolbar: { show: false },
-    animations: { enabled: true },
+    zoom: { enabled: false },
   },
-  colors: ["#059669"], // Emerald
-  fill: {
-    type: "gradient" as const,
-    gradient: {
-      shadeIntensity: 1,
-      opacityFrom: 0.4,
-      opacityTo: 0.05,
-      stops: [0, 90, 100],
-    },
-  },
+  colors: ["#2563EB", "#00A86B", "#64748B"],
   dataLabels: { enabled: false },
-  stroke: { curve: "smooth" as const, width: 3 },
-  xaxis: {
-    categories: [] as string[],
-    tooltip: { enabled: false },
-    axisBorder: { show: false },
-    axisTicks: { show: false },
-    labels: { style: { colors: "#64748B", fontSize: "10px" } },
+  stroke: {
+    curve: "smooth" as const,
+    width: [3, 3, 2],
   },
-  yaxis: {
-    labels: {
-      style: { colors: "#64748B", fontSize: "10px" },
-      formatter: (value: number) => formatCOP(value),
+  fill: {
+    type: "gradient",
+    gradient: {
+      opacityFrom: 0.24,
+      opacityTo: 0.03,
+      stops: [0, 95],
     },
   },
   grid: {
-    borderColor: "#F1F5F9",
+    borderColor: "#E5EAF0",
     strokeDashArray: 4,
-    xaxis: { lines: { show: true } },
   },
-  tooltip: {
-    theme: "light" as const,
-    y: { formatter: (val: number) => formatCOP(val) },
-  },
-});
-
-// Donut Chart - Sales by Category
-const donutChartSeries = ref<number[]>([]);
-const donutChartOptions = ref({
-  chart: {
-    type: "donut" as const,
-    fontFamily: "Inter, sans-serif",
-    toolbar: { show: false },
-  },
-  colors: ["#059669", "#10B981", "#34d399", "#6ee7b7", "#a7f3d0"],
-  labels: [] as string[],
   legend: {
-    position: "bottom" as const,
-    fontSize: "12",
-    fontFamily: "Inter, sans-serif",
+    position: "top" as const,
+    horizontalAlign: "left" as const,
+    fontSize: "12px",
+    labels: { colors: "#475569" },
+    markers: { size: 5 },
   },
-  dataLabels: {
-    enabled: true,
-    formatter: (val: number) => `${Math.round(val)}%`,
+  xaxis: {
+    categories: trendPoints.value.map((point) =>
+      point.isCurrentPeriod ? `${point.label} (Periodo en curso)` : point.label
+    ),
+    axisBorder: { show: false },
+    axisTicks: { show: false },
+    labels: {
+      style: { colors: "#64748B", fontSize: "11px" },
+      rotate: -15,
+    },
+    tooltip: { enabled: false },
   },
-  plotOptions: {
-    pie: {
-      donut: {
-        size: "65%",
-        labels: {
-          show: true,
-          name: {
-            show: true,
-            fontSize: "14",
-            fontFamily: "Inter, sans-serif",
-          },
-          value: {
-            show: true,
-            fontSize: "14",
-            fontFamily: "Inter, sans-serif",
-          },
-        },
+  yaxis: [
+    {
+      seriesName: "Facturación",
+      labels: {
+        style: { colors: "#64748B", fontSize: "11px" },
+        formatter: (value: number) => formatCurrencyCOP(value),
       },
     },
+    {
+      seriesName: "Comisiones",
+      show: false,
+      labels: {
+        formatter: (value: number) => formatCurrencyCOP(value),
+      },
+    },
+    {
+      seriesName: "Ventas",
+      opposite: true,
+      labels: {
+        style: { colors: "#64748B", fontSize: "11px" },
+        formatter: (value: number) => `${Math.round(value)} ventas`,
+      },
+    },
+  ],
+  tooltip: {
+    shared: true,
+    intersect: false,
+    theme: "light",
+    y: [
+      { formatter: (value: number) => formatCurrencyCOP(value) },
+      { formatter: (value: number) => formatCurrencyCOP(value) },
+      { formatter: (value: number) => `${Math.round(value)} ventas` },
+    ],
   },
+}));
+
+const topCategories = computed(() => groupSalesByCategory(props.sales, 6));
+
+const maxCategoryCommission = computed(() => {
+  return Math.max(...topCategories.value.map((item) => item.commission), 0);
 });
 
-const isLoadingCharts = ref(false);
-
-// Get weeks between dates
-const getWeeksBetweenDates = (start: Date, end: Date) => {
-  const weeks = [];
-  let current = new Date(start);
-  const endTime = end.getTime();
-
-  while (current.getTime() <= endTime) {
-    const weekStart = new Date(current);
-    const weekEndRaw = new Date(current);
-    weekEndRaw.setDate(weekEndRaw.getDate() + 6);
-
-    const weekEnd = weekEndRaw.getTime() > endTime ? new Date(end) : weekEndRaw;
-
-    weeks.push({ start: weekStart, end: weekEnd });
-
-    const nextDay = new Date(weekEnd);
-    nextDay.setDate(nextDay.getDate() + 1);
-    current = nextDay;
-  }
-  return weeks;
+const getCategoryWidth = (commission: number): string => {
+  if (maxCategoryCommission.value <= 0) return "0%";
+  return `${Math.max(8, Math.round((commission / maxCategoryCommission.value) * 100))}%`;
 };
-
-const fetchChartData = async () => {
-  if (
-    !props.dateRange.start ||
-    !props.dateRange.end ||
-    props.sales.length === 0
-  ) {
-    return;
-  }
-
-  isLoadingCharts.value = true;
-
-  try {
-    // Fetch weekly sales data
-    const weeks = getWeeksBetweenDates(props.dateRange.start, props.dateRange.end);
-    const requests = weeks.map((week) =>
-      BalanceService.getBalance(week.start, week.end)
-    );
-    const responses = await Promise.all(requests);
-
-    const salesData = responses.map((res) => {
-      return res ? res.courses_payments_value : 0;
-    });
-
-    const categories = weeks.map((w) => {
-      const s = w.start.getDate() + "/" + (w.start.getMonth() + 1);
-      const e = w.end.getDate() + "/" + (w.end.getMonth() + 1);
-      return `${s} - ${e}`;
-    });
-
-    areaChartSeries.value = [{ name: "Ventas", data: salesData }];
-    areaChartOptions.value = {
-      ...areaChartOptions.value,
-      xaxis: { ...areaChartOptions.value.xaxis, categories: categories },
-    };
-
-    // Calculate category distribution for donut chart
-    const categoryMap: Record<string, number> = {};
-    props.sales.forEach((sale) => {
-      const category = sale.category_bought || "Sin categoría";
-      categoryMap[category] = (categoryMap[category] || 0) + 1;
-    });
-
-    const categories_labels = Object.keys(categoryMap);
-    const categories_values = Object.values(categoryMap);
-
-    donutChartSeries.value = categories_values;
-    donutChartOptions.value = {
-      ...donutChartOptions.value,
-      labels: categories_labels,
-    };
-  } catch (error) {
-    console.error("Error fetching chart data:", error);
-  } finally {
-    isLoadingCharts.value = false;
-  }
-};
-
-onMounted(() => {
-  fetchChartData();
-});
-
-watch(
-  () => [props.sales, props.dateRange],
-  () => {
-    fetchChartData();
-  },
-  { deep: true }
-);
 </script>
 
 <template>
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <!-- Area Chart: Sales by Week -->
-    <div class="relative bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">
-      <h3 class="text-lg font-semibold text-gray-800 mb-4">Ventas por Semana</h3>
-      <div v-show="isLoadingCharts" class="absolute inset-0 z-10 flex items-center justify-center bg-white/80 rounded-2xl">
-        <div class="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-emerald-600"></div>
+  <div class="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(360px,0.75fr)]">
+    <section class="rounded-2xl border border-[#E5EAF0] bg-white p-5 shadow-sm sm:p-6">
+      <div class="mb-5 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 class="text-lg font-bold text-[#0F1F3D]">Rendimiento en el periodo</h2>
+          <p class="mt-1 text-sm text-slate-500">
+            Ventas, facturación y comisiones generadas en el rango seleccionado.
+          </p>
+        </div>
+        <span class="w-fit rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+          {{ sales.length }} ventas
+        </span>
       </div>
-      <VueApexCharts
-        type="area"
-        height="300"
-        :options="areaChartOptions"
-        :series="areaChartSeries"
-      />
-    </div>
 
-    <!-- Donut Chart: Sales by Category -->
-    <div class="relative bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">
-      <h3 class="text-lg font-semibold text-gray-800 mb-4">Ventas por Categoría</h3>
-      <div v-show="isLoadingCharts" class="absolute inset-0 z-10 flex items-center justify-center bg-white/80 rounded-2xl">
-        <div class="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-emerald-600"></div>
+      <div v-if="hasTrendData" class="min-h-[320px]">
+        <VueApexCharts
+          type="area"
+          height="360"
+          :options="trendOptions"
+          :series="trendSeries"
+        />
       </div>
-      <VueApexCharts
-        type="donut"
-        height="350"
-        :options="donutChartOptions"
-        :series="donutChartSeries"
-      />
-    </div>
+
+      <div v-else class="flex min-h-[320px] items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 text-center">
+        <div>
+          <p class="font-semibold text-slate-700">Aún no hay datos suficientes para graficar.</p>
+          <p class="mt-1 text-sm text-slate-500">Cuando tengas ventas en este periodo, verás tu tendencia aquí.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="rounded-2xl border border-[#E5EAF0] bg-white p-5 shadow-sm sm:p-6">
+      <div class="mb-5">
+        <h2 class="text-lg font-bold text-[#0F1F3D]">Top categorías por comisión</h2>
+        <p class="mt-1 text-sm text-slate-500">
+          Paquetes que más dinero generaron para ti.
+        </p>
+      </div>
+
+      <div v-if="topCategories.length > 0" class="space-y-4">
+        <div v-for="category in topCategories" :key="category.name" class="space-y-2">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <p class="truncate text-sm font-semibold text-slate-700" :title="category.name">
+                {{ category.name }}
+              </p>
+              <p class="text-xs text-slate-500">{{ category.salesCount }} ventas</p>
+            </div>
+            <p class="shrink-0 text-sm font-bold text-emerald-700">
+              {{ formatCurrencyCOP(category.commission) }}
+            </p>
+          </div>
+          <div class="h-2.5 overflow-hidden rounded-full bg-slate-100">
+            <div class="h-full rounded-full bg-gradient-to-r from-emerald-500 to-blue-500" :style="{ width: getCategoryWidth(category.commission) }" />
+          </div>
+        </div>
+      </div>
+
+      <div v-else class="flex min-h-[260px] items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 text-center">
+        <div>
+          <p class="font-semibold text-slate-700">Sin categorías para mostrar</p>
+          <p class="mt-1 text-sm text-slate-500">El ranking aparecerá cuando existan ventas en el periodo.</p>
+        </div>
+      </div>
+    </section>
   </div>
 </template>

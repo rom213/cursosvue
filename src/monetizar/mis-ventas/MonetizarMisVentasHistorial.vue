@@ -3,6 +3,7 @@ import { ref, watch, onMounted } from "vue";
 import SalesDateRangeSelector from "./SalesDateRangeSelector.vue";
 import SalesTable from "./SalesTable.vue";
 import MonetizarCalculatorFAB from "./MonetizarCalculatorFAB.vue";
+import SailComponentEmergent from "../../components/auth/sales/salesHistory/sail.component.emergent.vue";
 import SailService from "../../services/Sail";
 import type { ISail } from "../../types/Sail";
 
@@ -17,6 +18,7 @@ const dateRange = ref<DateRange>({
 });
 
 const sales = ref<ISail[]>([]);
+const selectedSail = ref<ISail | null>(null);
 const isLoading = ref(false);
 
 const fetchData = async () => {
@@ -53,6 +55,14 @@ onMounted(() => {
 watch(dateRange, () => {
   fetchData();
 });
+
+const openSail = (sale: ISail) => {
+  selectedSail.value = sale;
+};
+
+const closeSail = () => {
+  selectedSail.value = null;
+};
 </script>
 
 <template>
@@ -73,9 +83,31 @@ watch(dateRange, () => {
 
       <!-- Sales Table -->
       <div class="mb-8">
-        <SalesTable :sales="sales" :isLoading="isLoading" />
+        <SalesTable :sales="sales" :isLoading="isLoading" @select-sale="openSail" />
       </div>
     </div>
+
+    <transition name="fade">
+      <div
+        v-if="selectedSail"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 px-4"
+      >
+        <div class="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl bg-white p-6 shadow-lg">
+          <div class="mb-4 flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-800">Detalle Venta</h3>
+            <button
+              type="button"
+              class="text-2xl leading-none text-gray-500 hover:text-gray-700"
+              aria-label="Cerrar detalle de venta"
+              @click="closeSail"
+            >
+              &times;
+            </button>
+          </div>
+          <SailComponentEmergent :item="selectedSail" />
+        </div>
+      </div>
+    </transition>
 
     <!-- Floating Calculator -->
     <MonetizarCalculatorFAB />

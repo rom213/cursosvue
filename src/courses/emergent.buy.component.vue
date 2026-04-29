@@ -15,6 +15,7 @@ const userAuth = authStore();
 const { trackBeginCheckout, trackAddPaymentInfo } = useTracking();
 
 const emailVerified = ref(false);
+const isEditingAccessEmail = ref(false);
 const tieneCupon = ref(false);
 const loadingVerify = ref(false);
 const isProcessingPayment = ref(false);
@@ -69,6 +70,19 @@ const isOnlyPaypal = computed(() => {
 });
 
 const isGuest = computed(() => !userAuth.getProfile());
+const profileEmail = computed(() => userAuth.getProfile()?.user?.email || "");
+const normalizedProfileEmail = computed(() =>
+  profileEmail.value.trim().toLowerCase(),
+);
+const normalizedAccessEmail = computed(() =>
+  storeemergentBuy.emergentBuy.correo.trim().toLowerCase(),
+);
+const isEditedPersonalAccess = computed(
+  () =>
+    !isGuest.value &&
+    !storeemergentBuy.esVentaTercero &&
+    normalizedAccessEmail.value !== normalizedProfileEmail.value,
+);
 
 const guestEmailConfirmTouched = ref(false);
 
@@ -84,7 +98,16 @@ const guestEmailsMismatch = computed(() => {
   return guestEmailConfirmTouched.value && !!b && a !== b;
 });
 
-onMounted(() => {
+const syncDefaultAccessEmail = () => {
+  if (!isGuest.value && !storeemergentBuy.esVentaTercero) {
+    storeemergentBuy.emergentBuy.correo = profileEmail.value;
+    storeemergentBuy.emergentBuy.user_google_id = "";
+    emailVerified.value = false;
+    isEditingAccessEmail.value = false;
+  }
+};
+
+const hydrateWhatsappFromProfile = () => {
   const profile = userAuth.getProfile()?.user;
   if (profile?.num_whatsapp) {
     const prefix = profile.prefix || "+57";
@@ -94,6 +117,11 @@ onMounted(() => {
       ? profile.num_whatsapp
       : `${prefix} ${profile.num_whatsapp}`;
   }
+};
+
+onMounted(() => {
+  hydrateWhatsappFromProfile();
+  syncDefaultAccessEmail();
 });
 
 const showAlert = (type: string, message: string) => {
@@ -104,46 +132,67 @@ const showAlert = (type: string, message: string) => {
 };
 
 const verificarCorreo = async () => {
-  if (!storeemergentBuy.emergentBuy.correo) {
-    showAlert("warning", "Por favor ingrese un correo válido.");
+  if (loadingVerify.value) return;
+
+  const email = normalizedAccessEmail.value;
+  if (!email) {
+    showAlert("warning", "Por favor ingrese un correo valido.");
+    return;
+  }
+
+  storeemergentBuy.emergentBuy.correo = email;
+
+  if (email === normalizedProfileEmail.value) {
+    if (storeemergentBuy.esVentaTercero) {
+      showAlert(
+        "warning",
+        'Si es para uso personal, seleccione la opcion "Para mi uso personal".',
+      );
+      emailVerified.value = false;
+      return;
+    }
+
+    storeemergentBuy.handleChangeOptionsEmergentBuy(
+      OptionsEmergentBuy.UserInternal,
+    );
+    storeemergentBuy.emergentBuy.user_google_id = "";
+    emailVerified.value = false;
+    isEditingAccessEmail.value = false;
+    showAlert("success", "Usaremos tu usuario actual para dar acceso.");
     return;
   }
 
   loadingVerify.value = true;
   try {
-    const response = await AuthService.verificarEmail(
-      storeemergentBuy.emergentBuy.correo,
-    );
+    const response = await AuthService.verificarEmail(email);
 
     if (response.status === "success") {
-      // Validar que el correo no sea el mismo del usuario logueado
-      if (
-        userAuth.getProfile()?.user?.email ===
-        storeemergentBuy.emergentBuy.correo
-      ) {
-        showAlert(
-          "warning",
-          'Si es para uso personal, seleccione la opción "Para mi uso personal".',
-        );
-        emailVerified.value = true;
-      } else {
-        showAlert(
-          "success",
-          "Correo verificado correctamente. Puede continuar.",
-        );
-        emailVerified.value = true;
-        storeemergentBuy.emergentBuy.user_google_id =
-          response.records[0].google_id;
+      const googleId = response.records?.[0]?.google_id;
+      if (!googleId) {
+        showAlert("error", "No pudimos obtener el usuario de ese correo.");
+        emailVerified.value = false;
+        return;
       }
+
+      showAlert(
+        "success",
+        "Correo verificado correctamente. Puede continuar.",
+      );
+      emailVerified.value = true;
+      isEditingAccessEmail.value = false;
+      storeemergentBuy.emergentBuy.user_google_id = googleId;
+      storeemergentBuy.handleChangeOptionsEmergentBuy(
+        OptionsEmergentBuy.UserExternal,
+      );
     } else {
       showAlert(
         "error",
-        response.message || "El correo no es válido o no existe en Google.",
+        response.message || "El correo no es valido o no existe en Google.",
       );
       emailVerified.value = false;
     }
   } catch (e) {
-    showAlert("error", "Ocurrió un error al verificar el correo.");
+    showAlert("error", "Ocurrio un error al verificar el correo.");
     emailVerified.value = false;
   } finally {
     loadingVerify.value = false;
@@ -153,6 +202,55 @@ const verificarCorreo = async () => {
 const resetVerification = () => {
   emailVerified.value = false;
   storeemergentBuy.emergentBuy.correo = "";
+};
+
+const editPersonalAccessEmail = () => {
+  if (!storeemergentBuy.emergentBuy.correo) {
+    storeemergentBuy.emergentBuy.correo = profileEmail.value;
+  }
+  emailVerified.value = false;
+  isEditingAccessEmail.value = true;
+};
+
+const handleAccessEmailInput = () => {
+  emailVerified.value = false;
+  storeemergentBuy.emergentBuy.user_google_id = "";
+
+  if (isEditedPersonalAccess.value) {
+    storeemergentBuy.handleChangeOptionsEmergentBuy(
+      OptionsEmergentBuy.UserExternal,
+    );
+    tieneCupon.value = false;
+    cupon.value = "";
+    storeemergentBuy.clearCupon();
+    return;
+  }
+
+  if (!storeemergentBuy.esVentaTercero) {
+    storeemergentBuy.handleChangeOptionsEmergentBuy(
+      OptionsEmergentBuy.UserInternal,
+    );
+  }
+};
+
+const handleAccessEmailChange = () => {
+  handleAccessEmailInput();
+  if (isEditedPersonalAccess.value) {
+    verificarCorreo();
+  }
+};
+
+const selectPersonalAccess = () => {
+  if (isEditedPersonalAccess.value) {
+    storeemergentBuy.handleChangeOptionsEmergentBuy(
+      OptionsEmergentBuy.UserExternal,
+    );
+    return;
+  }
+
+  storeemergentBuy.handleChangeOptionsEmergentBuy(
+    OptionsEmergentBuy.UserInternal,
+  );
 };
 
 const handleBuy = async () => {
@@ -205,6 +303,12 @@ const handleBuy = async () => {
     }
     storeemergentBuy.emergentBuy.guest_email = email;
     storeemergentBuy.emergentBuy.guest_google_id = regResult.google_id;
+  }
+
+  if (!isGuest.value && isEditedPersonalAccess.value) {
+    storeemergentBuy.handleChangeOptionsEmergentBuy(
+      OptionsEmergentBuy.UserExternal,
+    );
   }
 
   if (
@@ -273,6 +377,11 @@ watch(
   () => storeemergentBuy.emergentBuy.correo,
   () => {
     emailVerified.value = false;
+    if (isEditedPersonalAccess.value) {
+      storeemergentBuy.handleChangeOptionsEmergentBuy(
+        OptionsEmergentBuy.UserExternal,
+      );
+    }
   },
 );
 
@@ -313,7 +422,18 @@ watch(
 
 watch(
   () => storeemergentBuy.emergentBuy.emergent,
-  () => {
+  (isOpen) => {
+    if (isOpen) {
+      hydrateWhatsappFromProfile();
+      if (storeemergentBuy.esVentaTercero) {
+        storeemergentBuy.emergentBuy.correo = "";
+        storeemergentBuy.emergentBuy.user_google_id = "";
+        emailVerified.value = false;
+        isEditingAccessEmail.value = false;
+      } else {
+        syncDefaultAccessEmail();
+      }
+    }
     if (userAuth.nameAffiliaty) {
       tieneCupon.value = true;
       cupon.value = userAuth.getCupoCode();
@@ -372,15 +492,11 @@ watch(
           <!-- Option 1: Internal User -->
           <div
             v-if="!storeemergentBuy.esVentaTercero"
-            @click="
-              storeemergentBuy.handleChangeOptionsEmergentBuy(
-                OptionsEmergentBuy.UserInternal,
-              )
-            "
+            @click="selectPersonalAccess()"
             class="cursor-pointer border rounded-lg p-4 transition-all duration-200 relative group"
             :class="[
               storeemergentBuy.emergentBuy.optionsEmergentBuy !==
-              OptionsEmergentBuy.UserExternal
+                OptionsEmergentBuy.UserExternal || isEditedPersonalAccess
                 ? 'border-green-500 bg-green-50 ring-2 ring-green-500'
                 : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50',
             ]"
@@ -391,14 +507,15 @@ watch(
                 :class="{
                   'text-green-700':
                     storeemergentBuy.emergentBuy.optionsEmergentBuy !==
-                    OptionsEmergentBuy.UserExternal,
+                      OptionsEmergentBuy.UserExternal ||
+                    isEditedPersonalAccess,
                 }"
                 >Para mi uso personal</span
               >
               <div
                 v-if="
                   storeemergentBuy.emergentBuy.optionsEmergentBuy !==
-                  OptionsEmergentBuy.UserExternal
+                    OptionsEmergentBuy.UserExternal || isEditedPersonalAccess
                 "
                 class="h-5 w-5 rounded-full bg-green-500 flex items-center justify-center"
               >
@@ -443,8 +560,70 @@ watch(
                   </svg>
                 </div>
               </div>
-              <div class="text-sm text-gray-600 font-medium truncate">
-                {{ userAuth.getProfile()?.user?.email }}
+              <div class="min-w-0 flex-1 space-y-2" @click.stop>
+                <div class="relative">
+                  <input
+                    v-model="storeemergentBuy.emergentBuy.correo"
+                    type="email"
+                    :disabled="!isEditingAccessEmail || emailVerified"
+                    @input="handleAccessEmailInput()"
+                    @change="handleAccessEmailChange()"
+                    @keydown.enter.prevent="verificarCorreo()"
+                    class="w-full rounded-md border border-gray-200 bg-white py-2 pl-3 pr-11 text-sm font-medium outline-none transition-colors disabled:bg-gray-50 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                    placeholder="Correo del usuario"
+                  />
+                  <button
+                    type="button"
+                    @click.stop="editPersonalAccessEmail()"
+                    class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                    aria-label="Editar correo"
+                    title="Editar correo"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M16.862 4.487l1.688-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"
+                      />
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M19.5 7.125L16.875 4.5"
+                      />
+                    </svg>
+                  </button>
+                </div>
+
+                <p
+                  v-if="isEditedPersonalAccess && !emailVerified"
+                  class="text-xs font-medium text-amber-600"
+                >
+                  Este correo se comprara como usuario tercero. Debe estar
+                  verificado.
+                </p>
+                <p
+                  v-else-if="isEditedPersonalAccess && emailVerified"
+                  class="text-xs font-medium text-emerald-600"
+                >
+                  Correo verificado. La compra se hara para este usuario.
+                </p>
+
+                <button
+                  v-if="isEditedPersonalAccess && !emailVerified"
+                  type="button"
+                  @click.stop="verificarCorreo()"
+                  :disabled="loadingVerify"
+                  class="w-full rounded-md bg-slate-800 py-2 text-sm font-semibold text-white transition-colors hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {{ loadingVerify ? "Verificando..." : "Verificar correo" }}
+                </button>
               </div>
             </div>
           </div>

@@ -101,13 +101,30 @@ function onFaqKeydown(e: KeyboardEvent, catIndex: number, itemIndex: number) {
             :to="{ name: 'courses' }"
             class="inline-flex min-h-[48px] items-center justify-center rounded-2xl bg-emerald-600 px-8 py-3.5 text-center text-sm font-semibold text-white shadow-sm transition-all duration-300 ease-in-out hover:bg-emerald-700 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
           >
-            {{ ctaLabel }}
+            {{ ctaLabel }}ddddddddddd
           </RouterLink>
         </div>
       </div>
     </section>
 
     <!-- Calculadora de Proyección -->
+    <!-- Video -->
+    <section class="bg-white px-4 pb-16 sm:px-6 lg:px-8">
+      <div class="mx-auto max-w-5xl">
+        <div class="aspect-video overflow-hidden rounded-2xl border border-emerald-500/10 bg-slate-100 shadow-sm shadow-emerald-900/10">
+          <iframe
+            class="h-full w-full"
+            src="https://www.youtube.com/embed/zBbTriHkYb0"
+            title="Video de monetización"
+            loading="lazy"
+            referrerpolicy="strict-origin-when-cross-origin"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen
+          ></iframe>
+        </div>
+      </div>
+    </section>
+
     <MonetizarCalculator />
 
     <!-- Muro PRO -->

@@ -357,6 +357,30 @@ onBeforeUnmount(() => {
     ════════════════════════════════════════════ -->
     <HomeCta />
 
+    <!-- Video -->
+    <section class="home-video-section">
+      <div class="home-video-inner">
+        <div class="home-video-header">
+          <span class="home-video-label">Vista rápida</span>
+          <h2 class="home-video-title">Mira cómo funciona</h2>
+          <p class="home-video-sub">
+            Conoce en video cómo accedes a tus cursos y todo lo que puedes empezar a aprender desde hoy.
+          </p>
+        </div>
+
+        <div class="home-video-frame">
+          <iframe
+            src="https://www.youtube.com/embed/thY0qsXxgHc"
+            title="Mira cómo funciona la plataforma educativa"
+            loading="lazy"
+            referrerpolicy="strict-origin-when-cross-origin"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen
+          ></iframe>
+        </div>
+      </div>
+    </section>
+
     <!-- ═══════════════════════════════════════════
          PRICING LEVELS
     ════════════════════════════════════════════ -->
@@ -878,6 +902,84 @@ onBeforeUnmount(() => {
 /* ═══════════════════════════════════════════════════════════
    FAQ
 ═══════════════════════════════════════════════════════════ */
+/* Video */
+.home-video-section {
+  background: linear-gradient(180deg, #ffffff 0%, #eff6ff 100%);
+  padding: clamp(3.5rem, 7vw, 5.5rem) 1.25rem;
+}
+
+.home-video-inner {
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.home-video-header {
+  max-width: 620px;
+  margin: 0 auto 2rem;
+  text-align: center;
+}
+
+.home-video-label {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #1e40af;
+  background: rgba(30, 64, 175, 0.09);
+  border: 1px solid rgba(30, 64, 175, 0.16);
+  border-radius: 999px;
+  padding: 0.24rem 0.85rem;
+  margin-bottom: 0.85rem;
+}
+
+.home-video-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: clamp(1.8rem, 3vw, 2.7rem);
+  font-weight: 850;
+  line-height: 1.1;
+  color: #0d1b2a;
+  margin: 0 0 0.65rem;
+}
+
+.home-video-sub {
+  color: #64748b;
+  font-size: clamp(0.92rem, 1.6vw, 1.02rem);
+  line-height: 1.7;
+  margin: 0 auto;
+}
+
+.home-video-frame {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  border-radius: 18px;
+  background: #dbeafe;
+  border: 1px solid rgba(30, 64, 175, 0.12);
+  box-shadow:
+    0 12px 32px rgba(30, 64, 175, 0.12),
+    0 28px 72px rgba(15, 23, 42, 0.1);
+}
+
+.home-video-frame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+@media (max-width: 640px) {
+  .home-video-section {
+    padding: 3rem 1rem;
+  }
+
+  .home-video-frame {
+    border-radius: 12px;
+  }
+}
+
 .faq-section {
   background: #f0f4ff;
   padding: 4rem 1.5rem 4.5rem;

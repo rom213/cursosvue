@@ -101,7 +101,7 @@ function onFaqKeydown(e: KeyboardEvent, catIndex: number, itemIndex: number) {
             :to="{ name: 'courses' }"
             class="inline-flex min-h-[48px] items-center justify-center rounded-2xl bg-emerald-600 px-8 py-3.5 text-center text-sm font-semibold text-white shadow-sm transition-all duration-300 ease-in-out hover:bg-emerald-700 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
           >
-            {{ ctaLabel }}ddddddddddd
+            {{ ctaLabel }}
           </RouterLink>
         </div>
       </div>

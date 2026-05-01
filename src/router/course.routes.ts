@@ -32,7 +32,7 @@ export default [
       next();
     }
   },
-  meta: { showHeader: true }
+  meta: { showHeader: true, noindex: true }
 }
 
   ];

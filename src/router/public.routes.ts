@@ -9,13 +9,13 @@ export default [
       path: '/cart',
       name: 'cart',
       component: () => import('../cart/cart.page.vue'),
-      meta: { showHeader: true }
+      meta: { showHeader: true, noindex: true }
     },
     {
       path: '/mis-courses',
       name: 'mycourses',
       component: () => import('../components/auth/my.courses.page.vue'),
-      meta: { showHeader: true }
+      meta: { showHeader: true, noindex: true }
     },
     {
       path: '/monetizar',
@@ -36,30 +36,36 @@ export default [
           path: 'configuracion',
           name: 'monetizar-configuracion',
           component: () => import('../monetizar/configuracion/MonetizarConfiguracion.vue'),
+          meta: { noindex: true },
         },
         {
           path: 'mis-ventas',
           component: () => import('../monetizar/mis-ventas/MonetizarMisVentas.vue'),
+          meta: { noindex: true },
           children: [
             {
               path: '',
               name: 'monetizar-mis-ventas',
               component: () => import('../monetizar/mis-ventas/MonetizarMisVentas.vue'),
+              meta: { noindex: true },
             },
             {
               path: 'resumen',
               name: 'monetizar-mis-ventas-resumen',
               component: () => import('../monetizar/mis-ventas/MonetizarMisVentasResumen.vue'),
+              meta: { noindex: true },
             },
             {
               path: 'graficos',
               name: 'monetizar-mis-ventas-graficos',
               component: () => import('../monetizar/mis-ventas/MonetizarMisVentasGraficos.vue'),
+              meta: { noindex: true },
             },
             {
               path: 'historial',
               name: 'monetizar-mis-ventas-historial',
               component: () => import('../monetizar/mis-ventas/MonetizarMisVentasHistorial.vue'),
+              meta: { noindex: true },
             },
           ],
         },
@@ -81,12 +87,13 @@ export default [
       path: '/payment-response',
       name: 'payment-response',
       component: () => import('../pages/PaymentSuccess.vue'),
-      meta: { showHeader: true }
+      meta: { showHeader: true, noindex: true }
     },
     {
       path: '/:pathMach(.*)*',
+      name: 'not-found',
       component: () => import('../components/notfound.vue'),
-      meta: { showHeader: true }
+      meta: { showHeader: true, noindex: true }
     },
   ];
   

@@ -30,6 +30,7 @@ import {
 import type { PilarKey } from "../courseFilterData";
 import { usePromoQuery } from "../../composables/usePromoQuery";
 import { useTracking } from "../../composables/useTracking";
+import { buildCourseSlugLookup } from "../../utils/courseSlug";
 import descripcionesRaw from "./descripcionCursos.json";
 
 const cartSt = cartStore();
@@ -55,6 +56,20 @@ const isLoadingDrive = ref(false);
 const showPreviewWarning = ref(false);
 const pendingUrl = ref<string>("");
 let previewTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
+function firstRouteParam(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function scrollToListaCompleta() {
+  setTimeout(() => {
+    const el = document.getElementById("lista-completa-header");
+    if (el) {
+      const y = el.getBoundingClientRect().top + window.scrollY - 180;
+      window.scrollTo({ top: y, behavior: "smooth" });
+    }
+  }, 600);
+}
 
 const itemsPerPage = 5;
 const itemsPerPageLista = 10;
@@ -191,16 +206,16 @@ const addCarCategory = (item: ICategory) => {
   }
 };
 const syncCategoryFromRoute = async () => {
-  const rawId = Array.isArray(route.params.id)
-    ? route.params.id[0]
-    : route.params.id;
+  const rawId = firstRouteParam(route.params.id as string | string[] | undefined);
   const index = Number(rawId);
 
   if (Number.isNaN(index)) {
     category.value = undefined;
+    categoryLoading.value = false;
     return;
   }
 
+  categoryLoading.value = true;
   category.value = storeCategory.findCategoryById(index);
 
   const fullCategory = await CategoryService.getCategoryById(index);
@@ -210,8 +225,35 @@ const syncCategoryFromRoute = async () => {
   categoryLoading.value = false;
   if (category.value) trackViewItem(category.value);
 };
+
+const applyCourseSlugFromRoute = async () => {
+  const courseSlug = firstRouteParam(route.params.courseSlug as string | string[] | undefined);
+  if (!courseSlug) return false;
+
+  const list = category.value?.seccion_lista_completa?.lista_completa || [];
+  const matchedCourse = buildCourseSlugLookup(list).get(courseSlug);
+
+  if (!matchedCourse?.name_del_curso) {
+    const categoryId = firstRouteParam(route.params.id as string | string[] | undefined);
+    if (categoryId) {
+      await router.replace({
+        name: "courses-description",
+        params: { id: categoryId },
+        query: route.query,
+      });
+    }
+    return false;
+  }
+
+  searchTermLista.value = "";
+  promoHighlightTerm.value = matchedCourse.name_del_curso;
+  currentPages.value.listaCompleta = 1;
+  openedFolders.value["section-lista-completa"] = true;
+  scrollToListaCompleta();
+  return true;
+};
 onMounted(() => {
-  let index = Number(route.params.id);
+  let index = Number(firstRouteParam(route.params.id as string | string[] | undefined));
   category.value = storeCategory.findCategoryById(index);
 
   if (route.params.googleid) {
@@ -229,6 +271,7 @@ const { promoName, promoType, promoBannerClicked, consumeBannerClick } = useProm
 watch(
   [
     () => route.params.id,
+    () => route.params.courseSlug,
     () => storeCategory.categories.length,
     () => route.query._t,
     () => route.query.q_course,
@@ -238,32 +281,22 @@ watch(
     openedFolders.value["section-lista-completa"] = true;
     if (route.query.q_course) {
       searchTermLista.value = route.query.q_course as string;
-      setTimeout(() => {
-        const el = document.getElementById("lista-completa-header");
-        if (el) {
-          const y = el.getBoundingClientRect().top + window.scrollY - 180;
-          window.scrollTo({ top: y, behavior: "smooth" });
-        }
-      }, 600);
+      scrollToListaCompleta();
     } else {
       searchTermLista.value = "";
     }
     await syncCategoryFromRoute();
     await loadUpsellCategory();
     await loadBloques();
+    const slugApplied = await applyCourseSlugFromRoute();
+    if (slugApplied) return;
     // Aplicar highlight de promo DESPUÉS de cargar los datos.
     // Esto cubre el caso: usuario hace click en el banner → navega a página nueva.
     // markBannerClicked() se llama antes de navegar, así que promoBannerClicked ya es true al montar.
     if (promoBannerClicked.value && promoType.value === "curso" && promoName.value) {
       consumeBannerClick();
       promoHighlightTerm.value = promoName.value;
-      setTimeout(() => {
-        const el = document.getElementById("lista-completa-header");
-        if (el) {
-          const y = el.getBoundingClientRect().top + window.scrollY - 180;
-          window.scrollTo({ top: y, behavior: "smooth" });
-        }
-      }, 600);
+      scrollToListaCompleta();
     }
   },
   { immediate: true },
@@ -281,13 +314,7 @@ watch(
     promoHighlightTerm.value = promoName.value;
     searchTermLista.value = "";
     openedFolders.value["section-lista-completa"] = true;
-    setTimeout(() => {
-      const el = document.getElementById("lista-completa-header");
-      if (el) {
-        const y = el.getBoundingClientRect().top + window.scrollY - 180;
-        window.scrollTo({ top: y, behavior: "smooth" });
-      }
-    }, 600);
+    scrollToListaCompleta();
   },
 );
 

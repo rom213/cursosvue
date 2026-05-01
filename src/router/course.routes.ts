@@ -10,7 +10,7 @@ export default [
       meta: { showHeader: true }
     },
     {
-      path: '/courses/:id',
+      path: '/courses/:id/:courseSlug?',
       component: () => import('../courses/courseInfoPage/course.info.page.vue'),
       name: 'courses-description',
       meta: { showHeader: true }

@@ -3,6 +3,7 @@ import { ref, watch } from 'vue';
 import CategoryService from '../../services/CategorieService';
 import type { ICategory } from '../../types/Categorie';
 import { useRouter } from 'vue-router';
+import { slugifyCourseName } from '../../utils/courseSlug';
 
 const dataReseived = ref<ICategory[] | []>([])
 const dataInput = ref('')
@@ -28,7 +29,7 @@ const handleClickItem = (cat: ICategory) => {
     dataReseived.value = []
     const dest = {
         name: 'courses-description',
-        params: { id: cat.id },
+        params: { id: cat.id, courseSlug: slugifyCourseName(cat.titulo) },
         query: { q_course: cat.titulo, _t: Date.now().toString() }
     }
     router.push(dest)

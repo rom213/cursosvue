@@ -2,8 +2,8 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url)
 
-    if (url.pathname === '/sitemap.xml') {
-      const response = await fetch('https://server.cursosestudiaytrabaja.store/sitemap.xml', {
+    if (url.pathname === '/sitemap.xml' || url.pathname === '/sitemap-cursos.xml') {
+      const response = await fetch(`https://server.cursosestudiaytrabaja.store${url.pathname}`, {
         headers: {
           Accept: 'application/xml,text/xml,*/*',
         },

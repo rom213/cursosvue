@@ -17,6 +17,15 @@ function canonicalPathForRoute(route: RouteLocationNormalized): string {
     if (categoryId) return `/courses/${encodeURIComponent(categoryId)}`;
   }
 
+  if (route.name === 'courses-description') {
+    const categoryId = firstParam(route.params.id as string | string[] | undefined);
+    const courseSlug = firstParam(route.params.courseSlug as string | string[] | undefined);
+    if (categoryId && courseSlug) {
+      return `/courses/${encodeURIComponent(categoryId)}/${encodeURIComponent(courseSlug)}`;
+    }
+    if (categoryId) return `/courses/${encodeURIComponent(categoryId)}`;
+  }
+
   return normalizePath(route.path);
 }
 

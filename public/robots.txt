@@ -2,3 +2,4 @@ User-agent: *
 Allow: /
 
 Sitemap: https://cursosestudiaytrabaja.store/sitemap.xml
+Sitemap: https://cursosestudiaytrabaja.store/sitemap-cursos.xml

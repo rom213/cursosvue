@@ -99,12 +99,6 @@ const levels: PricingLevel[] = [
 
 <template>
   <section class="pricing-section">
-    <!-- Olas decorativas -->
-    <div class="pricing-wave" aria-hidden="true">
-      <span></span>
-      <span></span>
-    </div>
-
     <div class="pricing-inner">
 
       <!-- Encabezado -->
@@ -250,36 +244,6 @@ const levels: PricingLevel[] = [
   background: linear-gradient(160deg, #f0f4ff 0%, #ffffff 40%, #f8faff 100%);
   padding: clamp(3rem, 7vw, 5rem) 1.25rem;
   font-family: 'Inter', system-ui, sans-serif;
-}
-
-/* ── Olas decorativas ────────────────────────────────────── */
-.pricing-wave {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-}
-.pricing-wave span {
-  position: absolute;
-  width: 400vh;
-  height: 400vh;
-  top: -350px;
-  left: 50%;
-  transform: translate(-50%, -55%);
-}
-.pricing-wave span:nth-child(1) {
-  border-radius: 45%;
-  background: rgba(30, 64, 175, 0.04);
-  animation: pricingWave 35s linear infinite;
-}
-.pricing-wave span:nth-child(2) {
-  border-radius: 40%;
-  background: rgba(59, 130, 246, 0.03);
-  animation: pricingWave 52s linear infinite reverse;
-}
-@keyframes pricingWave {
-  from { transform: translate(-50%, -82%) rotate(0deg); }
-  to   { transform: translate(-50%, -82%) rotate(360deg); }
 }
 
 /* ── Inner container ─────────────────────────────────────── */

@@ -95,12 +95,6 @@ onUnmounted(() => {
 
 <template>
     <section class="cta-root">
-        <!-- Olas decorativas (igual al hero) -->
-        <div class="cta-wave" aria-hidden="true">
-            <span></span>
-            <span></span>
-        </div>
-
         <div class="cta-inner">
 
             <!-- Badge -->
@@ -173,36 +167,6 @@ onUnmounted(() => {
     background: linear-gradient(145deg, #dbeafe 0%, #eff6ff 35%, #ffffff 65%);
     padding: clamp(3.5rem, 8vw, 6rem) 1.25rem;
     font-family: 'Inter', system-ui, sans-serif;
-}
-
-/* ── Olas decorativas (misma técnica que el hero) ────────── */
-.cta-wave {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-}
-.cta-wave span {
-    position: absolute;
-    width: 400vh;
-    height: 400vh;
-    top: -350px;
-    left: 50%;
-    transform: translate(-50%, -55%);
-}
-.cta-wave span:nth-child(1) {
-    border-radius: 45%;
-    background: rgba(30, 64, 175, 0.06);
-    animation: ctaWave 30s linear infinite;
-}
-.cta-wave span:nth-child(2) {
-    border-radius: 40%;
-    background: rgba(59, 130, 246, 0.04);
-    animation: ctaWave 48s linear infinite reverse;
-}
-@keyframes ctaWave {
-    from { transform: translate(-50%, -82%) rotate(0deg); }
-    to   { transform: translate(-50%, -82%) rotate(360deg); }
 }
 
 /* ── Contenido central ───────────────────────────────────── */

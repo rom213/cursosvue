@@ -237,14 +237,7 @@ onBeforeUnmount(() => {
          HERO — Wave CSS "agujero negro"
     ════════════════════════════════════════════ -->
     <section v-if="!isLoading" class="hero-section">
-      <!-- Fondo de olas (CSS puro, sin JS) -->
-      <div class="hero-wave" aria-hidden="true">
-        <span></span>
-        <span></span>
-        <span></span>
-      </div>
-
-      <!-- Modelo: capa intermedia — z5, detrás del texto pero delante de las olas -->
+      <!-- Modelo: capa intermedia — z5, detrás del texto -->
       <div class="hero-model" aria-hidden="true">
         <picture>
           <source srcset="../assets/home/mujercursos.webp" type="image/webp" />
@@ -405,13 +398,6 @@ onBeforeUnmount(() => {
     ════════════════════════════════════════════ -->
     <section class="testimonials-section">
 
-      <!-- Olas decorativas -->
-      <div class="testimonials-wave" aria-hidden="true">
-        <span></span>
-        <span></span>
-        <span></span>
-      </div>
-
       <!-- Encabezado -->
       <div class="testimonials-header">
         <span class="testimonials-label">✦ Testimonios reales</span>
@@ -482,42 +468,6 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-}
-
-/* ── Olas: decoración de fondo, z1, baja opacidad ─────── */
-.hero-wave {
-  position: absolute;
-  inset: 0;
-  background: transparent;
-  pointer-events: none;
-  z-index: 1;
-}
-.hero-wave span {
-  position: absolute;
-  width: 400vh;
-  height: 400vh;
-  top: 0;
-  left: 50%;
-  transform: translate(-50%, -85%);
-}
-.hero-wave span:nth-child(1) {
-  border-radius: 45%;
-  background: rgba(30, 64, 175, 0.07);
-  animation: heroWave 25s linear infinite;
-}
-.hero-wave span:nth-child(2) {
-  border-radius: 40%;
-  background: rgba(59, 130, 246, 0.05);
-  animation: heroWave 40s linear infinite;
-}
-.hero-wave span:nth-child(3) {
-  border-radius: 42.5%;
-  background: rgba(30, 64, 175, 0.04);
-  animation: heroWave 55s linear infinite;
-}
-@keyframes heroWave {
-  from { transform: translate(-50%, -85%) rotate(0deg); }
-  to   { transform: translate(-50%, -85%) rotate(360deg); }
 }
 
 /* ── Modelo: z10, encima de todo, derecha absoluta ──────── */
@@ -1036,40 +986,6 @@ onBeforeUnmount(() => {
   overflow: hidden;
   background: linear-gradient(160deg, #dbeafe 0%, #bfdbfe 40%, #93c5fd 100%);
   padding: 3rem 0 3rem;
-}
-
-/* ── Olas ──────────────────────────────────────────────── */
-.testimonials-wave {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-}
-.testimonials-wave span {
-  position: absolute;
-  width: 400vh;
-  height: 400vh;
-  top: -350px;
-  left: 50%;
-}
-.testimonials-wave span:nth-child(1) {
-  border-radius: 45%;
-  background: rgba(30, 64, 175, 0.08);
-  animation: testimonialsWave 30s linear infinite;
-}
-.testimonials-wave span:nth-child(2) {
-  border-radius: 40%;
-  background: rgba(255, 255, 255, 0.12);
-  animation: testimonialsWave 48s linear infinite reverse;
-}
-.testimonials-wave span:nth-child(3) {
-  border-radius: 42%;
-  background: rgba(30, 64, 175, 0.05);
-  animation: testimonialsWave 64s linear infinite;
-}
-@keyframes testimonialsWave {
-  from { transform: translate(-50%, -82%) rotate(0deg); }
-  to   { transform: translate(-50%, -82%) rotate(360deg); }
 }
 
 /* ── Encabezado ────────────────────────────────────────── */

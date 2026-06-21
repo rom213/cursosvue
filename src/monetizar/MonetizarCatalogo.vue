@@ -235,12 +235,6 @@ const handleBuy = (item: ICategory) => {
   storeemergentBuy.setCategoryEmergent(item);
 };
 
-const handlePreview = (item: ICategory) => {
-  if (item.url) {
-    window.open(item.url, '_blank');
-  }
-};
-
 // ── Upsell pool (pilares + toda-la-tienda, cargado una vez) ──
 const upsellPool = ref<Map<number, ICategory>>(new Map());
 
@@ -358,7 +352,6 @@ onMounted(async () => {
               @click="handleClickCourseItem"
               @add-to-cart="addCarCategory"
               @buy="handleBuy"
-              @preview="handlePreview"
               @upsell-buy="handleUpsellBuy"
               @upsell-explore="handleUpsellExplore"
             />

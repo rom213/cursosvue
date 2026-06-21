@@ -134,7 +134,7 @@ export const securityBox = {
 export const monetizationTitle = "MONETIZACIÓN — gana un ingreso extra.";
 
 export const monetizationLead =
-  "¡Transforma tu aprendizaje en un negocio rentable! Al adquirir cualquier paquete desde $48.500 COP en adelante, desbloqueas automáticamente tu perfil de Revendedor Oficial. Tienes dos rutas probadas para generar ingresos masivos:";
+  "¡Transforma tu aprendizaje en un negocio rentable! Al adquirir cualquier paquete, desbloqueas automáticamente tu perfil de Revendedor Oficial. Tienes dos rutas probadas para generar ingresos masivos:";
 
 export const monetizationOptions: MonetizationOption[] = [
   {
@@ -277,14 +277,14 @@ export const faqCategories: FaqCategory[] = [
         question:
           "¿Cómo funciona el beneficio de Reventa y los cupones de descuento?",
         paragraphs: [
-          "Al comprar cualquier paquete de $48.500 en adelante, te conviertes en socio. Tu mejor gancho de ventas es que te daremos enlaces de afiliado y cupones personalizados. Cuando recomiendes nuestra tienda, tu cliente recibirá un 10% de descuento sobre el precio oficial al usar tu cupón. ¡Y lo mejor es que este descuento aplica para TODOS nuestros paquetes, desde los temas individuales hasta la tienda completa! Es un ganar-ganar: ellos ahorran dinero y tú aseguras tu comisión.",
+          "Al comprar cualquier paquete en adelante, te conviertes en socio. Tu mejor gancho de ventas es que te daremos enlaces de afiliado y cupones personalizados. Cuando recomiendes nuestra tienda, tu cliente recibirá un 10% de descuento sobre el precio oficial al usar tu cupón. ¡Y lo mejor es que este descuento aplica para TODOS nuestros paquetes, desde los temas individuales hasta la tienda completa! Es un ganar-ganar: ellos ahorran dinero y tú aseguras tu comisión.",
         ],
       },
       {
         question:
           "¿Cualquier curso me sirve para ser afiliado? / Si compro un curso barato, ¿puedo monetizar? / ¿Tengo que pagar algo extra?",
         paragraphs: [
-          "El programa de revendedores no tiene ningún costo de mensualidad, pero tiene un único requisito estricto de entrada: para que el sistema te habilite el panel de afiliado y te deje monetizar, debes adquirir un Pack Principal de nuestras categorías con un valor mínimo de $48.500 COP. (Las compras de cursos individuales o mini packs de $19.600 COP NO activan el derecho de reventa). Una vez adquieres tu Pack Principal, quedas habilitado de por vida para ganar el 60% o mas si usas la venta a tercceros.",
+          "El programa de revendedores no tiene ningún costo de mensualidad, pero tiene un único requisito estricto de entrada: para que el sistema te habilite el panel de afiliado y te deje monetizar, debes adquirir un Pack Principal de nuestras categorías. Una vez adquieres tu Pack Principal, quedas habilitado de por vida para ganar el 60% o mas si usas la venta a tercceros.",
         ],
       },
       {

@@ -305,7 +305,7 @@ onBeforeUnmount(() => {
           <h3 class="card-title">Club de Descuentos</h3>
           <p class="card-text">70% OFF en todas tus próximas compras.</p>
           <span class="tooltip tooltip-up">
-            Al adquirir un paquete de $48.500 o superior, desbloqueas el Club de Descuentos
+            Al adquirir un paquete, desbloqueas el Club de Descuentos
             y el modo Revendedor. Descuentos exclusivos en todo el catálogo y ganancias del 60% por cada venta.
           </span>
         </div>

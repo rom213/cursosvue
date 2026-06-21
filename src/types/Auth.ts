@@ -21,7 +21,6 @@ export interface AuthResponse {
     country:string,
     tasa_de_cambio:number
     codigo_referido:string,
-    vista_previa_drive: number
   };
   error?: string;
 }

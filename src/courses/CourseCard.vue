@@ -2,8 +2,7 @@
 import { computed, ref } from 'vue';
 import type { ICategory } from '../types/Categorie';
 import { courseIcons } from './courseIcons';
-import { classifyCategoryId, getBloquesCountForCategory } from './courseFilterData';
-import AffiliatyMessageComponent from '../components/auth/affiliaty.message.component.vue';
+import { getBloquesCountForCategory } from './courseFilterData';
 
 export type PillarColor = 'blue' | 'emerald' | 'orange' | 'purple' | 'amber'
 
@@ -36,7 +35,6 @@ const emit = defineEmits<{
   (e: 'click', id: number): void
   (e: 'add-to-cart', category: ICategory): void
   (e: 'buy', category: ICategory): void
-  (e: 'preview', category: ICategory): void
   (e: 'upsell-buy', category: ICategory): void
   (e: 'upsell-explore', id: number): void
 }>();
@@ -84,10 +82,6 @@ const cardWrapperClasses = computed(() => {
 // ── Metricas ──
 const bloquesCount = computed(() => getBloquesCountForCategory(props.category.id));
 const cursosCount = computed(() => props.category.cantidad_cursos ?? 200);
-const cuposCount = computed(() => props.category.num_per ?? 23);
-const cuposMax = computed(() => props.category.cupos_google ?? 200);
-const cuposPercent = computed(() => Math.min(100, Math.round(((cuposMax.value - cuposCount.value) / cuposMax.value) * 100)));
-const isLowStock = computed(() => cuposCount.value < 100);
 const commentsCount = computed(() => props.category.pregunta_respuesta?.length ?? 0);
 
 // ── Keyword chips from temas ──
@@ -128,45 +122,18 @@ const ctaBuyClasses = computed(() => {
   return 'bg-green-600 hover:bg-green-700 text-white py-2.5 px-4 text-sm shadow-md shadow-green-600/15 hover:shadow-lg hover:-translate-y-0.5'
 });
 
-const ctaCartClasses = computed(() => {
-  if (tierLevel.value === 'premium')
-    return 'bg-white border-2 border-amber-300 text-amber-800 hover:border-green-600 hover:text-green-600 py-3.5 px-3 text-lg shadow-md hover:-translate-y-0.5'
-  if (tierLevel.value === 'advanced')
-    return 'bg-white border-2 border-gray-200 text-gray-700 hover:border-green-600 hover:text-green-600 py-3 px-3 text-base shadow-md hover:-translate-y-0.5'
-  return 'bg-white border-2 border-gray-200 text-gray-700 hover:border-green-600 hover:text-green-600 py-2.5 px-3 text-sm shadow-md hover:-translate-y-0.5'
-});
-
 // ── Upsell helpers ──
 const selectedOption = ref<'current' | 'upsell'>('current');
-const showUpsellDetails = ref(false);
-const showBlocksList = ref(false);
 
-const upsellBreakdown = computed(() => {
-  const blocks = props.upsellCategory?.cat_rel_info ?? [];
-  const total = props.upsellCategory?.precio ?? 0;
-  const pricePerBlock = blocks.length > 0 ? Math.round(total / blocks.length) : 0;
-  return { blocks, pricePerBlock };
+
+const whatsappUrl = computed(() => {
+  const phone = '573134141912';
+  const msg = encodeURIComponent(
+    `Hola, quiero obtener acceso a *${props.category.titulo}* por $${formatPrice(props.category.precio)} COP. ¿Me pueden ayudar?`
+  );
+  return `https://wa.me/${phone}?text=${msg}`;
 });
 
-const upsellTierLabel = computed(() => {
-  if (!props.upsellCategory) return '';
-  const type = classifyCategoryId(props.upsellCategory.id);
-  if (type === 'pilares') return '🏛️ Pilar';
-  if (type === 'toda-la-tienda') return '👑 Tienda';
-  return '';
-});
-
-const upsellBenefits = computed(() => {
-  if (!props.upsellCategory) return [];
-  const type = classifyCategoryId(props.upsellCategory.id);
-  if (type === 'pilares') {
-    return ['Todos los bloques del pilar', 'Incluye reventa', '70% Dto.'];
-  }
-  if (type === 'toda-la-tienda') {
-    return ['Los 3 pilares completos', 'Incluye reventa', 'Máximo valor'];
-  }
-  return [];
-});
 </script>
 
 <template>
@@ -304,7 +271,7 @@ const upsellBenefits = computed(() => {
       <p
         @click="emit('click', category.id)"
         v-if="category.frase_2"
-        class="mx-5 text-slate-400 italic mt-2 mb-1"
+        class="mx-5 text-slate-700 italic mt-2 mb-1"
         :class="{
           'text-xs': tierLevel === 'basic',
           'text-sm border-l-2 pl-3': tierLevel === 'advanced',
@@ -330,38 +297,7 @@ const upsellBenefits = computed(() => {
             </template>
             <strong class="text-slate-900">{{ cursosCount.toLocaleString() }}</strong> cursos
           </span>
-        </div>
-
-        <!-- Cupos con barra de progreso (advanced+) -->
-        <div  class="flex flex-col gap-1">
-          <div class="flex items-center gap-2.5">
-            <div class="p-1.5 rounded-lg shrink-0" :class="[colors.iconBg, colors.iconText]">
-              <div class="w-5 h-5" v-html="courseIcons.cupos" />
-            </div>
-            <div class="flex items-baseline gap-1">
-              <span class="text-sm text-slate-500">Cupos Libres Google Drive:</span>
-              <span
-                class="text-base"
-                :class="isLowStock ? 'text-red-600 font-bold' : 'text-slate-900 font-bold'"
-              >
-                {{ cuposCount }}
-              </span>
-              <span class="text-xs text-slate-400 font-medium">/ {{ cuposMax }}</span>
-              <span v-if="isLowStock" class="cupos-pulse-dot ml-1 w-2 h-2 rounded-full bg-red-500 inline-block" />
-            </div>
-          </div>  
-          <!-- Barra de progreso -->
-          <div class="ml-10 w-auto h-1.5 rounded-full overflow-hidden bg-slate-100">
-            <div
-              class="h-full rounded-full transition-all duration-700"
-              :class="isLowStock ? 'bg-red-500' : colors.progressBar"
-              :style="{ width: `${cuposPercent}%` }"
-            />
-          </div>
-        </div>
-
-        <!-- Cupos simplificado (basic) -->
- 
+        </div> 
 
         <!-- Comentarios (advanced+ y si > 0) -->
         <div v-if="commentsCount > 0 && tierLevel !== 'basic'" class="flex items-center gap-2.5">
@@ -376,9 +312,9 @@ const upsellBenefits = computed(() => {
         <!-- Certificacion (siempre) -->
         <div class="flex items-center gap-2.5">
           <div class="p-1.5 rounded-lg shrink-0" :class="[colors.iconBg, colors.iconText]">
-            <div class="w-5 h-5" v-html="courseIcons.certification" />
+            <div class="w-5 h-5" v-html="courseIcons.download" />
           </div>
-          <span class="text-sm font-medium text-slate-600">Certificación incluida</span>
+          <span class="text-sm font-medium text-slate-600">Todos los cursos se pueden descargar</span>
         </div>
 
 
@@ -410,171 +346,59 @@ const upsellBenefits = computed(() => {
         <label
           class="card-option flex items-center gap-2.5 rounded-xl px-3 py-2 cursor-pointer border-2 transition-all"
           :class="selectedOption === 'current'
-            ? 'border-emerald-400 bg-emerald-50/50'
+            ? 'border-gray-700 bg-white'
             : 'border-slate-200 bg-white hover:border-slate-300'"
         >
           <input type="radio" v-model="selectedOption" value="current" class="sr-only" />
           <div
             class="w-3.5 h-3.5 rounded-full border-2 shrink-0 flex items-center justify-center transition-colors"
-            :class="selectedOption === 'current' ? 'border-emerald-500 bg-emerald-500' : 'border-slate-300'"
+            :class="selectedOption === 'current' ? 'border-gray-700 bg-gray-700' : 'border-slate-300'"
           >
             <div v-if="selectedOption === 'current'" class="w-1.5 h-1.5 rounded-full bg-white" />
           </div>
-          <span class="flex-1 text-xs font-semibold text-[#0d1b2a] truncate">Este paquete</span>
-          <span class="text-sm font-extrabold text-[#0d1b2a] whitespace-nowrap">
+          <span class="flex-1 text-xs font-semibold truncate" :class="selectedOption === 'current' ? 'text-gray-700' : 'text-[#0d1b2a]'">Este paquete tiene valor de</span>
+          <span class="text-sm font-extrabold whitespace-nowrap" :class="selectedOption === 'current' ? 'text-gray-700' : 'text-[#0d1b2a]'">
             ${{ formatPrice(category.precio) }}
           </span>
         </label>
 
-        <!-- ── Opcion upsell (si hay) ── -->
-        <div v-if="upsellCategory && !isPremium">
-          <label
-            class="card-option flex flex-col rounded-xl px-3 py-2 cursor-pointer border-2 transition-all"
-            :class="selectedOption === 'upsell'
-              ? 'border-blue-400 bg-blue-50/50'
-              : 'border-slate-200 bg-white hover:border-slate-300'"
-          >
-            <input type="radio" v-model="selectedOption" value="upsell" class="sr-only" />
-            <div class="flex items-center gap-2.5 w-full">
-              <div
-                class="w-3.5 h-3.5 rounded-full border-2 shrink-0 flex items-center justify-center transition-colors"
-                :class="selectedOption === 'upsell' ? 'border-blue-500 bg-blue-500' : 'border-slate-300'"
-              >
-                <div v-if="selectedOption === 'upsell'" class="w-1.5 h-1.5 rounded-full bg-white" />
-              </div>
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-1">
-                  <span class="text-[0.6rem] font-bold text-blue-600">{{ upsellTierLabel }}</span>
-                  <span class="card-popular-tag">Popular</span>
-                </div>
-                <p class="text-xs font-semibold text-[#0d1b2a] truncate">{{ upsellCategory.titulo }}</p>
-              </div>
-              <span class="text-sm font-extrabold text-blue-600 whitespace-nowrap">
-                ${{ formatPrice(upsellCategory.precio) }}
-              </span>
-            </div>
-
-            <!-- Flechita curiosidad -->
-            <button
-              type="button"
-              class="mt-1.5 w-full flex items-center justify-center gap-1 text-[0.6rem] font-semibold transition-colors"
-              :class="showUpsellDetails ? 'text-blue-500' : 'text-slate-400 hover:text-blue-500'"
-              @click.prevent.stop="showUpsellDetails = !showUpsellDetails"
-            >
-              <span>{{ showUpsellDetails ? 'Ocultar' : '¿Qué incluye?' }}</span>
-              <svg
-                class="w-2.5 h-2.5 transition-transform duration-200"
-                :class="showUpsellDetails ? 'rotate-180' : ''"
-                fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"
-              >
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-          </label>
-
-          <!-- Panel desplegable -->
-          <Transition
-            enter-active-class="transition-all duration-300 ease-out"
-            enter-from-class="opacity-0 max-h-0"
-            enter-to-class="opacity-100 max-h-[32rem]"
-            leave-active-class="transition-all duration-200 ease-in"
-            leave-from-class="opacity-100 max-h-[32rem]"
-            leave-to-class="opacity-0 max-h-0"
-          >
-            <div v-if="showUpsellDetails" class="overflow-hidden">
-              <div class="rounded-b-xl bg-blue-50/60 border border-t-0 border-blue-100 px-3 py-2 space-y-1">
-
-                <!-- Primer benefit: clickeable para expandir bloques -->
-                <button
-                  type="button"
-                  class="w-full flex items-center justify-between gap-1.5 text-[0.65rem] text-slate-700 font-semibold hover:text-blue-600 transition-colors"
-                  @click.stop="showBlocksList = !showBlocksList"
-                >
-                  <div class="flex items-center gap-1.5">
-                    <svg class="w-3 h-3 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                    {{ upsellBenefits[0] }}
-                  </div>
-                  <svg class="w-3 h-3 transition-transform duration-200 text-slate-400 shrink-0" :class="{ 'rotate-180': showBlocksList }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-
-                <!-- Lista de bloques -->
-                <Transition
-                  enter-active-class="transition-all duration-200 ease-out"
-                  enter-from-class="opacity-0 max-h-0"
-                  enter-to-class="opacity-100 max-h-60"
-                  leave-active-class="transition-all duration-150 ease-in"
-                  leave-from-class="opacity-100 max-h-60"
-                  leave-to-class="opacity-0 max-h-0"
-                >
-                  <div v-if="showBlocksList && upsellBreakdown.blocks.length" class="overflow-hidden pl-4 pb-1">
-                    <p class="text-[0.6rem] text-slate-400 mb-1">
-                      {{ upsellBreakdown.blocks.length }} bloques · ~${{ formatPrice(upsellBreakdown.pricePerBlock) }} c/u
-                    </p>
-                    <ul class="space-y-0.5">
-                      <li
-                        v-for="block in upsellBreakdown.blocks"
-                        :key="block.id"
-                        class="flex items-center justify-between gap-2"
-                      >
-                        <span class="text-[0.62rem] text-slate-600 truncate">· {{ block.titulo }}</span>
-                        <span class="text-[0.6rem] text-slate-400 shrink-0 tabular-nums">~${{ formatPrice(upsellBreakdown.pricePerBlock) }}</span>
-                      </li>
-                    </ul>
-                  </div>
-                </Transition>
-
-                <!-- Resto de benefits -->
-                <li
-                  v-for="(benefit, i) in upsellBenefits.slice(1)"
-                  :key="i"
-                  class="flex items-center gap-1.5 text-[0.65rem] text-slate-600 list-none"
-                >
-                  <svg class="w-3 h-3 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                  {{ benefit }}
-                </li>
-
-                <button
-                  type="button"
-                  class="text-[0.6rem] font-semibold text-blue-600 hover:underline pt-0.5"
-                  @click="emit('upsell-explore', upsellCategory!.id)"
-                >
-                  Ver detalles →
-                </button>
-              </div>
-            </div>
-          </Transition>
-        </div>
 
         <!-- BOTON ÚNICO DE COMPRA -->
-        <!-- Modo current: dos botones (carrito 30% + comprar 70%) -->
-        <div v-if="selectedOption === 'current'" class="flex gap-2">
-          <!-- Botón Carrito (30%) -->
-          <button
-            type="button"
-            class="w-[30%] rounded-xl font-bold flex justify-center items-center transition-all duration-200"
-            :class="ctaCartClasses"
-            @click="emit('add-to-cart', category)"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.5 6h13M10 21a1 1 0 100-2 1 1 0 000 2zm8 0a1 1 0 100-2 1 1 0 000 2z" />
-            </svg>
-          </button>
+        <div v-if="selectedOption === 'current'" class="space-y-2">
 
-          <!-- Botón Desbloquear paquete (70%) -->
-          <button
-            type="button"
-            class="w-[70%] rounded-xl font-bold flex justify-center items-center gap-2 transition-all duration-200"
-            :class="ctaBuyClasses"
-            @click="emit('buy', category)"
-          >
-            <span>Desbloquear paquete — ${{ formatPrice(category.precio) }}</span>
-          </button>
+          <!-- Encabezado de elección -->
+          <p class="text-center text-[0.68rem] font-semibold text-black uppercase tracking-widest cta-label-pulse">
+            ¿Cómo quieres obtener el paquete?
+          </p>
+
+          <div class="flex gap-2">
+            <!-- Botón WhatsApp (30%) -->
+            <a
+              :href="whatsappUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="w-[50%] rounded-xl font-bold flex  justify-center items-center gap-0.5 transition-all duration-200 no-underline bg-white border-2 border-green-600 text-green-600 hover:bg-green-50 shadow-md hover:-translate-y-0.5"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 shrink-0">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                <path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.554 4.122 1.523 5.855L.057 23.486a.5.5 0 0 0 .611.611l5.632-1.466A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.9 0-3.68-.524-5.2-1.433l-.373-.223-3.865 1.006 1.006-3.865-.223-.373A9.944 9.944 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/>
+              </svg>
+              <span class="text-[0.65rem] gap-2 font-bold leading-tight text-center">Comprar por chat</span>
+            </a>
+
+            <!-- Botón Acceso web (70%) -->
+            <button
+              type="button"
+              class="w-[50%] h-11 rounded-xl font-bold flex  justify-center items-center gap-2 transition-all duration-200 text-white shadow-md hover:-translate-y-0.5"
+              style="background-color: #5d48f7;"
+              @click="emit('buy', category)"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 shrink-0 opacity-80">
+                <path fill-rule="evenodd" d="M12 1.5a.75.75 0 0 1 .75.75V4.5a.75.75 0 0 1-1.5 0V2.25A.75.75 0 0 1 12 1.5ZM5.636 4.136a.75.75 0 0 1 1.06 0l1.592 1.591a.75.75 0 0 1-1.061 1.06l-1.591-1.59a.75.75 0 0 1 0-1.061Zm12.728 0a.75.75 0 0 1 0 1.06l-1.591 1.592a.75.75 0 0 1-1.06-1.061l1.59-1.591a.75.75 0 0 1 1.061 0Zm-6.816 4.496a.75.75 0 0 1 .82.311l5.228 7.917a.75.75 0 0 1-.777 1.148l-2.097-.43 1.045 3.9a.75.75 0 0 1-1.45.388l-1.044-3.899-1.601 1.42a.75.75 0 0 1-1.247-.606l.569-9.47a.75.75 0 0 1 .554-.678ZM3 10.5a.75.75 0 0 1 .75-.75H6a.75.75 0 0 1 0 1.5H3.75A.75.75 0 0 1 3 10.5Zm14.25 0a.75.75 0 0 1 .75-.75h2.25a.75.75 0 0 1 0 1.5H18a.75.75 0 0 1-.75-.75Zm-8.962 3.712a.75.75 0 0 1 0 1.061l-1.591 1.591a.75.75 0 1 1-1.061-1.06l1.591-1.592a.75.75 0 0 1 1.061 0Z" clip-rule="evenodd" />
+              </svg>
+              <span class="text-[0.7rem] font-extrabold leading-tight text-center">Comprar desde la web</span>
+            </button>
+          </div>
         </div>
 
         <!-- Modo upsell: botón único de ancho completo -->
@@ -589,10 +413,6 @@ const upsellBenefits = computed(() => {
         </button>
       </div>
 
-      <!-- ══ 7. AFILIADO ══ -->
-      <div class="px-5 pb-5">
-        <AffiliatyMessageComponent :id_category="category.id" />
-      </div>
 
     </div>
   </div>
@@ -691,5 +511,17 @@ const upsellBenefits = computed(() => {
 @keyframes cta-gradient {
   0%, 100% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
+}
+
+/* ── CTA label pulse scale ─────────────────────── */
+@keyframes cta-label-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.06); opacity: 0.75; }
+}
+.cta-label-pulse {
+  display: block;
+  text-align: center;
+  color: #0d1b2a;
+  animation: cta-label-pulse 2s ease-in-out infinite;
 }
 </style>

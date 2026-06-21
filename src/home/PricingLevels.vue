@@ -57,39 +57,16 @@ const levels: PricingLevel[] = [
       { label: '🎟️ 70% Dto. en Tienda', bg: 'bg-emerald-50', text: 'text-emerald-700', ring: 'ring-1 ring-inset ring-emerald-600/10' },
     ],
     features: [
-      'Acceso vitalicio al pilar completo',
+      'Acceso vitalicio a los 3 pilares',
       '100% descargable y offline',
       'Certificacion incluida',
       'Acceso a biblioteca de 10.134 libros',
       'Licencia de reventa incluida',
-      '70% de descuento en toda la tienda',
+      '70% de descuento en futuras compras',
+      'Todas las actualizaciones 2026',
     ],
     ctaLabel: 'Ver pilares',
     filterQuery: 'pilares',
-  },
-  {
-    id: 3,
-    tier: 'advanced',
-    name: 'Combinacion de Gigantes',
-    price: '$75.700',
-    priceNote: 'COP · Pago unico',
-    themes: '14 a 16 Bloques',
-    courses: '+300 cursos',
-    description: 'Une dos pilares y multiplica tu perfil profesional. Maximo valor por tu inversion.',
-    tags: [
-      { label: '🤝 Incluye Reventa', bg: 'bg-amber-50', text: 'text-amber-700', ring: 'ring-1 ring-inset ring-amber-600/10' },
-      { label: '🎟️ 70% Dto. en Tienda', bg: 'bg-emerald-50', text: 'text-emerald-700', ring: 'ring-1 ring-inset ring-emerald-600/10' },
-    ],
-    features: [
-      'Acceso vitalicio a 2 pilares',
-      '100% descargable y offline',
-      'Certificacion incluida',
-      'Acceso a biblioteca de 10.134 libros',
-      'Licencia de reventa incluida',
-      '70% de descuento en toda la tienda',
-    ],
-    ctaLabel: 'Ver combinaciones',
-    filterQuery: 'combos',
   },
   {
     id: 4,
@@ -371,8 +348,10 @@ const levels: PricingLevel[] = [
 }
 @media (min-width: 1024px) {
   .pricing-grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 1.25rem;
+    max-width: 960px;
+    margin: 0 auto;
   }
 }
 

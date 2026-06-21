@@ -148,31 +148,6 @@ const allThemesTotal = computed(() =>
           </div>
         </div>
 
-        <!-- COMBINACIONES (Split Button con gradiente) -->
-        <div ref="combosBtnRef" class="relative">
-          <div class="flex items-center rounded-xl border overflow-hidden transition-all"
-               :class="activeFilter === 'combos'
-                 ? 'ring-2 ring-purple-200 border-purple-300 bg-purple-50'
-                 : 'border-gray-200 hover:border-purple-200'">
-            <button
-              type="button"
-              class="px-3.5 py-2 text-sm font-semibold transition-colors hover:bg-purple-50"
-              @click="handleTextClick('combos')"
-            >
-              <span class="bg-gradient-to-r from-blue-600 to-emerald-500 text-transparent bg-clip-text">Combinaciones</span>
-            </button>
-            <div class="w-px h-6 bg-gray-200" />
-            <button
-              type="button"
-              class="px-2.5 py-2 text-gray-500 hover:bg-purple-50 hover:text-purple-600 transition-colors"
-              @click="toggleDropdown('combos')"
-            >
-              <svg class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-180': openDropdown === 'combos' }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-          </div>
-        </div>
 
         <!-- TODA LA TIENDA 2026 (Botón premium con shimmer) -->
         <button

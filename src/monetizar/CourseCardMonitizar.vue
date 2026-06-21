@@ -40,7 +40,6 @@ const emit = defineEmits<{
   (e: 'click', id: number): void
   (e: 'add-to-cart', category: ICategory): void
   (e: 'buy', category: ICategory): void
-  (e: 'preview', category: ICategory): void
   (e: 'upsell-buy', category: ICategory): void
   (e: 'upsell-explore', id: number): void
 }>();
@@ -124,25 +123,6 @@ const ctaBuyClasses = computed(() => {
 
 // ── Upsell helpers ──
 const selectedOption = ref<'current' | 'upsell'>('current');
-
-// ── Preview copy state ──
-const previewCopied = ref(false);
-const copyPreviewLink = async () => {
-  const link = props.category.url;
-  if (!link) {
-    console.warn('No Google Drive link available');
-    return;
-  }
-  try {
-    await navigator.clipboard.writeText(link);
-    previewCopied.value = true;
-    setTimeout(() => {
-      previewCopied.value = false;
-    }, 2000);
-  } catch (err) {
-    console.error('Error al copiar:', err);
-  }
-};
 
 // ── Coupon copy state ──
 const couponCopied = ref(false);
@@ -307,22 +287,6 @@ const copyDiscount = async () => {
 
       <!-- ══ 6. CTAs ══ -->
       <div class="p-5 pt-4 mt-auto space-y-2.5">
-
-        <!-- Vista previa en Drive - Copiar link -->
-        <button
-          type="button"
-          class="w-full rounded-xl font-bold flex justify-center items-center gap-2 transition-all duration-200"
-          :class="previewCopied
-            ? 'bg-emerald-500 text-white py-2.5 px-4 text-sm shadow-lg shadow-emerald-500/30'
-            : tierLevel === 'basic'
-            ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 px-3 text-xs'
-            : 'bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 py-2.5 px-4 text-sm'"
-          @click="copyPreviewLink"
-        >
-          <span v-if="!previewCopied" class="w-5 h-5 shrink-0" v-html="courseIcons.preview" />
-          <span v-if="previewCopied" class="w-5 h-5 shrink-0">✓</span>
-          <span>{{ previewCopied ? '¡Copiado!' : 'Copiar link' }}</span>
-        </button>
 
         <!-- Copiar cupón de descuento (si existe) -->
         <button

@@ -1,20 +1,19 @@
 <script lang="ts" setup>
 import { useRoute, useRouter } from "vue-router";
-import { courseIcons } from "../courseIcons";
 import { courseInfoIcons } from "./courseInfo.icons";
 import { authStore } from "../../store/AuthStore";
-import { cartStore } from "../../store/CartStore";
-import AffiliatyMessageComponent from "../../components/auth/affiliaty.message.component.vue";
 import { emergentBuyStore } from "../../store/EmergentBuyStore";
-import { toastStore } from "../../store/ToastStore";
-import type { ICategory, ICategoryCourseDetail } from "../../types/Categorie";
-import { onMounted, onBeforeUnmount, ref, watch, computed, nextTick } from "vue";
+import type {
+  ICategory,
+  ICategoryCourseDetail,
+  ICursoSubcategoria,
+  ISeccionListaPorSubcategoria,
+} from "../../types/Categorie";
+import { onMounted, ref, watch, computed, nextTick } from "vue";
 import { categoryStore } from "../../store/CategoryStore";
 import EmergentBuyComponent from "../emergent.buy.component.vue";
 import AuthService from "../../services/AuthServices";
 import CategoryService from "../../services/CategorieService";
-import GuestCheckoutService from "../../services/GuestCheckoutService";
-import WhatsAppInput from "../../components/common/WhatsAppInput.vue";
 import CourseFaqSection from "./CourseFaqSection.vue";
 import CommentsBodyComponent from "./componentCourseInfo/comments.body.component.vue";
 import FooterComponent from "../../components/footer/footer.component.vue";
@@ -33,9 +32,7 @@ import { useTracking } from "../../composables/useTracking";
 import { buildCourseSlugLookup } from "../../utils/courseSlug";
 import descripcionesRaw from "./descripcionCursos.json";
 
-const cartSt = cartStore();
 const storeemergentBuy = emergentBuyStore();
-const toasts = toastStore();
 const { trackViewItem, trackAddToCart } = useTracking();
 enum Navegacion {
   Contenido = 1,
@@ -52,10 +49,6 @@ const category = ref<ICategory>();
 const categoryLoading = ref(true);
 const navegacion = ref(Navegacion.Contenido);
 const openedFolders = ref<Record<string, boolean>>({});
-const isLoadingDrive = ref(false);
-const showPreviewWarning = ref(false);
-const pendingUrl = ref<string>("");
-let previewTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
 function firstRouteParam(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
@@ -73,18 +66,46 @@ function scrollToListaCompleta() {
 
 const itemsPerPage = 5;
 const itemsPerPageLista = 10;
+const itemsPerPageSubcategorias = 8;
+/** Cursos a mostrar por página dentro de cada categoría */
+const itemsPerPageCursosCat = 5;
 
 const currentPages = ref({
   plataformas: 1,
   bloques: 1,
   listaCompleta: 1,
+  subcategorias: 1,
 });
+
+/** Página actual de cursos dentro de cada categoría (clave = item.key) */
+const currentPagesPorCategoria = ref<Record<string, number>>({});
 
 const searchTermLista = ref("");
 /** Curso de la promo (banner): ordenar al frente y resaltar; no filtra la lista */
 const promoHighlightTerm = ref("");
 /** Contenedor scroll de "Lista completa" (para anclar arriba al buscar) */
 const listaCompletaScrollRef = ref<HTMLElement | null>(null);
+/** Toggle "Ver cursos gratis": ordena los gratis al frente en Lista Completa (activo por defecto) */
+const onlyFreeLista = ref(true);
+
+/** Buscador de "Cursos por categoría" (filtra los cursos dentro de cada subcategoría) */
+const searchTermSubcat = ref("");
+/** Curso del referido: anclar su subcategoría al frente y resaltarlo */
+const promoSubcatTerm = ref("");
+/** Contenedor scroll de "Cursos por categoría" (para anclar arriba al buscar) */
+const subcatScrollRef = ref<HTMLElement | null>(null);
+/** Toggle "Ver cursos gratis": ordena los gratis al frente en Cursos por categoría (activo por defecto) */
+const onlyFreeSubcat = ref(true);
+
+function scrollToSubcategorias() {
+  setTimeout(() => {
+    const el = document.getElementById("cursos-categoria-header");
+    if (el) {
+      const y = el.getBoundingClientRect().top + window.scrollY - 180;
+      window.scrollTo({ top: y, behavior: "smooth" });
+    }
+  }, 600);
+}
 
 watch(searchTermLista, (val) => {
   currentPages.value.listaCompleta = 1;
@@ -95,8 +116,35 @@ watch(searchTermLista, (val) => {
   }
 });
 
-const paginatedPlataformas = computed(() => {
+watch(searchTermSubcat, (val) => {
+  currentPages.value.subcategorias = 1;
+  currentPagesPorCategoria.value = {};
+  if (val.trim()) {
+    nextTick(() => {
+      subcatScrollRef.value?.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  }
+});
+
+watch(onlyFreeLista, () => {
+  currentPages.value.listaCompleta = 1;
+});
+
+watch(onlyFreeSubcat, () => {
+  currentPages.value.subcategorias = 1;
+  currentPagesPorCategoria.value = {};
+});
+
+/** Autores ordenados: primero los que tienen más cursos. */
+const sortedPlataformas = computed(() => {
   const list = category.value?.seccion_plataformas?.plataformas || [];
+  const count = (p: (typeof list)[number]) =>
+    p.cantidad_cursos_plataforma ?? p.cursos?.length ?? 0;
+  return [...list].sort((a, b) => count(b) - count(a));
+});
+
+const paginatedPlataformas = computed(() => {
+  const list = sortedPlataformas.value;
   const start = (currentPages.value.plataformas - 1) * itemsPerPage;
   return list.slice(start, start + itemsPerPage).map((item, idx) => ({
     ...item,
@@ -122,6 +170,11 @@ const totalPagesBloques = computed(() =>
   Math.ceil((category.value?.seccion_temas?.temas?.length || 0) / itemsPerPage),
 );
 
+/** Ordena (estable) colocando los cursos gratis al frente, sin eliminar ninguno */
+function sortFreeFirst<T extends { es_gratis?: boolean }>(arr: T[]): T[] {
+  return [...arr.filter((c) => c.es_gratis), ...arr.filter((c) => !c.es_gratis)];
+}
+
 const filteredListaCompleta = computed(() => {
   const list = category.value?.seccion_lista_completa?.lista_completa || [];
 
@@ -143,15 +196,16 @@ const filteredListaCompleta = computed(() => {
         idx !== promoIndex &&
         item.name_del_curso?.toLowerCase().includes(searchTerm),
     );
-    return promoItem ? [promoItem, ...results] : results;
+    const ordered = onlyFreeLista.value ? sortFreeFirst(results) : results;
+    return promoItem ? [promoItem, ...ordered] : ordered;
   }
 
   if (promoItem) {
     const rest = list.filter((_, idx) => idx !== promoIndex);
-    return [promoItem, ...rest];
+    return [promoItem, ...(onlyFreeLista.value ? sortFreeFirst(rest) : rest)];
   }
 
-  return list;
+  return onlyFreeLista.value ? sortFreeFirst(list) : list;
 });
 
 type ListaCompletaRow = ICategoryCourseDetail & { vistaListaIndex: number };
@@ -199,12 +253,7 @@ const toggleFolder = (key: string) => {
 const isFolderOpen = (key: string) => Boolean(openedFolders.value[key]);
 
 
-const addCarCategory = (item: ICategory) => {
-  if (cartSt.validateCart(item)) {
-    cartSt.setCart(item);
-    trackAddToCart(item);
-  }
-};
+
 const syncCategoryFromRoute = async () => {
   const rawId = firstRouteParam(route.params.id as string | string[] | undefined);
   const index = Number(rawId);
@@ -268,6 +317,8 @@ onMounted(() => {
 
 const { promoName, promoType, promoBannerClicked, consumeBannerClick } = usePromoQuery();
 
+const selectedOption = ref<"current" | "upsell">("current");
+
 watch(
   [
     () => route.params.id,
@@ -277,10 +328,15 @@ watch(
     () => route.query.q_course,
   ],
   async () => {
+    selectedOption.value = "current";
     promoHighlightTerm.value = "";
-    openedFolders.value["section-lista-completa"] = true;
+    promoSubcatTerm.value = "";
+    searchTermSubcat.value = "";
+    openedFolders.value["section-subcategorias"] = true;
+    openedFolders.value["section-lista-completa"] = false;
     if (route.query.q_course) {
       searchTermLista.value = route.query.q_course as string;
+      openedFolders.value["section-lista-completa"] = true;
       scrollToListaCompleta();
     } else {
       searchTermLista.value = "";
@@ -293,10 +349,11 @@ watch(
     // Aplicar highlight de promo DESPUÉS de cargar los datos.
     // Esto cubre el caso: usuario hace click en el banner → navega a página nueva.
     // markBannerClicked() se llama antes de navegar, así que promoBannerClicked ya es true al montar.
+    // El referido se ancla en "Cursos por categoría" si el curso está clasificado
+    // ahí; si no, cae en "Lista Completa".
     if (promoBannerClicked.value && promoType.value === "curso" && promoName.value) {
       consumeBannerClick();
-      promoHighlightTerm.value = promoName.value;
-      scrollToListaCompleta();
+      applyPromoCurso(promoName.value);
     }
   },
   { immediate: true },
@@ -311,10 +368,7 @@ watch(
   (clicked) => {
     if (!clicked || promoType.value !== "curso" || !promoName.value) return;
     consumeBannerClick();
-    promoHighlightTerm.value = promoName.value;
-    searchTermLista.value = "";
-    openedFolders.value["section-lista-completa"] = true;
-    scrollToListaCompleta();
+    applyPromoCurso(promoName.value);
   },
 );
 
@@ -401,12 +455,6 @@ const tierInfo = computed(() => {
   };
 });
 
-const cuposCount = computed(() => category.value?.num_per ?? 23);
-const cuposMax = computed(() => category.value?.cupos_google ?? 200);
-const cuposPercent = computed(() =>
-  Math.min(100, Math.round(((cuposMax.value - cuposCount.value) / cuposMax.value) * 100)),
-);
-const isLowStock = computed(() => cuposCount.value < 30);
 
 const currencySuffix = computed(() =>
   ""
@@ -490,7 +538,6 @@ const loadUpsellCategory = async () => {
   }
 };
 
-const selectedOption = ref<"current" | "upsell">("current");
 const showUpsellDetails = ref(false);
 const showBlocksList = ref(false);
 
@@ -571,71 +618,6 @@ for (const group of Object.values(descripcionesRaw)) {
   }
 }
 
-const showDescripcion = ref(false);
-const showLoginModal = ref(false);
-
-const guestEmail = ref("");
-const guestEmailConfirm = ref("");
-const guestWhatsapp = ref("");
-const guestPreviewError = ref("");
-const isSubmittingGuestPreview = ref(false);
-
-const GUEST_EMAIL_RE = /^[^@\s]+@gmail\.com$/i;
-
-function resetGuestPreviewForm() {
-  guestEmail.value = "";
-  guestEmailConfirm.value = "";
-  guestWhatsapp.value = "";
-  guestPreviewError.value = "";
-}
-
-async function submitGuestPreview() {
-  guestPreviewError.value = "";
-  const email = guestEmail.value.trim().toLowerCase();
-  const confirm = guestEmailConfirm.value.trim().toLowerCase();
-  const wa = guestWhatsapp.value.trim();
-  const categoryId = category.value?.id;
-
-  if (!GUEST_EMAIL_RE.test(email)) {
-    guestPreviewError.value = "Ingresa un correo Gmail válido (ejemplo@gmail.com).";
-    return;
-  }
-  if (email !== confirm) {
-    guestPreviewError.value = "Los correos no coinciden.";
-    return;
-  }
-  if (!wa) {
-    guestPreviewError.value = "El número de WhatsApp es obligatorio.";
-    return;
-  }
-  if (!categoryId) {
-    guestPreviewError.value = "No se pudo identificar la categoría.";
-    return;
-  }
-
-  try {
-    isSubmittingGuestPreview.value = true;
-    isLoadingDrive.value = true;
-    const response = await GuestCheckoutService.registerDrivePreview({
-      email,
-      num_whatsapp: wa,
-      category_id: categoryId,
-    });
-    if (!response || !response.redirect_url) {
-      guestPreviewError.value = "No se pudo habilitar el acceso. Intenta de nuevo.";
-      isLoadingDrive.value = false;
-      return;
-    }
-    showLoginModal.value = false;
-    window.location.href = response.redirect_url;
-  } catch (error) {
-    console.error("Error en submitGuestPreview:", error);
-    guestPreviewError.value = "Ocurrió un error. Intenta nuevamente.";
-    isLoadingDrive.value = false;
-  } finally {
-    isSubmittingGuestPreview.value = false;
-  }
-}
 
 const descripcionCurso = computed(() => {
   const titulo = category.value?.titulo;
@@ -658,6 +640,15 @@ const selectedCategory = computed(() =>
     : category.value,
 );
 
+const whatsappUrl = computed(() => {
+  const phone = "573134141912";
+  const item = selectedCategory.value;
+  const msg = encodeURIComponent(
+    `Hola, quiero obtener acceso a *${item?.titulo}* por $${formatPrice(item?.precio)} COP. ¿Me pueden ayudar?`,
+  );
+  return `https://wa.me/${phone}?text=${msg}`;
+});
+
 const handleBuySelected = () => {
   const item = selectedCategory.value;
   if (!item) return;
@@ -666,95 +657,48 @@ const handleBuySelected = () => {
   trackAddToCart(item);
 };
 
-const handleAddToCartSelected = () => {
-  const item = selectedCategory.value;
-  if (!item) return;
-  addCarCategory(item);
-};
 
-const handlePreview = async (item: ICategory | undefined, url: string) => {
-  if (!item || !url) return;
+/** Curso gratis: gate de correo antes de abrir el link directo del curso. */
+const showFreeCourseGate = ref(false);
+const freeCourseEmail = ref("");
+const freeCourseEmailError = ref("");
+const pendingFreeCourseUrl = ref("");
+const FREE_COURSE_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  // Si no está logueado, mostrar modal de login
-  if (!userAuth.getProfile()?.user) {
-    showLoginModal.value = true;
-    return;
-  }
+/** Un curso es accesible directamente si la categoría ya fue comprada, o si el curso es gratis. */
+const canAccessCurso = (curso: { es_gratis?: boolean }) =>
+  Boolean(category.value?.user_bought) || Boolean(curso.es_gratis);
 
-  // Si no ha comprado pero tiene preview habilitado, mostrar advertencia
-  if (
-    item.user_bought === false &&
-    userAuth.getProfile()?.user?.vista_previa_drive === 1
-  ) {
-    pendingUrl.value = url;
-    showPreviewWarning.value = true;
-    return;
-  }
-  if (userAuth.getProfile()?.user?.vista_previa_drive === 0 && !category.value?.user_bought) {
-    showBannerWithAutoClose();
+const handleCourseClick = (curso: { es_gratis?: boolean }, url: string | undefined) => {
+  if (!url) return;
+  if (curso.es_gratis && !category.value?.user_bought) {
+    pendingFreeCourseUrl.value = url;
+    freeCourseEmail.value = "";
+    freeCourseEmailError.value = "";
+    showFreeCourseGate.value = true;
     return;
   }
   window.location.href = url;
 };
 
-const handleConfirmPreview = async () => {
-  try {
-    isLoadingDrive.value = true;
-    const google_id = userAuth.getProfile()?.user?.google_id;
-    if (!google_id) return;
-
-    const categoryId = category.value?.id;
-    if (!categoryId) return;
-
-    await CategoryService.agregarMiembroTiempo(google_id, categoryId);
-
-    // Esperar 3 segundos después de la respuesta
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    userAuth.noMostrarCursoDrive()
-    // Abrir el enlace
-    window.location.href = pendingUrl.value;
-
-    // Establecer timeout de 30 segundos para mostrar el banner (que durará 4 segundos)
-    previewTimeoutId = setTimeout(() => {
-      showBannerWithAutoClose();
-    }, 30000);
-  } catch (error) {
-    console.error("Error al preparar el enlace:", error);
-  } finally {
-    isLoadingDrive.value = false;
-    showPreviewWarning.value = false;
-    pendingUrl.value = "";
-  }
-};
-
-const handleCancelPreview = () => {
-  showPreviewWarning.value = false;
-  pendingUrl.value = "";
-};
-
-const handleImagePreviewClick = () => {
-  const url = category.value?.url;
-  if (!url) return;
-
-  const user = userAuth.getProfile()?.user;
-  if (!user) {
-    showLoginModal.value = true;
+const confirmFreeCourseAccess = () => {
+  const email = freeCourseEmail.value.trim();
+  if (!FREE_COURSE_EMAIL_RE.test(email)) {
+    freeCourseEmailError.value = "Ingresa un correo válido.";
     return;
   }
-
-  handlePreview(category.value, url);
+  const url = pendingFreeCourseUrl.value;
+  showFreeCourseGate.value = false;
+  pendingFreeCourseUrl.value = "";
+  if (url) window.location.href = url;
 };
 
-const showBannerWithAutoClose = () => {
-  toasts.add('guarantee', 8000);
+const closeFreeCourseGate = () => {
+  showFreeCourseGate.value = false;
+  pendingFreeCourseUrl.value = "";
 };
 
-// Limpiar timeouts al desmontar el componente
-onBeforeUnmount(() => {
-  if (previewTimeoutId) {
-    clearTimeout(previewTimeoutId);
-  }
-});
+const showVideoModal = ref(false);
 
 const handleUpsellExplore = () => {
   if (!upsellCategory.value) return;
@@ -770,186 +714,364 @@ const contentHeading = computed(() => {
   if (t === "advanced") return "Contenido del pilar";
   return "Contenido del paquete";
 });
+
+// ── Cursos agrupados por subcategoría ──
+// El backend devuelve `seccion_lista_por_subcategoria` con 3 formas posibles
+// según el tier (bloque / pilar / combinado). Las normalizamos a una estructura
+// uniforme detectando la profundidad en runtime.
+type SubcatGrupo = { subcategoria: string; cursos: ICursoSubcategoria[] };
+type TemaGrupo = { tema?: string; subcategorias: SubcatGrupo[] };
+type PilarGrupo = { pilar?: string; temas: TemaGrupo[] };
+
+const toSubcatGrupos = (
+  mapa: Record<string, ICursoSubcategoria[]>,
+): SubcatGrupo[] =>
+  Object.entries(mapa).map(([subcategoria, cursos]) => ({
+    subcategoria,
+    cursos: cursos ?? [],
+  }));
+
+const subcategoriaGroups = computed<PilarGrupo[]>(() => {
+  let raw: ISeccionListaPorSubcategoria | string | undefined =
+    category.value?.seccion_lista_por_subcategoria;
+
+  if (typeof raw === "string") {
+    try {
+      raw = JSON.parse(raw) as ISeccionListaPorSubcategoria;
+    } catch {
+      return [];
+    }
+  }
+  if (!raw || typeof raw !== "object") return [];
+
+  const firstVal = Object.values(raw)[0];
+
+  // Nivel 1 (bloque): { [subcategoria]: Curso[] }
+  if (Array.isArray(firstVal)) {
+    return [
+      {
+        pilar: undefined,
+        temas: [
+          {
+            tema: undefined,
+            subcategorias: toSubcatGrupos(
+              raw as Record<string, ICursoSubcategoria[]>,
+            ),
+          },
+        ],
+      },
+    ];
+  }
+
+  if (!firstVal || typeof firstVal !== "object") return [];
+  const firstVal2 = Object.values(firstVal)[0];
+
+  // Nivel 2 (pilar): { [tema]: { [subcategoria]: Curso[] } }
+  if (Array.isArray(firstVal2)) {
+    const porTema = raw as Record<string, Record<string, ICursoSubcategoria[]>>;
+    return [
+      {
+        pilar: undefined,
+        temas: Object.entries(porTema).map(([tema, subMapa]) => ({
+          tema,
+          subcategorias: toSubcatGrupos(subMapa),
+        })),
+      },
+    ];
+  }
+
+  // Nivel 3 (combinado / pilar completo):
+  // { [pilar]: { [tema]: { [subcategoria]: Curso[] } } }
+  const porPilar = raw as Record<
+    string,
+    Record<string, Record<string, ICursoSubcategoria[]>>
+  >;
+  return Object.entries(porPilar).map(([pilar, temasMapa]) => ({
+    pilar,
+    temas: Object.entries(temasMapa).map(([tema, subMapa]) => ({
+      tema,
+      subcategorias: toSubcatGrupos(subMapa),
+    })),
+  }));
+});
+
+// Lista plana de subcategorías (con su pilar/tema) para poder paginar sin
+// renderizar de golpe todos los cursos cuando hay muchos.
+type SubcatFlatItem = {
+  key: string;
+  pilar?: string;
+  tema?: string;
+  subcategoria: string;
+  cursos: ICursoSubcategoria[];
+};
+
+const subcategoriaFlatList = computed<SubcatFlatItem[]>(() => {
+  const result: SubcatFlatItem[] = [];
+  subcategoriaGroups.value.forEach((pilarGrupo, pIdx) => {
+    pilarGrupo.temas.forEach((temaGrupo, tIdx) => {
+      temaGrupo.subcategorias.forEach((sub, sIdx) => {
+        result.push({
+          key: `${pIdx}-${tIdx}-${sIdx}`,
+          pilar: pilarGrupo.pilar,
+          tema: temaGrupo.tema,
+          subcategoria: sub.subcategoria,
+          cursos: sub.cursos,
+        });
+      });
+    });
+  });
+  // Ordenar: primero las categorías con más cursos.
+  result.sort((a, b) => b.cursos.length - a.cursos.length);
+  return result;
+});
+
+/** "Cursos por categoría" en modo búsqueda: estilo de cabecera / contenedor */
+const isSubcatBuscando = computed(
+  () => searchTermSubcat.value.trim().length > 0,
+);
+
+/** Coloca los cursos gratis al frente dentro de una subcategoría (si el toggle está activo) */
+const sortCursosFreeFirst = (item: SubcatFlatItem): SubcatFlatItem =>
+  onlyFreeSubcat.value ? { ...item, cursos: sortFreeFirst(item.cursos) } : item;
+
+/** Coloca las subcategorías con algún curso gratis al frente (si el toggle está activo) */
+const sortSubcatsFreeFirst = (items: SubcatFlatItem[]): SubcatFlatItem[] => {
+  if (!onlyFreeSubcat.value) return items;
+  const hasFree = (it: SubcatFlatItem) => it.cursos.some((c) => c.es_gratis);
+  return [...items.filter(hasFree), ...items.filter((it) => !hasFree(it))];
+};
+
+const filteredSubcategoriaFlatList = computed<SubcatFlatItem[]>(() => {
+  const list = subcategoriaFlatList.value;
+  const searchTerm = searchTermSubcat.value.trim().toLowerCase();
+
+  if (searchTerm) {
+    // Filtra por nombre de curso: solo subcategorías con coincidencias,
+    // y dentro de ellas solo los cursos que coinciden.
+    const results: SubcatFlatItem[] = [];
+    list.forEach((item) => {
+      const matched = item.cursos.filter((c) =>
+        c.name_del_curso?.toLowerCase().includes(searchTerm),
+      );
+      if (matched.length) results.push({ ...item, cursos: matched });
+    });
+    // Con el toggle activo, gratis primero dentro de cada subcat y a nivel de subcats.
+    return sortSubcatsFreeFirst(results.map(sortCursosFreeFirst));
+  }
+
+  // Sin búsqueda: si viene por referido, ancla su subcategoría al frente
+  // y dentro de ella coloca el curso del referido de primero (la promo gana sobre el free-first).
+  const promoTerm = promoSubcatTerm.value.trim().toLowerCase();
+  if (promoTerm) {
+    const idx = list.findIndex((item) =>
+      item.cursos.some((c) =>
+        c.name_del_curso?.toLowerCase().includes(promoTerm),
+      ),
+    );
+    if (idx !== -1) {
+      const item = list[idx];
+      const cIdx = item.cursos.findIndex((c) =>
+        c.name_del_curso?.toLowerCase().includes(promoTerm),
+      );
+      const anchored =
+        cIdx > 0
+          ? {
+              ...item,
+              cursos: [
+                item.cursos[cIdx],
+                ...item.cursos.filter((_, i) => i !== cIdx),
+              ],
+            }
+          : item;
+      const rest = sortSubcatsFreeFirst(
+        list.filter((_, i) => i !== idx).map(sortCursosFreeFirst),
+      );
+      return [anchored, ...rest];
+    }
+  }
+
+  // Con el toggle activo, gratis primero dentro de cada subcat y a nivel de subcats.
+  return sortSubcatsFreeFirst(list.map(sortCursosFreeFirst));
+});
+
+/** Curso resaltado por referido dentro de "Cursos por categoría" */
+const isPromoSubcatCurso = (curso: ICursoSubcategoria) => {
+  const promoTerm = promoSubcatTerm.value.trim().toLowerCase();
+  return (
+    !!promoTerm && !!curso.name_del_curso?.toLowerCase().includes(promoTerm)
+  );
+};
+
+/**
+ * Subcategoría que contiene el curso del referido (o undefined si no está
+ * clasificado en "Cursos por categoría"). No todos los cursos de lista_completa
+ * están en subcategorías, así que si no está aquí, el referido cae en "Lista Completa".
+ */
+const findSubcatForPromo = (term: string) => {
+  const t = term.trim().toLowerCase();
+  if (!t) return undefined;
+  return subcategoriaFlatList.value.find((item) =>
+    item.cursos.some((c) => c.name_del_curso?.toLowerCase().includes(t)),
+  );
+};
+
+/** Aplica el referido a la sección que realmente contiene el curso */
+const applyPromoCurso = (name: string) => {
+  const subcatItem = findSubcatForPromo(name);
+  if (subcatItem) {
+    promoSubcatTerm.value = name;
+    searchTermSubcat.value = "";
+    currentPages.value.subcategorias = 1;
+    openedFolders.value["section-subcategorias"] = true;
+    // Expandir la subcategoría del curso para que el resaltado sea visible.
+    openedFolders.value["subcat-" + subcatItem.key] = true;
+    scrollToSubcategorias();
+  } else {
+    // No está clasificado en subcategorías: buscarlo en "Lista Completa".
+    promoHighlightTerm.value = name;
+    searchTermLista.value = name;
+    searchTermSubcat.value = "";
+    promoSubcatTerm.value = "";
+    openedFolders.value["section-lista-completa"] = false;
+    scrollToListaCompleta();
+  }
+};
+
+const paginatedSubcategorias = computed(() => {
+  const start = (currentPages.value.subcategorias - 1) * itemsPerPageSubcategorias;
+  return filteredSubcategoriaFlatList.value.slice(
+    start,
+    start + itemsPerPageSubcategorias,
+  );
+});
+const totalPagesSubcategorias = computed(() =>
+  Math.ceil(
+    filteredSubcategoriaFlatList.value.length / itemsPerPageSubcategorias,
+  ),
+);
+
+function getCategoriaCursoPage(key: string) {
+  return currentPagesPorCategoria.value[key] || 1;
+}
+function setCategoriaCursoPage(key: string, page: number) {
+  currentPagesPorCategoria.value = {
+    ...currentPagesPorCategoria.value,
+    [key]: page,
+  };
+}
+function totalPagesCategoriaCursos(item: SubcatFlatItem) {
+  return Math.ceil(item.cursos.length / itemsPerPageCursosCat);
+}
+/** Cursos de la categoría paginados, conservando el índice original (cIdx) */
+function paginatedCategoriaCursos(item: SubcatFlatItem) {
+  const page = getCategoriaCursoPage(item.key);
+  const start = (page - 1) * itemsPerPageCursosCat;
+  return item.cursos
+    .slice(start, start + itemsPerPageCursosCat)
+    .map((curso, idx) => ({ curso, cIdx: start + idx }));
+}
 </script>
 
 <template>
   <div class="bg-[#f8faff] min-h-screen text-[#0d1b2a]">
-    <!-- Loading overlay para Google Drive -->
+    <!-- Modal: gate de correo para acceso a curso gratis -->
     <div
-      v-if="isLoadingDrive"
-      class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"
-    >
-      <div class="bg-white rounded-lg shadow-xl p-8 text-center max-w-sm">
-        <div class="mb-4">
-          <div class="animate-spin inline-block">
-            <svg
-              class="w-12 h-12 text-blue-600"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                class="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                stroke-width="4"
-              ></circle>
-              <path
-                class="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              ></path>
-            </svg>
-          </div>
-        </div>
-        <p class="text-lg font-semibold text-gray-800 mb-2">
-          Preparando tu acceso
-        </p>
-        <p class="text-sm text-gray-600">
-          Estamos preparando todo para ti y generando el link para visualizar
-        </p>
-      </div>
-    </div>
-
-    <!-- Modal: registro/login de invitado para vista previa de Drive -->
-    <div
-      v-if="showLoginModal"
+      v-if="showFreeCourseGate"
       class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
     >
       <div class="bg-white rounded-lg shadow-2xl p-6 sm:p-8 max-w-md w-full">
         <div class="mb-4 flex justify-center">
-          <div class="bg-blue-100 rounded-full p-3">
+          <div class="bg-gradient-to-r from-amber-400 to-yellow-300 rounded-full p-3">
             <svg
-              class="w-8 h-8 text-blue-600"
+              class="w-8 h-8 text-amber-900"
               fill="none"
               stroke="currentColor"
               stroke-width="2"
               viewBox="0 0 24 24"
             >
-              <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
             </svg>
           </div>
         </div>
         <h3 class="text-xl font-bold text-gray-800 mb-2 text-center">
-          Vista previa disponible
+          ¡Aquí tienes tu curso! 🎉
         </h3>
         <p class="text-gray-600 text-center mb-5 text-sm leading-relaxed">
-          Verifica tu correo de <strong>Gmail</strong> y tu WhatsApp para
-          habilitarte acceso temporal al contenido.
+          Esta es una pequeña muestra de todo lo que preparamos para ti. Te
+          prometemos la mejor experiencia para tu educación, con contenido
+          pensado para que aprendas a tu propio ritmo. Puedes
+          <strong>descargar el curso</strong> cuando quieras y conservarlo
+          siempre.
+          <br /><br />
+          Explora nuestra web y llévate el <strong>pack de cursos</strong> que
+          más se ajuste a tus metas. Y si lo tuyo es estudiar mientras generas
+          ingresos, te invitamos a conocer nuestro
+          <strong>modelo de reventa de cursos</strong>.
         </p>
 
-        <form @submit.prevent="submitGuestPreview" class="space-y-3">
+        <form @submit.prevent="confirmFreeCourseAccess" class="space-y-3">
           <div class="space-y-1">
             <label class="block text-sm font-medium text-gray-700">
-              Correo Gmail <span class="text-red-500">*</span>
+              Correo <span class="text-red-500">*</span>
             </label>
             <input
-              v-model="guestEmail"
+              v-model="freeCourseEmail"
               type="email"
               required
-              placeholder="ejemplo@gmail.com"
-              class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              placeholder="tu@correo.com"
+              class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
             />
           </div>
 
-          <div class="space-y-1">
-            <label class="block text-sm font-medium text-gray-700">
-              Confirma tu correo <span class="text-red-500">*</span>
-            </label>
-            <input
-              v-model="guestEmailConfirm"
-              type="email"
-              required
-              placeholder="ejemplo@gmail.com"
-              class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-            />
-          </div>
-
-          <WhatsAppInput v-model="guestWhatsapp" :error="guestPreviewError && !guestWhatsapp ? 'WhatsApp obligatorio' : ''" />
-
-          <p v-if="guestPreviewError" class="text-sm text-red-500">
-            {{ guestPreviewError }}
+          <p v-if="freeCourseEmailError" class="text-sm text-red-500">
+            {{ freeCourseEmailError }}
           </p>
 
           <div class="flex gap-3 pt-2">
             <button
               type="button"
-              @click="showLoginModal = false; resetGuestPreviewForm()"
-              :disabled="isSubmittingGuestPreview"
-              class="flex-1 px-4 py-2.5 bg-gray-200 text-gray-800 font-semibold rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-60"
+              @click="closeFreeCourseGate"
+              class="flex-1 px-4 py-2.5 bg-gray-200 text-gray-800 font-semibold rounded-lg hover:bg-gray-300 transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              :disabled="isSubmittingGuestPreview"
-              class="flex-1 px-4 py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-60"
+              class="flex-1 px-4 py-2.5 bg-gradient-to-r from-amber-400 to-yellow-300 text-amber-900 font-semibold rounded-lg hover:opacity-90 transition-opacity"
             >
-              {{ isSubmittingGuestPreview ? "Procesando..." : "Ver vista previa" }}
+              Ver curso
             </button>
           </div>
         </form>
       </div>
     </div>
 
-    <!-- Modal de advertencia para vista previa -->
+    <!-- Modal: video Guia rapida -->
     <div
-      v-if="showPreviewWarning"
-      class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+      v-if="showVideoModal"
+      class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4"
+      @click.self="showVideoModal = false"
     >
-      <div class="bg-white rounded-lg shadow-2xl p-8 max-w-md">
-        <!-- Icono amigable (cronómetro) -->
-        <div class="mb-4 flex justify-center">
-          <div class="bg-blue-100 rounded-full p-3">
-            <svg
-              class="w-8 h-8 text-blue-600"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-            >
-              <circle cx="12" cy="12" r="9" />
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 7v5l3 2" />
-            </svg>
-          </div>
-        </div>
-
-        <!-- Título -->
-        <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">
-          ¡Vistazo rápido activado!
-        </h3>
-
-        <!-- Mensaje principal -->
-        <p class="text-gray-700 text-center mb-6 leading-relaxed">
-          Tienes un <strong>acceso temporal de 2 minutos</strong> para explorar
-          la calidad del contenido de este curso. ¡Aprovéchalo!
-        </p>
-
-        <!-- Nota de garantía -->
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <p class="text-sm text-blue-800">
-            ✓ <strong>Garantía total:</strong> Recuerda que al comprar tienes 7
-            días de garantía de reembolso. Explora con tranquilidad.
-          </p>
-        </div>
-
-        <!-- Botones de acción -->
-        <div class="flex gap-4">
-          <button
-            @click="handleCancelPreview"
-            class="flex-1 px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg hover:bg-gray-300 transition-colors"
-          >
-            Cancelar
-          </button>
-          <button
-            @click="handleConfirmPreview"
-            :disabled="isLoadingDrive"
-            class="flex-1 px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {{ isLoadingDrive ? "Preparando..." : "Ver curso" }}
-          </button>
+      <div class="relative w-full max-w-3xl">
+        <button
+          @click="showVideoModal = false"
+          class="absolute -top-10 right-0 text-white hover:text-slate-300 transition-colors"
+          aria-label="Cerrar video"
+        >
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+        <div class="relative w-full aspect-video rounded-xl overflow-hidden shadow-2xl">
+          <iframe
+            class="absolute inset-0 w-full h-full"
+            src="https://www.youtube.com/embed/thY0qsXxgHc"
+            title="Mira cómo funciona la plataforma educativa"
+            loading="lazy"
+            referrerpolicy="strict-origin-when-cross-origin"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen
+          ></iframe>
         </div>
       </div>
     </div>
@@ -1087,30 +1209,10 @@ const contentHeading = computed(() => {
         </p>
 
         <!-- ── Desplegable "Descubre lo que lograrás" ── -->
-        <div v-if="descripcionCurso" class="mt-4 max-w-2xl">
-          <button
-            @click="showDescripcion = !showDescripcion"
-            class="inline-flex items-center gap-1.5 bg-transparent border-none cursor-pointer text-sm font-semibold text-slate-500 hover:text-blue-600 transition-colors duration-200 px-0 py-1"
-          >
-            Descubre lo que lograrás
-            <svg
-              class="w-4 h-4 transition-transform duration-300"
-              :class="{ 'rotate-180': showDescripcion }"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
-          </button>
+        <div v-if="descripcionCurso" class=" max-w-2xl">
 
           <Transition name="desc-accordion">
-            <div v-show="showDescripcion" class="overflow-hidden">
+            <div class="overflow-hidden">
               <p
                 class="text-sm text-slate-600 leading-relaxed mt-2 pl-3 border-l-2 border-blue-300"
               >
@@ -1182,6 +1284,428 @@ const contentHeading = computed(() => {
               >
                 {{ contentHeading }}
               </h2>
+            </div>
+
+            <!-- Cursos por categoría (con descripción) -->
+            <div
+              id="cursos-categoria-header"
+              v-if="subcategoriaFlatList.length"
+              class="bg-white rounded-2xl border border-slate-100/80 shadow-md overflow-hidden transition-shadow hover:shadow-lg"
+            >
+              <div
+                class="w-full flex items-center justify-between gap-3 p-4 lg:px-6"
+              >
+                <button
+                  class="flex flex-1 items-center justify-between gap-3 bg-transparent border-none cursor-pointer transition-opacity hover:opacity-80 text-left"
+                  @click="toggleFolder('section-subcategorias')"
+                >
+                  <span class="font-[Poppins] text-base font-bold text-[#0d1b2a]"
+                    >Cursos por categoría</span
+                  >
+                  <span class="flex items-center gap-3">
+                    <span
+                      class="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full"
+                    >
+                      {{ subcategoriaFlatList.length }} categorías
+                    </span>
+                    <svg
+                      class="w-5 h-5 text-slate-400 transition-transform duration-300"
+                      :class="{
+                        'rotate-180': isFolderOpen('section-subcategorias'),
+                      }"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  @click.stop="onlyFreeSubcat = !onlyFreeSubcat"
+                  :aria-pressed="onlyFreeSubcat"
+                  class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-all shrink-0 cursor-pointer"
+                  :class="
+                    onlyFreeSubcat
+                      ? 'bg-gradient-to-r from-amber-400 to-yellow-300 text-amber-900 border-amber-300 shadow-sm'
+                      : 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'
+                  "
+                >
+                  <span>✨</span>
+                  <span>{{
+                    onlyFreeSubcat ? "Gratis primero" : "Ver cursos gratis"
+                  }}</span>
+                </button>
+              </div>
+
+              <div
+                ref="subcatScrollRef"
+                v-show="isFolderOpen('section-subcategorias') || isSubcatBuscando"
+                class="accordion-body border-t p-4 lg:px-6 space-y-3 max-h-[600px] overflow-y-auto transition-colors duration-200"
+                :class="
+                  isSubcatBuscando
+                    ? 'border-sky-200 bg-gradient-to-b from-sky-50/95 to-sky-100/40 ring-2 ring-inset ring-sky-300/50'
+                    : 'border-slate-100 bg-slate-50/40'
+                "
+              >
+                <!-- Buscador -->
+                <div
+                  class="relative w-full lg:w-2/3 mx-auto rounded-xl transition-shadow"
+                  :class="
+                    isSubcatBuscando
+                      ? 'ring-2 ring-sky-400/40 shadow-md shadow-sky-200/30'
+                      : ''
+                  "
+                >
+                  <div
+                    class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+                  >
+                    <svg
+                      class="h-5 w-5"
+                      :class="
+                        isSubcatBuscando ? 'text-sky-500' : 'text-slate-400'
+                      "
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      />
+                    </svg>
+                  </div>
+                  <input
+                    v-model="searchTermSubcat"
+                    type="text"
+                    placeholder="Buscar un curso en estas categorias..."
+                    class="w-full py-3 pl-10 pr-10 rounded-xl text-sm transition-all shadow-sm focus:outline-none focus:ring-2"
+                    :class="
+                      isSubcatBuscando
+                        ? 'border-2 border-sky-400 bg-white text-[#0d1b2a] focus:border-sky-500 focus:ring-sky-300/40'
+                        : 'border border-slate-200 bg-white text-[#0d1b2a] focus:border-blue-500 focus:ring-blue-500/10'
+                    "
+                  />
+                  <button
+                    v-if="searchTermSubcat"
+                    @click="searchTermSubcat = ''"
+                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors border-none bg-transparent cursor-pointer"
+                  >
+                    <svg
+                      class="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
+
+                <div
+                  v-if="!paginatedSubcategorias.length"
+                  class="text-sm text-slate-500 py-8 text-center flex flex-col items-center justify-center"
+                >
+                  <svg
+                    class="w-12 h-12 text-slate-300 mb-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.5"
+                      d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  No se encontraron cursos que coincidan con "{{
+                    searchTermSubcat
+                  }}"
+                </div>
+
+                <div
+                  v-for="item in paginatedSubcategorias"
+                  :key="item.key"
+                  class="bg-white rounded-xl border border-slate-100 overflow-hidden transition-colors hover:border-slate-200"
+                >
+                  <button
+                    class="w-full flex items-center justify-between px-4 py-2.5 bg-transparent border-none cursor-pointer transition-colors hover:bg-slate-50/60"
+                    @click="toggleFolder('subcat-' + item.key)"
+                  >
+                    <span class="text-left min-w-0">
+                      <span
+                        v-if="item.pilar || item.tema"
+                        class="block text-[0.65rem] font-semibold text-slate-400 uppercase tracking-wide truncate"
+                      >
+                        {{ [item.pilar, item.tema].filter(Boolean).join(" · ") }}
+                      </span>
+                      <span class="font-semibold text-sm text-[#0d1b2a] truncate"
+                        >{{ item.subcategoria }}</span
+                      >
+                    </span>
+                    <span class="flex items-center gap-2 shrink-0 ml-2">
+                      <span
+                        v-if="item.cursos.some((c) => c.es_gratis)"
+                        class="text-[0.65rem] font-bold uppercase tracking-wide text-amber-900 bg-gradient-to-r from-amber-400 to-yellow-300 px-2 py-0.5 rounded-md"
+                        >✨ Gratis</span
+                      >
+                      <span
+                        class="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full"
+                        >{{ item.cursos.length }} cursos</span
+                      >
+                      <svg
+                        class="w-4 h-4 text-slate-400 transition-transform"
+                        :class="{
+                          'rotate-180': isFolderOpen('subcat-' + item.key),
+                        }"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+
+                  <div
+                    v-show="isFolderOpen('subcat-' + item.key) || isSubcatBuscando"
+                    class="border-t border-slate-50 bg-[#fafbfd] px-3 py-3 space-y-2"
+                  >
+                    <!-- Curso -->
+                    <div
+                      v-for="{ curso, cIdx } in paginatedCategoriaCursos(item)"
+                      :key="item.key + '-' + cIdx"
+                      class="rounded-xl border overflow-hidden transition-colors"
+                      :class="
+                        isPromoSubcatCurso(curso)
+                          ? 'bg-amber-50/60 border-amber-300 ring-1 ring-amber-200'
+                          : 'bg-white border-slate-100'
+                      "
+                    >
+                      <div class="flex items-center justify-between px-4 py-2.5 gap-3">
+                        <button
+                          class="flex items-center gap-3 min-w-0 flex-1 bg-transparent border-none cursor-pointer text-left p-0"
+                          @click="toggleFolder('curso-' + item.key + '-' + cIdx)"
+                        >
+                          <svg
+                            class="w-4 h-4 text-slate-400 transition-transform shrink-0"
+                            :class="{
+                              'rotate-180': isFolderOpen(
+                                'curso-' + item.key + '-' + cIdx,
+                              ),
+                            }"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M19 9l-7 7-7-7"
+                            />
+                          </svg>
+                          <span
+                            v-if="isPromoSubcatCurso(curso)"
+                            class="shrink-0 text-[0.65rem] font-bold uppercase tracking-wide text-amber-900 bg-amber-200/80 px-2 py-0.5 rounded-md"
+                          >
+                            Tu curso
+                          </span>
+                          <span
+                            v-if="curso.es_gratis"
+                            class="shrink-0 text-[0.65rem] font-bold uppercase tracking-wide text-amber-900 bg-gradient-to-r from-amber-400 to-yellow-300 px-2 py-0.5 rounded-md"
+                          >
+                            Gratis
+                          </span>
+                          <span
+                            class="text-sm font-medium truncate"
+                            :class="
+                              isPromoSubcatCurso(curso)
+                                ? 'text-amber-950'
+                                : 'text-slate-700'
+                            "
+                            >{{ curso.name_del_curso || "Curso" }}</span
+                          >
+                        </button>
+                        <button
+                          v-if="curso.info_tecnica?.url && canAccessCurso(curso)"
+                          class="text-[0.65rem] font-semibold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border-none cursor-pointer transition-colors hover:bg-blue-100 shrink-0"
+                          @click.stop="handleCourseClick(curso, curso.info_tecnica.url)"
+                        >
+                          <svg
+                            class="inline-block w-3 h-3 mr-1 shrink-0"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                            style="vertical-align: -1px"
+                          >
+                            <path
+                              d="M7.71 3.5L1.15 15l3.3 5.5 6.57-11.5-3.31-5.5z"
+                              fill="#0066DA"
+                            />
+                            <path
+                              d="M16.29 3.5H7.71l6.57 11.5h8.57L16.29 3.5z"
+                              fill="#00AC47"
+                            />
+                            <path
+                              d="M4.45 20.5h15.1l3.3-5.5H7.75L4.45 20.5z"
+                              fill="#FFBA00"
+                            />
+                          </svg>
+                          Ver en Google Drive
+                        </button>
+                      </div>
+
+                      <!-- Descripción del curso (HTML) -->
+                      <div
+                        v-show="isFolderOpen('curso-' + item.key + '-' + cIdx)"
+                        class="border-t border-slate-50 px-4 py-3"
+                      >
+                        <div
+                          v-if="curso.contenido"
+                          class="text-sm text-slate-600 leading-relaxed course-desc"
+                          v-html="curso.contenido"
+                        ></div>
+                        <p v-else class="text-sm text-slate-400 italic">
+                          Sin descripción disponible.
+                        </p>
+                      </div>
+                    </div>
+
+                    <!-- Paginación de cursos de la categoría -->
+                    <div
+                      v-if="totalPagesCategoriaCursos(item) > 1"
+                      class="flex items-center justify-center gap-3 pt-1"
+                    >
+                      <button
+                        @click="
+                          setCategoriaCursoPage(
+                            item.key,
+                            getCategoriaCursoPage(item.key) - 1,
+                          )
+                        "
+                        :disabled="getCategoriaCursoPage(item.key) === 1"
+                        class="p-1 rounded-full bg-transparent border-none text-slate-500 cursor-pointer transition-all hover:bg-slate-100 hover:text-[#0d1b2a] disabled:opacity-35 disabled:cursor-not-allowed"
+                      >
+                        <svg
+                          class="w-4 h-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M15 19l-7-7 7-7"
+                          />
+                        </svg>
+                      </button>
+                      <span class="text-[0.7rem] font-semibold text-slate-500"
+                        >Pagina {{ getCategoriaCursoPage(item.key) }} de
+                        {{ totalPagesCategoriaCursos(item) }}</span
+                      >
+                      <button
+                        @click="
+                          setCategoriaCursoPage(
+                            item.key,
+                            getCategoriaCursoPage(item.key) + 1,
+                          )
+                        "
+                        :disabled="
+                          getCategoriaCursoPage(item.key) ===
+                          totalPagesCategoriaCursos(item)
+                        "
+                        class="p-1 rounded-full bg-transparent border-none text-slate-500 cursor-pointer transition-all hover:bg-slate-100 hover:text-[#0d1b2a] disabled:opacity-35 disabled:cursor-not-allowed"
+                      >
+                        <svg
+                          class="w-4 h-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Paginación -->
+                <div
+                  v-if="totalPagesSubcategorias > 1"
+                  class="flex items-center justify-center gap-4 pt-2"
+                >
+                  <button
+                    @click="currentPages.subcategorias--"
+                    :disabled="currentPages.subcategorias === 1"
+                    class="p-1.5 rounded-full bg-transparent border-none text-slate-500 cursor-pointer transition-all hover:bg-slate-100 hover:text-[#0d1b2a] disabled:opacity-35 disabled:cursor-not-allowed"
+                  >
+                    <svg
+                      class="w-5 h-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15 19l-7-7 7-7"
+                      />
+                    </svg>
+                  </button>
+                  <span class="text-xs font-semibold text-slate-500"
+                    >Pagina {{ currentPages.subcategorias }} de
+                    {{ totalPagesSubcategorias }}</span
+                  >
+                  <button
+                    @click="currentPages.subcategorias++"
+                    :disabled="
+                      currentPages.subcategorias === totalPagesSubcategorias
+                    "
+                    class="p-1.5 rounded-full bg-transparent border-none text-slate-500 cursor-pointer transition-all hover:bg-slate-100 hover:text-[#0d1b2a] disabled:opacity-35 disabled:cursor-not-allowed"
+                  >
+                    <svg
+                      class="w-5 h-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
             </div>
 
             <!-- Pilares que incluye -->
@@ -1522,30 +2046,31 @@ const contentHeading = computed(() => {
                                 :key="cIdx"
                                 class="flex items-center justify-between py-2 border-b border-slate-50 last:border-0"
                               >
-                                <span class="text-xs font-medium text-slate-700"
+                                <span class="text-xs font-medium text-slate-700 flex items-center gap-1.5"
                                   >{{ cIdx + 1 }}.
-                                  {{ curso.name_del_curso || "Curso" }}</span
+                                  {{ curso.name_del_curso || "Curso" }}
+                                  <span
+                                    v-if="curso.es_gratis"
+                                    class="shrink-0 text-[0.6rem] font-bold uppercase tracking-wide text-amber-900 bg-gradient-to-r from-amber-400 to-yellow-300 px-1.5 py-0.5 rounded-md"
+                                  >Gratis</span
+                                  ></span
                                 >
                                 <button
-                                  v-if="curso.info_tecnica?.url"
-                                  :disabled="isLoadingDrive"
-                                  class="text-[0.6rem] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border-none cursor-pointer hover:bg-blue-100 shrink-0 ml-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  v-if="curso.info_tecnica?.url && canAccessCurso(curso)"
+                                  class="text-[0.6rem] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border-none cursor-pointer hover:bg-blue-100 shrink-0 ml-2"
                                   @click.stop="
-                                    handlePreview(
-                                      category,
+                                    handleCourseClick(
+                                      curso,
                                       curso.info_tecnica.url,
                                     )
                                   "
                                 >
-                                  <template v-if="isLoadingDrive">Preparando...</template>
-                                  <template v-else>
-                                    <svg class="inline-block w-3 h-3 mr-1 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-1px">
-                                      <path d="M7.71 3.5L1.15 15l3.3 5.5 6.57-11.5-3.31-5.5z" fill="#0066DA"/>
-                                      <path d="M16.29 3.5H7.71l6.57 11.5h8.57L16.29 3.5z" fill="#00AC47"/>
-                                      <path d="M4.45 20.5h15.1l3.3-5.5H7.75L4.45 20.5z" fill="#FFBA00"/>
-                                    </svg>
-                                    Ver en Google Drive
-                                  </template>
+                                  <svg class="inline-block w-3 h-3 mr-1 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-1px">
+                                    <path d="M7.71 3.5L1.15 15l3.3 5.5 6.57-11.5-3.31-5.5z" fill="#0066DA"/>
+                                    <path d="M16.29 3.5H7.71l6.57 11.5h8.57L16.29 3.5z" fill="#00AC47"/>
+                                    <path d="M4.45 20.5h15.1l3.3-5.5H7.75L4.45 20.5z" fill="#FFBA00"/>
+                                  </svg>
+                                  Ver en Google Drive
                                 </button>
                               </div>
                             </div>
@@ -1690,24 +2215,24 @@ const contentHeading = computed(() => {
                         >
                           {{ curso.name_del_curso || "Leccion" }}
                         </span>
+                        <span
+                          v-if="curso.es_gratis"
+                          class="shrink-0 text-[0.6rem] font-bold uppercase tracking-wide text-amber-900 bg-gradient-to-r from-amber-400 to-yellow-300 px-1.5 py-0.5 rounded-md"
+                        >Gratis</span>
                       </div>
                       <button
-                        v-if="curso.info_tecnica?.url"
-                        :disabled="isLoadingDrive"
-                        class="text-[0.65rem] font-semibold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border-none cursor-pointer transition-colors hover:bg-blue-100 shrink-0 ml-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                        v-if="curso.info_tecnica?.url && canAccessCurso(curso)"
+                        class="text-[0.65rem] font-semibold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border-none cursor-pointer transition-colors hover:bg-blue-100 shrink-0 ml-3"
                         @click.stop="
-                          handlePreview(category, curso.info_tecnica.url)
+                          handleCourseClick(curso, curso.info_tecnica.url)
                         "
                       >
-                        <template v-if="isLoadingDrive">Preparando...</template>
-                        <template v-else>
-                          <svg class="inline-block w-3 h-3 mr-1 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-1px">
-                            <path d="M7.71 3.5L1.15 15l3.3 5.5 6.57-11.5-3.31-5.5z" fill="#0066DA"/>
-                            <path d="M16.29 3.5H7.71l6.57 11.5h8.57L16.29 3.5z" fill="#00AC47"/>
-                            <path d="M4.45 20.5h15.1l3.3-5.5H7.75L4.45 20.5z" fill="#FFBA00"/>
-                          </svg>
-                          Ver en Google Drive
-                        </template>
+                        <svg class="inline-block w-3 h-3 mr-1 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-1px">
+                          <path d="M7.71 3.5L1.15 15l3.3 5.5 6.57-11.5-3.31-5.5z" fill="#0066DA"/>
+                          <path d="M16.29 3.5H7.71l6.57 11.5h8.57L16.29 3.5z" fill="#00AC47"/>
+                          <path d="M4.45 20.5h15.1l3.3-5.5H7.75L4.45 20.5z" fill="#FFBA00"/>
+                        </svg>
+                        Ver en Google Drive
                       </button>
                     </div>
                   </div>
@@ -1894,24 +2419,24 @@ const contentHeading = computed(() => {
                         >
                           {{ curso.name_del_curso || "Leccion" }}
                         </span>
+                        <span
+                          v-if="curso.es_gratis"
+                          class="shrink-0 text-[0.6rem] font-bold uppercase tracking-wide text-amber-900 bg-gradient-to-r from-amber-400 to-yellow-300 px-1.5 py-0.5 rounded-md"
+                        >Gratis</span>
                       </div>
                       <button
-                        v-if="curso.info_tecnica?.url"
-                        :disabled="isLoadingDrive"
-                        class="text-[0.65rem] font-semibold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border-none cursor-pointer transition-colors hover:bg-blue-100 shrink-0 ml-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                        v-if="curso.info_tecnica?.url && canAccessCurso(curso)"
+                        class="text-[0.65rem] font-semibold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border-none cursor-pointer transition-colors hover:bg-blue-100 shrink-0 ml-3"
                         @click.stop="
-                          handlePreview(category, curso.info_tecnica.url)
+                          handleCourseClick(curso, curso.info_tecnica.url)
                         "
                       >
-                        <template v-if="isLoadingDrive">Preparando...</template>
-                        <template v-else>
-                          <svg class="inline-block w-3 h-3 mr-1 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-1px">
-                            <path d="M7.71 3.5L1.15 15l3.3 5.5 6.57-11.5-3.31-5.5z" fill="#0066DA"/>
-                            <path d="M16.29 3.5H7.71l6.57 11.5h8.57L16.29 3.5z" fill="#00AC47"/>
-                            <path d="M4.45 20.5h15.1l3.3-5.5H7.75L4.45 20.5z" fill="#FFBA00"/>
-                          </svg>
-                          Ver en Google Drive
-                        </template>
+                        <svg class="inline-block w-3 h-3 mr-1 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-1px">
+                          <path d="M7.71 3.5L1.15 15l3.3 5.5 6.57-11.5-3.31-5.5z" fill="#0066DA"/>
+                          <path d="M16.29 3.5H7.71l6.57 11.5h8.57L16.29 3.5z" fill="#00AC47"/>
+                          <path d="M4.45 20.5h15.1l3.3-5.5H7.75L4.45 20.5z" fill="#FFBA00"/>
+                        </svg>
+                        Ver en Google Drive
                       </button>
                     </div>
                   </div>
@@ -1973,45 +2498,65 @@ const contentHeading = computed(() => {
               v-if="category?.seccion_lista_completa?.lista_completa?.length"
               class="bg-white rounded-2xl border border-slate-100/80 shadow-md overflow-hidden transition-shadow hover:shadow-lg"
             >
-              <button
-                class="w-full flex items-center justify-between p-4 lg:px-6 bg-transparent border-none cursor-pointer transition-colors hover:bg-slate-50/60"
-                @click="toggleFolder('section-lista-completa')"
+              <div
+                class="w-full flex items-center justify-between gap-3 p-4 lg:px-6"
               >
-                <span class="font-[Poppins] text-base font-bold text-[#0d1b2a]"
-                  >Lista Completa</span
+                <button
+                  class="flex flex-1 items-center justify-between gap-3 bg-transparent border-none cursor-pointer transition-opacity hover:opacity-80 text-left"
+                  @click="toggleFolder('section-lista-completa')"
                 >
-                <span class="flex items-center gap-3">
-                  <span
-                    class="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full"
+                  <span class="font-[Poppins] text-base font-bold text-[#0d1b2a]"
+                    >Lista Completa</span
                   >
-                    <template v-if="computedBloquesCount !== null"
-                      >{{ computedBloquesCount }} bloques &middot; </template
-                    >{{
-                      category?.seccion_lista_completa?.cantidad_cursos ??
-                      category?.seccion_lista_completa?.lista_completa
-                        ?.length ??
-                      0
-                    }}
-                    cursos
+                  <span class="flex items-center gap-3">
+                    <span
+                      class="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full"
+                    >
+                      <template v-if="computedBloquesCount !== null"
+                        >{{ computedBloquesCount }} bloques &middot; </template
+                      >{{
+                        category?.seccion_lista_completa?.cantidad_cursos ??
+                        category?.seccion_lista_completa?.lista_completa
+                          ?.length ??
+                        0
+                      }}
+                      cursos
+                    </span>
+                    <svg
+                      class="w-5 h-5 text-slate-400 transition-transform duration-300"
+                      :class="{
+                        'rotate-180': isFolderOpen('section-lista-completa'),
+                      }"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
                   </span>
-                  <svg
-                    class="w-5 h-5 text-slate-400 transition-transform duration-300"
-                    :class="{
-                      'rotate-180': isFolderOpen('section-lista-completa'),
-                    }"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </span>
-              </button>
+                </button>
+                <button
+                  type="button"
+                  @click.stop="onlyFreeLista = !onlyFreeLista"
+                  :aria-pressed="onlyFreeLista"
+                  class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-all shrink-0 cursor-pointer"
+                  :class="
+                    onlyFreeLista
+                      ? 'bg-gradient-to-r from-amber-400 to-yellow-300 text-amber-900 border-amber-300 shadow-sm'
+                      : 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'
+                  "
+                >
+                  <span>✨</span>
+                  <span>{{
+                    onlyFreeLista ? "Gratis primero" : "Ver cursos gratis"
+                  }}</span>
+                </button>
+              </div>
               <div
                 ref="listaCompletaScrollRef"
                 v-show="isFolderOpen('section-lista-completa')"
@@ -2113,8 +2658,16 @@ const contentHeading = computed(() => {
                         : 'bg-white border-slate-100 hover:border-blue-200 hover:shadow-sm'
                   "
                 >
-                  <div class="flex items-center justify-between px-4 py-3">
-                    <div class="flex items-center gap-3 min-w-0">
+                  <div class="flex items-center justify-between px-4 py-3 gap-3">
+                    <button
+                      type="button"
+                      class="flex items-center gap-3 min-w-0 flex-1 bg-transparent border-none text-left p-0"
+                      :class="curso.contenido ? 'cursor-pointer' : 'cursor-default'"
+                      @click="
+                        curso.contenido &&
+                          toggleFolder('lc-curso-' + curso.vistaListaIndex)
+                      "
+                    >
                       <span
                         class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold transition-colors"
                         :class="
@@ -2127,11 +2680,36 @@ const contentHeading = computed(() => {
                       >
                         {{ curso.vistaListaIndex + 1 }}
                       </span>
+                      <svg
+                        v-if="curso.contenido"
+                        class="w-4 h-4 text-slate-400 transition-transform shrink-0"
+                        :class="{
+                          'rotate-180': isFolderOpen(
+                            'lc-curso-' + curso.vistaListaIndex,
+                          ),
+                        }"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
                       <span
                         v-if="isPromoItem(curso)"
                         class="shrink-0 text-[0.65rem] font-bold uppercase tracking-wide text-amber-900 bg-amber-200/80 px-2 py-0.5 rounded-md"
                       >
                         Tu curso
+                      </span>
+                      <span
+                        v-if="curso.es_gratis"
+                        class="shrink-0 text-[0.65rem] font-bold uppercase tracking-wide text-amber-900 bg-gradient-to-r from-amber-400 to-yellow-300 px-2 py-0.5 rounded-md"
+                      >
+                        Gratis
                       </span>
                       <span
                         class="text-sm font-medium transition-colors truncate"
@@ -2144,25 +2722,33 @@ const contentHeading = computed(() => {
                         "
                         >{{ curso.name_del_curso || "Curso" }}</span
                       >
-                    </div>
+                    </button>
                     <button
-                      v-if="curso.info_tecnica?.url"
-                      :disabled="isLoadingDrive"
-                      class="text-[0.65rem] font-semibold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border-none cursor-pointer transition-colors hover:bg-blue-100 shrink-0 ml-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                      v-if="curso.info_tecnica?.url && canAccessCurso(curso)"
+                      class="text-[0.65rem] font-semibold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border-none cursor-pointer transition-colors hover:bg-blue-100 shrink-0 ml-3"
                       @click.stop="
-                        handlePreview(category, curso.info_tecnica.url)
+                        handleCourseClick(curso, curso.info_tecnica.url)
                       "
                     >
-                      <template v-if="isLoadingDrive">Preparando...</template>
-                      <template v-else>
-                        <svg class="inline-block w-3 h-3 mr-1 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-1px">
-                          <path d="M7.71 3.5L1.15 15l3.3 5.5 6.57-11.5-3.31-5.5z" fill="#0066DA"/>
-                          <path d="M16.29 3.5H7.71l6.57 11.5h8.57L16.29 3.5z" fill="#00AC47"/>
-                          <path d="M4.45 20.5h15.1l3.3-5.5H7.75L4.45 20.5z" fill="#FFBA00"/>
-                        </svg>
-                        Ver en Google Drive
-                      </template>
+                      <svg class="inline-block w-3 h-3 mr-1 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-1px">
+                        <path d="M7.71 3.5L1.15 15l3.3 5.5 6.57-11.5-3.31-5.5z" fill="#0066DA"/>
+                        <path d="M16.29 3.5H7.71l6.57 11.5h8.57L16.29 3.5z" fill="#00AC47"/>
+                        <path d="M4.45 20.5h15.1l3.3-5.5H7.75L4.45 20.5z" fill="#FFBA00"/>
+                      </svg>
+                      Ver en Google Drive
                     </button>
+                  </div>
+
+                  <!-- Descripción del curso (HTML) -->
+                  <div
+                    v-if="curso.contenido"
+                    v-show="isFolderOpen('lc-curso-' + curso.vistaListaIndex)"
+                    class="border-t border-slate-100 px-4 py-3 bg-white"
+                  >
+                    <div
+                      class="text-sm text-slate-600 leading-relaxed course-desc"
+                      v-html="curso.contenido"
+                    ></div>
                   </div>
                 </div>
 
@@ -2645,7 +3231,7 @@ const contentHeading = computed(() => {
             <!-- Imagen preview -->
             <div
               class="relative w-full aspect-video bg-slate-100 cursor-pointer overflow-hidden group"
-              @click="handleImagePreviewClick"
+              @click="showVideoModal = true"
             >
               <img
                 v-if="category?.imagen_url"
@@ -2659,14 +3245,18 @@ const contentHeading = computed(() => {
                 <div
                   class="bg-white/90 backdrop-blur-sm rounded-full p-3.5 shadow-lg transition-transform group-hover:scale-110"
                 >
-                  <div
-                    class="w-8 h-8 text-[#1e40af] flex items-center justify-center"
-                    v-html="courseIcons.preview"
-                  ></div>
+                  <svg
+                    class="w-8 h-8 text-[#1e40af]"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d="M8 5v14l11-7-11-7z" />
+                  </svg>
                 </div>
                 <span
                   class="absolute bottom-2.5 right-2.5 bg-black/60 backdrop-blur-sm text-white text-[0.65rem] font-semibold px-2 py-0.5 rounded-md"
-                  >Vista previa</span
+                  >Guia rapida</span
                 >
               </div>
             </div>
@@ -2725,36 +3315,12 @@ const contentHeading = computed(() => {
                       <path
                         stroke-linecap="round"
                         stroke-linejoin="round"
-                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                        d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5 7.5 12M12 16.5V3"
                       />
                     </svg>
-                    Certificado
+                    Opcion de descarga
                   </span>
                 </div>
-              </div>
-
-              <!-- Cupos progress bar -->
-              <div class="mb-3">
-                <div class="flex items-center justify-between text-xs mb-1.5">
-                  <span class="text-slate-500">Cupos disponibles</span>
-                  <span
-                    class="font-bold"
-                    :class="isLowStock ? 'text-red-600' : 'text-slate-800'"
-                    >{{ cuposCount }} / {{ cuposMax }}</span
-                  >
-                </div>
-                <div class="w-full h-1 rounded-full overflow-hidden" :class="isLowStock ? 'bg-red-500' : 'bg-slate-100'">
-                  <div
-                    class="h-full rounded-full transition-all duration-700 bg-emerald-500"
-                    :style="{ width: `${cuposPercent}%` }"
-                  />
-                </div>
-                <p
-                  v-if="isLowStock"
-                  class="text-red-500 text-[0.65rem] font-semibold mt-1"
-                >
-                  Quedan pocos cupos disponibles
-                </p>
               </div>
 
               <!-- ══ SELECTOR DE OPCIONES + CTA UNICO ══ -->
@@ -3025,37 +3591,41 @@ const contentHeading = computed(() => {
                 </div>
 
                 <!-- BOTON UNICO DE COMPRA -->
-                <button
-                  v-if="!selectedCategory?.user_bought"
-                  @click="handleBuySelected"
-                  class="w-full py-3.5 px-4 rounded-xl border-none text-sm sm:text-base font-bold text-white cursor-pointer transition-all duration-200 hover:-translate-y-0.5 text-center"
-                  :class="{
-                    'btn-premium-gradient': tierInfo.isPremium,
-                    'bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30':
-                      selectedOption === 'upsell' && !tierInfo.isPremium,
-                    'bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-600/20 hover:shadow-emerald-600/30':
-                      selectedOption === 'current' && !tierInfo.isPremium,
-                  }"
-                >
-                  Desbloquear paquete — ${{ formatPrice(selectedCategory?.precio) }}
-                  {{ currencySuffix }}
-                </button>
+                <div v-if="!selectedCategory?.user_bought" class="space-y-2">
+                  <p class="text-center text-[0.68rem] font-semibold text-black uppercase tracking-widest cta-label-pulse">
+                    ¿Cómo quieres obtener el paquete?
+                  </p>
 
-                <button
-                  v-if="!selectedCategory?.user_bought"
-                  @click="handleAddToCartSelected"
-                  class="w-full py-3 px-4 rounded-xl border-2 border-blue-700 bg-transparent text-sm font-bold text-blue-700 cursor-pointer transition-all hover:bg-blue-50/50 hover:border-blue-800"
-                >
-                  Anadir al carrito
-                </button>
-              </div>
+                  <div class="flex flex-col w-full gap-2">
 
-              <!-- Affiliate -->
-              <div class="mt-4">
-                <AffiliatyMessageComponent
-                  :id_category="category?.id"
-                  variant="card"
-                />
+                    <!-- Botón Acceso web (70%) -->
+                    <button
+                      type="button"
+                      class="w-full h-11 rounded-xl font-bold flex justify-center items-center gap-2 transition-all duration-200 text-white shadow-md hover:-translate-y-0.5"
+                      style="background-color: #5d48f7;"
+                      @click="handleBuySelected"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 shrink-0 opacity-80">
+                        <path fill-rule="evenodd" d="M12 1.5a.75.75 0 0 1 .75.75V4.5a.75.75 0 0 1-1.5 0V2.25A.75.75 0 0 1 12 1.5ZM5.636 4.136a.75.75 0 0 1 1.06 0l1.592 1.591a.75.75 0 0 1-1.061 1.06l-1.591-1.59a.75.75 0 0 1 0-1.061Zm12.728 0a.75.75 0 0 1 0 1.06l-1.591 1.592a.75.75 0 0 1-1.06-1.061l1.59-1.591a.75.75 0 0 1 1.061 0Zm-6.816 4.496a.75.75 0 0 1 .82.311l5.228 7.917a.75.75 0 0 1-.777 1.148l-2.097-.43 1.045 3.9a.75.75 0 0 1-1.45.388l-1.044-3.899-1.601 1.42a.75.75 0 0 1-1.247-.606l.569-9.47a.75.75 0 0 1 .554-.678ZM3 10.5a.75.75 0 0 1 .75-.75H6a.75.75 0 0 1 0 1.5H3.75A.75.75 0 0 1 3 10.5Zm14.25 0a.75.75 0 0 1 .75-.75h2.25a.75.75 0 0 1 0 1.5H18a.75.75 0 0 1-.75-.75Zm-8.962 3.712a.75.75 0 0 1 0 1.061l-1.591 1.591a.75.75 0 1 1-1.061-1.06l1.591-1.592a.75.75 0 0 1 1.061 0Z" clip-rule="evenodd" />
+                      </svg>
+                      <span class="text-[0.9rem] font-extrabold leading-tight text-center">Comprar desde la web</span>
+                    </button>
+                    <!-- Botón WhatsApp (30%) -->
+                    <a
+                      :href="whatsappUrl"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="w-full h-11 rounded-xl font-bold flex justify-center items-center gap-0.5 transition-all duration-200 no-underline bg-white border-2 border-green-600 text-green-600 hover:bg-green-50 shadow-md hover:-translate-y-0.5"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 shrink-0">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                        <path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.554 4.122 1.523 5.855L.057 23.486a.5.5 0 0 0 .611.611l5.632-1.466A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.9 0-3.68-.524-5.2-1.433l-.373-.223-3.865 1.006 1.006-3.865-.223-.373A9.944 9.944 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/>
+                      </svg>
+                      <span class="text-[0.9rem] gap-2 font-bold leading-tight text-center">Comprar por chat</span>
+                    </a>
+                  </div>
+                </div>
+
               </div>
 
               <!-- Incluye -->
@@ -3238,6 +3808,24 @@ const contentHeading = computed(() => {
   50% {
     background-position: 100% 50%;
   }
+}
+
+@keyframes cta-label-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.06);
+    opacity: 0.75;
+  }
+}
+.cta-label-pulse {
+  display: block;
+  text-align: center;
+  color: #0d1b2a;
+  animation: cta-label-pulse 2s ease-in-out infinite;
 }
 
 /* Custom scrollbar for accordion body */

@@ -15,11 +15,32 @@ export interface ICourse {
     url?: string;
   }
 
+  export interface ICursoSubcategoria {
+    author?: string;
+    contenido?: string;          // HTML enriquecido (descripción del curso)
+    info_tecnica?: IInfoTecnica;
+    subcategoria?: string;
+    name_del_curso?: string;
+    es_gratis?: boolean;
+  }
+
+  // Mapas por nombre (clave de texto), profundidad según el tier de la categoría:
+  export type ISubcatPorSubcategoria = Record<string, ICursoSubcategoria[]>; // bloque
+  export type ISubcatPorTema = Record<string, ISubcatPorSubcategoria>;       // pilar
+  export type ISubcatPorPilar = Record<string, ISubcatPorTema>;              // combinado
+
+  export type ISeccionListaPorSubcategoria =
+    | ISubcatPorSubcategoria
+    | ISubcatPorTema
+    | ISubcatPorPilar;
+
   export interface ICategoryCourseDetail {
     name_del_curso?: string;
     author?: string;
-    contenido?: string[];
+    contenido?: string; // HTML enriquecido (descripción del curso)
+    subcategoria?: string;
     info_tecnica?: IInfoTecnica;
+    es_gratis?: boolean;
   }
 
   export interface ICategoryPlataformaDetail {
@@ -53,6 +74,7 @@ export interface ICourse {
     cantidad_cursos?: number;
     url_lista_completa?: string;
     lista_completa?: ICategoryCourseDetail[];
+    contenido: string; // HTML enriquecido (descripción de la sección)
   }
 
   export interface ICategory {
@@ -83,6 +105,7 @@ export interface ICourse {
     duracion?: string;
     delete_at?: string | null; // Puede ser `null`
     created_at: string;
+    seccion_lista_por_subcategoria?: ISeccionListaPorSubcategoria;
     courses: ICourse[]; // Relación con Course
   }
   

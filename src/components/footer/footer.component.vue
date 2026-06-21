@@ -52,7 +52,7 @@ async function handleEmailClick(event: MouseEvent) {
                     <span class="footer-brand-name">CURSOS ESTUDIA Y TRABAJA</span>
                 </div>
                 <p class="footer-brand-desc">
-                    Plataforma educativa premium con acceso vitalicio, contenido descargable y certificaciones reconocidas.
+                    Plataforma educativa premium con acceso vitalicio, contenido descargable y certificaciones reconocidas con posibilidad de reventa de cotenido.
                 </p>
                 <!-- Social icons -->
                 <div class="footer-social">

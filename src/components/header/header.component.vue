@@ -1,10 +1,8 @@
 <script lang="ts" setup>
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 import { authStore } from '../../store/AuthStore';
-import { cartStore } from '../../store/CartStore';
 import { ref, computed } from 'vue';
 import HeaderSearchComponent from './header.search.component.vue';
-import CartPage from '../../cart/cart.page.vue';
 import { icons } from './headerIcons';
 import { GoogleLogin } from 'vue3-google-login';
 import AuthService from '../../services/AuthServices';
@@ -39,14 +37,12 @@ const handleLoginSuccess = async (response: any) => {
 }
 
 const showPoverMore = ref(false);
-const showCart = ref(false)
 
 const { loading: facebookLoading, handleFacebookLogin } = useFacebookLogin({
     onSuccess: () => { showPoverMore.value = false; },
 });
 
 const userStore = authStore()
-const carSto = cartStore()
 const router = useRouter();
 const route = useRoute();
 
@@ -58,11 +54,7 @@ const positionNavigate = computed(() => {
     return -1;
 });
 
-const hadleCartData = () => {
-    if (window.innerWidth > 768) { hadleShowCart(); return; }
-    router.push({ name: 'cart' })
-}
-const hadleShowCart = () => { showCart.value = !showCart.value }
+
 
 const handleLogout = async () => {
     try {
@@ -203,11 +195,11 @@ const handleChangeAccount = () => {
                     </div>
                 </div>
 
-                <!-- Carrito -->
+                <!-- Carrito 
                 <button class="cart-btn" type="button" aria-label="Carrito" @click="hadleCartData()">
                     <span class="cart-icon" v-html="icons.cart" />
                     <span v-if="carSto.countCart > 0" class="cart-badge">{{ carSto.countCart }}</span>
-                </button>
+                </button>-->
             </div>
         </div>
 
@@ -221,6 +213,7 @@ const handleChangeAccount = () => {
     <div class="header-spacer"></div>
 
     <!-- ═══ SIDEBAR CARRITO ══════════════════════════════ -->
+     <!--
     <div v-if="showCart" class="fixed inset-0 z-[60] overflow-hidden" role="dialog" aria-modal="true">
         <div class="absolute inset-0 overflow-hidden">
             <div class="absolute inset-0 bg-black/30" @click="hadleShowCart()" />
@@ -240,7 +233,7 @@ const handleChangeAccount = () => {
                 </div>
             </div>
         </div>
-    </div>
+    </div>-->
 </template>
 
 <style scoped>

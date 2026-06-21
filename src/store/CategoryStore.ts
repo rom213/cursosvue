@@ -54,9 +54,12 @@ export const categoryStore = defineStore('category', () => {
                 }
             }
             
-            // fetch fresh data if no cache or expired
+            // fetch fresh data if no cache or expired.
+            // Cargamos el catálogo completo (100, filtro 'all') para que el store
+            // global sea consistente con la página de cursos y findCategoryById
+            // encuentre cualquier categoría sin caer a la API una por una.
             if (!useCache) {
-                const freshCategories = await CategoryService.getAllCategories();
+                const freshCategories = await CategoryService.getAllCategories(100, 0, 'all');
                 setCategories(freshCategories);
             }
         } catch (error) {

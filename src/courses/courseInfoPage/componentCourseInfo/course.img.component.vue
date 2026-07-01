@@ -63,7 +63,7 @@ const addCarCategory = (item: ICategory | undefined) => {
                 <!-- section img -->
                 <div class="border border-black rounded-sm p-0.5 grid gap-3 pb-2">
                     <div>
-                        <img class="w-full rounded-sm" :src="category?.imagen_url" alt="">
+                        <img class="w-full rounded-sm" :src="category?.imagen_url" alt="" loading="lazy" decoding="async">
                     </div>
                     <div class="md:hidden">
                         <div class="grid gap-2" v-if="!category?.user_bought">

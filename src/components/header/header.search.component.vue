@@ -82,7 +82,7 @@ const handleClickOutside = () => {
                 <div v-for="(cat, index) in dataReseived" :key="index"
                      @click="handleClickItem(cat)"
                     class="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 cursor-pointer transition-colors border-b border-gray-100 last:border-0">
-                    <img class="w-10 h-10 rounded-lg object-cover shadow-sm bg-gray-100" :src="cat.imagen_url" alt="">
+                    <img class="w-10 h-10 rounded-lg object-cover shadow-sm bg-gray-100" :src="cat.imagen_url" alt="" loading="lazy" decoding="async" width="40" height="40">
                     <div class="flex flex-col overflow-hidden">
                         <span class="text-sm font-medium text-gray-700 truncate">{{ cat.titulo }}</span>
                         <div class="flex items-center gap-2 mt-0.5">

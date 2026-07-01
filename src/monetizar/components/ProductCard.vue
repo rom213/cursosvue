@@ -101,6 +101,8 @@ const imageUrl = props.category.imagen_url || defaultImage;
         :src="imageUrl"
         :alt="category.titulo"
         class="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+        loading="lazy"
+        decoding="async"
       />
       <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition"></div>
     </div>

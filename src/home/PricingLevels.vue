@@ -33,7 +33,9 @@ const levels: PricingLevel[] = [
     themes: '1 Bloque',
     courses: '+20 cursos',
     description: 'Perfecto para explorar un area especifica y empezar a aprender hoy.',
-    tags: [],
+    tags: [
+      { label: '🤝 Incluye Reventa', bg: 'bg-amber-50', text: 'text-amber-700', ring: 'ring-1 ring-inset ring-amber-600/10' },
+    ],
     features: [
       'Acceso vitalicio al bloque',
       '100% descargable y offline',

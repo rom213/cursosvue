@@ -3,17 +3,13 @@ import { useRoute, useRouter } from "vue-router";
 import { courseInfoIcons } from "./courseInfo.icons";
 import { authStore } from "../../store/AuthStore";
 import { emergentBuyStore } from "../../store/EmergentBuyStore";
-import type {
-  ICategory,
-  ICategoryCourseDetail,
-  ICursoSubcategoria,
-  ISeccionListaPorSubcategoria,
-} from "../../types/Categorie";
+import type { ICategory, ICategoryCourseDetail } from "../../types/Categorie";
 import { onMounted, ref, watch, computed, nextTick } from "vue";
 import { categoryStore } from "../../store/CategoryStore";
 import EmergentBuyComponent from "../emergent.buy.component.vue";
 import AuthService from "../../services/AuthServices";
 import CategoryService from "../../services/CategorieService";
+import type { IBloquePilarGroup } from "../../services/CategorieService";
 import CourseFaqSection from "./CourseFaqSection.vue";
 import CommentsBodyComponent from "./componentCourseInfo/comments.body.component.vue";
 import FooterComponent from "../../components/footer/footer.component.vue";
@@ -29,8 +25,10 @@ import {
 import type { PilarKey } from "../courseFilterData";
 import { usePromoQuery } from "../../composables/usePromoQuery";
 import { useTracking } from "../../composables/useTracking";
-import { buildCourseSlugLookup } from "../../utils/courseSlug";
 import descripcionesRaw from "./descripcionCursos.json";
+
+// Nombre usado por <KeepAlive :include> en App.vue (conserva la vista al cambiar de tab)
+defineOptions({ name: "CourseInfoPage" });
 
 const storeemergentBuy = emergentBuyStore();
 const { trackViewItem, trackAddToCart } = useTracking();
@@ -72,7 +70,6 @@ const itemsPerPageCursosCat = 5;
 
 const currentPages = ref({
   plataformas: 1,
-  bloques: 1,
   listaCompleta: 1,
   subcategorias: 1,
 });
@@ -81,12 +78,48 @@ const currentPages = ref({
 const currentPagesPorCategoria = ref<Record<string, number>>({});
 
 const searchTermLista = ref("");
-/** Curso de la promo (banner): ordenar al frente y resaltar; no filtra la lista */
-const promoHighlightTerm = ref("");
+/** Id del curso resaltado (promo o link directo por slug); null = sin resaltado */
+const promoHighlightCourseId = ref<number | null>(null);
+/** Clave de la subcategoría anclada por un referido (promo), si aplica */
+const promoAnchorKey = ref<string | null>(null);
+
+// ── Cursos agrupados por subcategoría (vía /facets, sin cargar todo el JSON) ──
+// Para categorías hoja: un solo nivel (subcategoria). Para pilar/combo: primero
+// se agrupa por tema (/facets?by=tema) y dentro de cada tema por subcategoria.
+type SubcatFlatItem = {
+  key: string;
+  temaId?: number;
+  tema?: string;
+  subcategoria: string;
+  count: number;
+  freeCount: number;
+};
+
+const subcategoriaFlatList = ref<SubcatFlatItem[]>([]);
+const subcategoriaLoading = ref(false);
+const subcategoriaLoaded = ref(false);
+
+/** Cursos cargados por subcategoría (lazy, hasta 100 por grupo) */
+const subcatCursosCache = ref<Record<string, ICategoryCourseDetail[]>>({});
+const subcatCursosLoading = ref<Record<string, boolean>>({});
 /** Contenedor scroll de "Lista completa" (para anclar arriba al buscar) */
 const listaCompletaScrollRef = ref<HTMLElement | null>(null);
 /** Toggle "Ver cursos gratis": ordena los gratis al frente en Lista Completa (activo por defecto) */
 const onlyFreeLista = ref(true);
+
+/** Página actual de "Lista Completa" obtenida desde el backend (GET /courses) */
+const listaCompletaItems = ref<ICategoryCourseDetail[]>([]);
+const listaCompletaTotal = ref(0);
+const listaCompletaLoading = ref(false);
+const listaCompletaLoaded = ref(false);
+let listaCompletaSearchDebounce: ReturnType<typeof setTimeout> | undefined;
+let subcatSearchDebounce: ReturnType<typeof setTimeout> | undefined;
+
+const categoryId = computed(() => {
+  const raw = firstRouteParam(route.params.id as string | string[] | undefined);
+  const n = Number(raw);
+  return Number.isNaN(n) ? null : n;
+});
 
 /** Buscador de "Cursos por categoría" (filtra los cursos dentro de cada subcategoría) */
 const searchTermSubcat = ref("");
@@ -108,26 +141,31 @@ function scrollToSubcategorias() {
 }
 
 watch(searchTermLista, (val) => {
-  currentPages.value.listaCompleta = 1;
-  if (val.trim()) {
-    nextTick(() => {
-      listaCompletaScrollRef.value?.scrollTo({ top: 0, behavior: "smooth" });
-    });
-  }
+  if (listaCompletaSearchDebounce) clearTimeout(listaCompletaSearchDebounce);
+  listaCompletaSearchDebounce = setTimeout(() => {
+    currentPages.value.listaCompleta = 1;
+    fetchListaCompleta();
+    if (val.trim()) {
+      nextTick(() => {
+        listaCompletaScrollRef.value?.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    }
+  }, 350);
 });
 
 watch(searchTermSubcat, (val) => {
-  currentPages.value.subcategorias = 1;
-  currentPagesPorCategoria.value = {};
-  if (val.trim()) {
-    nextTick(() => {
-      subcatScrollRef.value?.scrollTo({ top: 0, behavior: "smooth" });
-    });
-  }
-});
-
-watch(onlyFreeLista, () => {
-  currentPages.value.listaCompleta = 1;
+  if (subcatSearchDebounce) clearTimeout(subcatSearchDebounce);
+  subcatSearchDebounce = setTimeout(() => {
+    currentPages.value.subcategorias = 1;
+    currentPagesPorCategoria.value = {};
+    subcatCursosCache.value = {};
+    fetchSubcategoriaStructure();
+    if (val.trim()) {
+      nextTick(() => {
+        subcatScrollRef.value?.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    }
+  }, 350);
 });
 
 watch(onlyFreeSubcat, () => {
@@ -135,122 +173,167 @@ watch(onlyFreeSubcat, () => {
   currentPagesPorCategoria.value = {};
 });
 
-/** Autores ordenados: primero los que tienen más cursos. */
-const sortedPlataformas = computed(() => {
-  const list = category.value?.seccion_plataformas?.plataformas || [];
-  const count = (p: (typeof list)[number]) =>
-    p.cantidad_cursos_plataforma ?? p.cursos?.length ?? 0;
-  return [...list].sort((a, b) => count(b) - count(a));
-});
+/** Autores (antes "Plataformas"), paginados desde el backend vía /facets?by=autor. */
+type PlataformaItem = { autor: string; count: number };
+const plataformasItems = ref<PlataformaItem[]>([]);
+const plataformasTotal = ref(0);
+const plataformasLoading = ref(false);
+const plataformasLoaded = ref(false);
 
-const paginatedPlataformas = computed(() => {
-  const list = sortedPlataformas.value;
-  const start = (currentPages.value.plataformas - 1) * itemsPerPage;
-  return list.slice(start, start + itemsPerPage).map((item, idx) => ({
-    ...item,
-    originalIndex: start + idx,
-  }));
-});
+/** Cursos por autor, paginados server-side. Caché por `${autor}#${page}` */
+const platCursosCache = ref<Record<string, ICategoryCourseDetail[]>>({});
+const platCursosLoading = ref<Record<string, boolean>>({});
+const platCursosPage = ref<Record<string, number>>({});
+const itemsPerPagePlatCursos = 10;
+
 const totalPagesPlataformas = computed(() =>
-  Math.ceil(
-    (category.value?.seccion_plataformas?.plataformas?.length || 0) /
-      itemsPerPage,
-  ),
+  Math.max(1, Math.ceil(plataformasTotal.value / itemsPerPage)),
 );
 
-const paginatedBloques = computed(() => {
-  const list = category.value?.seccion_temas?.temas || [];
-  const start = (currentPages.value.bloques - 1) * itemsPerPage;
-  return list.slice(start, start + itemsPerPage).map((item, idx) => ({
-    ...item,
-    originalIndex: start + idx,
-  }));
-});
-const totalPagesBloques = computed(() =>
-  Math.ceil((category.value?.seccion_temas?.temas?.length || 0) / itemsPerPage),
-);
-
-/** Ordena (estable) colocando los cursos gratis al frente, sin eliminar ninguno */
-function sortFreeFirst<T extends { es_gratis?: boolean }>(arr: T[]): T[] {
-  return [...arr.filter((c) => c.es_gratis), ...arr.filter((c) => !c.es_gratis)];
+async function fetchPlataformas() {
+  if (!categoryId.value) return;
+  plataformasLoading.value = true;
+  try {
+    const res = await CategoryService.getFacets<{ autor: string; count: number }>(
+      categoryId.value,
+      {
+        by: "autor",
+        offset: (currentPages.value.plataformas - 1) * itemsPerPage,
+        limit: itemsPerPage,
+      },
+    );
+    plataformasItems.value = res.items;
+    plataformasTotal.value = res.total;
+  } finally {
+    plataformasLoading.value = false;
+    plataformasLoaded.value = true;
+  }
 }
 
-const filteredListaCompleta = computed(() => {
-  const list = category.value?.seccion_lista_completa?.lista_completa || [];
+function goToPlataformasPage(page: number) {
+  if (page < 1 || page > totalPagesPlataformas.value) return;
+  currentPages.value.plataformas = page;
+  fetchPlataformas();
+}
 
-  // Extraer el item de promo para anclarlo siempre al inicio
-  const promoTerm = promoHighlightTerm.value.trim().toLowerCase();
-  const promoIndex = promoTerm
-    ? list.findIndex((item) =>
-        item.name_del_curso?.toLowerCase().includes(promoTerm),
-      )
-    : -1;
-  const promoItem = promoIndex !== -1 ? list[promoIndex] : null;
-
-  const searchTerm = searchTermLista.value.trim().toLowerCase();
-
-  if (searchTerm) {
-    // Filtrar por búsqueda excluyendo el item promo para no duplicarlo
-    const results = list.filter(
-      (item, idx) =>
-        idx !== promoIndex &&
-        item.name_del_curso?.toLowerCase().includes(searchTerm),
-    );
-    const ordered = onlyFreeLista.value ? sortFreeFirst(results) : results;
-    return promoItem ? [promoItem, ...ordered] : ordered;
+function getPlatCursoPage(autor: string) {
+  return platCursosPage.value[autor] || 1;
+}
+function platCursoCacheKey(autor: string, page: number) {
+  return `${autor}#${page}`;
+}
+/** Cursos de la página actual del autor (desde la caché compuesta) */
+function getPlatCursos(autor: string): ICategoryCourseDetail[] {
+  return platCursosCache.value[platCursoCacheKey(autor, getPlatCursoPage(autor))] ?? [];
+}
+/** Total de páginas según el conteo real del autor (facet) */
+function totalPagesPlatCursos(count: number) {
+  return Math.max(1, Math.ceil(count / itemsPerPagePlatCursos));
+}
+/** Carga (server-side, por página) los cursos de un autor al expandir / paginar */
+async function ensurePlatCursos(autor: string, page = 1) {
+  if (!categoryId.value) return;
+  const ck = platCursoCacheKey(autor, page);
+  if (platCursosCache.value[ck] || platCursosLoading.value[autor]) return;
+  platCursosLoading.value = { ...platCursosLoading.value, [autor]: true };
+  try {
+    const res = await CategoryService.getCourses(categoryId.value, {
+      autor,
+      offset: (page - 1) * itemsPerPagePlatCursos,
+      limit: itemsPerPagePlatCursos,
+    });
+    platCursosCache.value = { ...platCursosCache.value, [ck]: res.items };
+  } finally {
+    platCursosLoading.value = { ...platCursosLoading.value, [autor]: false };
   }
+}
+function setPlatCursoPage(autor: string, page: number) {
+  platCursosPage.value = { ...platCursosPage.value, [autor]: page };
+  ensurePlatCursos(autor, page);
+}
 
-  if (promoItem) {
-    const rest = list.filter((_, idx) => idx !== promoIndex);
-    return [promoItem, ...(onlyFreeLista.value ? sortFreeFirst(rest) : rest)];
-  }
-
-  return onlyFreeLista.value ? sortFreeFirst(list) : list;
-});
-
-type ListaCompletaRow = ICategoryCourseDetail & { vistaListaIndex: number };
+function togglePlataforma(autor: string) {
+  toggleFolder(`plat-${autor}`);
+  if (isFolderOpen(`plat-${autor}`)) ensurePlatCursos(autor, getPlatCursoPage(autor));
+}
 
 /** Lista completa en modo búsqueda: estilo de cabecera / contenedor */
 const isListaBuscando = computed(() => searchTermLista.value.trim().length > 0);
 
-/** El item promo siempre queda en pos 0 de filteredListaCompleta cuando está activo */
-const firstPromoListaIndex = computed(() =>
-  promoHighlightTerm.value.trim() ? 0 : -1,
-);
+const isPromoItem = (curso: ICategoryCourseDetail) =>
+  promoHighlightCourseId.value !== null && curso.id === promoHighlightCourseId.value;
 
-const isPromoItem = (curso: ListaCompletaRow) => {
-  if (!promoHighlightTerm.value.trim()) return false;
-  const term = promoHighlightTerm.value.toLowerCase();
-  if (!curso.name_del_curso?.toLowerCase().includes(term)) return false;
-  const first = firstPromoListaIndex.value;
-  return first !== -1 && curso.vistaListaIndex === first;
-};
+/** Solo el primer resultado de búsqueda (de la página actual) lleva el estilo sky fuerte */
+const isListaBusquedaDestacado = (idx: number) =>
+  isListaBuscando.value && currentPages.value.listaCompleta === 1 && idx === 0;
 
-/** Solo el primer resultado de búsqueda (global) lleva el estilo sky fuerte en la fila */
-const isListaBusquedaDestacado = (curso: ListaCompletaRow) =>
-  isListaBuscando.value && curso.vistaListaIndex === 0;
-
-const paginatedListaCompleta = computed(() => {
-  const list = filteredListaCompleta.value;
-  const start = (currentPages.value.listaCompleta - 1) * itemsPerPageLista;
-  return list.slice(start, start + itemsPerPageLista).map((item, idx) => {
-    const vistaListaIndex = start + idx;
-    return {
-      ...item,
-      originalIndex: vistaListaIndex,
-      vistaListaIndex,
-    };
-  });
-});
 const totalPagesListaCompleta = computed(() =>
-  Math.ceil((filteredListaCompleta.value.length || 0) / itemsPerPageLista),
+  Math.max(1, Math.ceil(listaCompletaTotal.value / itemsPerPageLista)),
 );
+
+async function fetchListaCompleta() {
+  if (!categoryId.value) return;
+  listaCompletaLoading.value = true;
+  try {
+    const res = await CategoryService.getCourses(categoryId.value, {
+      offset: (currentPages.value.listaCompleta - 1) * itemsPerPageLista,
+      limit: itemsPerPageLista,
+      q: searchTermLista.value.trim() || undefined,
+    });
+    listaCompletaItems.value = res.items;
+    listaCompletaTotal.value = res.total;
+  } finally {
+    listaCompletaLoading.value = false;
+    listaCompletaLoaded.value = true;
+  }
+}
+
+function goToListaPage(page: number) {
+  if (page < 1 || page > totalPagesListaCompleta.value) return;
+  currentPages.value.listaCompleta = page;
+  fetchListaCompleta();
+}
 
 const toggleFolder = (key: string) => {
   openedFolders.value[key] = !openedFolders.value[key];
 };
 
 const isFolderOpen = (key: string) => Boolean(openedFolders.value[key]);
+
+/**
+ * Contenido (HTML) de cada curso, cargado bajo demanda al expandir su acordeón.
+ * El listado (GET /courses) ya no trae 'contenido' para aligerar el payload; aquí
+ * se pide solo cuando el usuario abre la descripción de un curso, y se cachea por id.
+ */
+const contenidoCache = ref<Record<number, string>>({});
+const contenidoLoading = ref<Record<number, boolean>>({});
+
+const ensureCursoContenido = async (curso: ICategoryCourseDetail) => {
+  const id = curso?.id;
+  if (id == null) return;
+  if (contenidoCache.value[id] !== undefined || contenidoLoading.value[id]) return;
+  contenidoLoading.value[id] = true;
+  try {
+    contenidoCache.value[id] = await CategoryService.getCourseContenido(id);
+  } finally {
+    contenidoLoading.value[id] = false;
+  }
+};
+
+/** Modal con la descripción del curso (sustituye al acordeón inline) */
+const showCourseModal = ref(false);
+const courseModalCurso = ref<ICategoryCourseDetail | null>(null);
+
+const openCourseModal = (curso: ICategoryCourseDetail) => {
+  courseModalCurso.value = curso;
+  showCourseModal.value = true;
+  ensureCursoContenido(curso);
+};
+
+const closeCourseModal = () => {
+  showCourseModal.value = false;
+  courseModalCurso.value = null;
+};
 
 
 
@@ -277,26 +360,35 @@ const syncCategoryFromRoute = async () => {
 
 const applyCourseSlugFromRoute = async () => {
   const courseSlug = firstRouteParam(route.params.courseSlug as string | string[] | undefined);
-  if (!courseSlug) return false;
+  if (!courseSlug || !categoryId.value) return false;
 
-  const list = category.value?.seccion_lista_completa?.lista_completa || [];
-  const matchedCourse = buildCourseSlugLookup(list).get(courseSlug);
+  const located = await CategoryService.locateCourse(categoryId.value, {
+    slug: courseSlug,
+    limit: itemsPerPageLista,
+  });
 
-  if (!matchedCourse?.name_del_curso) {
-    const categoryId = firstRouteParam(route.params.id as string | string[] | undefined);
-    if (categoryId) {
+  if (!located) {
+    const rawId = firstRouteParam(route.params.id as string | string[] | undefined);
+    if (rawId) {
       await router.replace({
         name: "courses-description",
-        params: { id: categoryId },
+        params: { id: rawId },
         query: route.query,
       });
     }
     return false;
   }
 
+  if (listaCompletaSearchDebounce) clearTimeout(listaCompletaSearchDebounce);
   searchTermLista.value = "";
-  promoHighlightTerm.value = matchedCourse.name_del_curso;
-  currentPages.value.listaCompleta = 1;
+  // El watch de searchTermLista programa un fetch debounced (350ms) que resetea
+  // la página a 1; lo cancelamos tras dejar que se reprograme, para que no pise
+  // la página/resaltado correctos que fijamos justo debajo.
+  await nextTick();
+  if (listaCompletaSearchDebounce) clearTimeout(listaCompletaSearchDebounce);
+  promoHighlightCourseId.value = located.course_id;
+  currentPages.value.listaCompleta = Math.floor(located.offset / itemsPerPageLista) + 1;
+  await fetchListaCompleta();
   openedFolders.value["section-lista-completa"] = true;
   scrollToListaCompleta();
   return true;
@@ -329,9 +421,24 @@ watch(
   ],
   async () => {
     selectedOption.value = "current";
-    promoHighlightTerm.value = "";
+    promoHighlightCourseId.value = null;
     promoSubcatTerm.value = "";
+    promoAnchorKey.value = null;
     searchTermSubcat.value = "";
+    currentPages.value.listaCompleta = 1;
+    currentPages.value.plataformas = 1;
+    currentPages.value.subcategorias = 1;
+    listaCompletaItems.value = [];
+    listaCompletaTotal.value = 0;
+    listaCompletaLoaded.value = false;
+    plataformasItems.value = [];
+    plataformasTotal.value = 0;
+    plataformasLoaded.value = false;
+    platCursosCache.value = {};
+    platCursosPage.value = {};
+    subcategoriaFlatList.value = [];
+    subcategoriaLoaded.value = false;
+    subcatCursosCache.value = {};
     openedFolders.value["section-subcategorias"] = true;
     openedFolders.value["section-lista-completa"] = false;
     if (route.query.q_course) {
@@ -342,6 +449,9 @@ watch(
       searchTermLista.value = "";
     }
     await syncCategoryFromRoute();
+    await fetchListaCompleta();
+    await fetchPlataformas();
+    await fetchSubcategoriaStructure();
     await loadUpsellCategory();
     await loadBloques();
     const slugApplied = await applyCourseSlugFromRoute();
@@ -555,10 +665,10 @@ const computedBloquesCount = computed(() => {
   return getBloquesCountForCategory(id);
 });
 
-const bloquesData = ref<
-  { pilar: { id: number; titulo: string }; bloques: ICategory[] }[]
->([]);
+const bloquesData = ref<IBloquePilarGroup[]>([]);
 const bloquesLoading = ref(false);
+/** Carga de página de bloques en curso, por pilar.id */
+const bloquesPilarLoading = ref<Record<number, boolean>>({});
 
 const _BLOQUE_IDS = new Set([
   100,
@@ -577,9 +687,144 @@ const loadBloques = async () => {
     return;
   }
   bloquesLoading.value = true;
+  // Reset de cachés de paginación de "Pilares que incluye"
+  currentPagesPorPilar.value = {};
+  bloquesPilarLoading.value = {};
+  bloqueCursosCache.value = {};
+  bloqueCursosTotal.value = {};
+  bloqueCursosLoading.value = {};
+  bloqueCursosPage.value = {};
+  bloqueAutoresCache.value = {};
+  bloqueAutoresTotal.value = {};
+  bloqueAutoresLoading.value = {};
+  bloqueAutoresPage.value = {};
   bloquesData.value = await CategoryService.getCategoryBloques(id);
   bloquesLoading.value = false;
 };
+
+// ── "Pilares que incluye": paginación de dos niveles desde la tabla courses ──
+const itemsPerPageBloques = 5;
+const itemsPerPageBloqueCursos = 10;
+const itemsPerPageBloqueAutores = 8;
+
+/** Nivel 1: página actual de la lista de bloques dentro de cada pilar (clave = pilar.id) */
+const currentPagesPorPilar = ref<Record<number, number>>({});
+
+function getPilarPage(pilarId: number) {
+  return currentPagesPorPilar.value[pilarId] || 1;
+}
+function totalPagesBloquesForPilar(group: IBloquePilarGroup) {
+  return Math.max(1, Math.ceil(group.total / itemsPerPageBloques));
+}
+/** El backend ya devuelve solo la página actual del pilar; se renderiza tal cual. */
+function paginatedBloquesForPilar(group: IBloquePilarGroup) {
+  return group.bloques;
+}
+/** Cambia la página de un pilar pidiendo esa página al backend (server-side). */
+async function setPilarPage(pilarId: number, page: number) {
+  const id = categoryId.value;
+  if (!id || bloquesPilarLoading.value[pilarId]) return;
+  bloquesPilarLoading.value = { ...bloquesPilarLoading.value, [pilarId]: true };
+  try {
+    const res = await CategoryService.getBloquesPilarPage(
+      id,
+      pilarId,
+      (page - 1) * itemsPerPageBloques,
+      itemsPerPageBloques,
+    );
+    if (res) {
+      currentPagesPorPilar.value = { ...currentPagesPorPilar.value, [pilarId]: page };
+      bloquesData.value = bloquesData.value.map((g) =>
+        g.pilar.id === pilarId ? res : g,
+      );
+    }
+  } finally {
+    bloquesPilarLoading.value = { ...bloquesPilarLoading.value, [pilarId]: false };
+  }
+}
+
+/** Nivel 2a: cursos (Lista Completa) por bloque, paginados server-side desde courses */
+const bloqueCursosCache = ref<Record<string, ICategoryCourseDetail[]>>({});
+const bloqueCursosTotal = ref<Record<number, number>>({});
+const bloqueCursosLoading = ref<Record<number, boolean>>({});
+const bloqueCursosPage = ref<Record<number, number>>({});
+
+function getBloqueCursoPage(bloqueId: number) {
+  return bloqueCursosPage.value[bloqueId] || 1;
+}
+function bloqueCursoCacheKey(bloqueId: number, page: number) {
+  return `${bloqueId}#${page}`;
+}
+function getBloqueCursos(bloqueId: number): ICategoryCourseDetail[] {
+  return bloqueCursosCache.value[bloqueCursoCacheKey(bloqueId, getBloqueCursoPage(bloqueId))] ?? [];
+}
+function totalPagesBloqueCursos(bloqueId: number) {
+  return Math.max(1, Math.ceil((bloqueCursosTotal.value[bloqueId] ?? 0) / itemsPerPageBloqueCursos));
+}
+async function ensureBloqueCursos(bloqueId: number, page = 1) {
+  const ck = bloqueCursoCacheKey(bloqueId, page);
+  if (bloqueCursosCache.value[ck] || bloqueCursosLoading.value[bloqueId]) return;
+  bloqueCursosLoading.value = { ...bloqueCursosLoading.value, [bloqueId]: true };
+  try {
+    const res = await CategoryService.getCourses(bloqueId, {
+      offset: (page - 1) * itemsPerPageBloqueCursos,
+      limit: itemsPerPageBloqueCursos,
+    });
+    bloqueCursosCache.value = { ...bloqueCursosCache.value, [ck]: res.items };
+    bloqueCursosTotal.value = { ...bloqueCursosTotal.value, [bloqueId]: res.total };
+  } finally {
+    bloqueCursosLoading.value = { ...bloqueCursosLoading.value, [bloqueId]: false };
+  }
+}
+function setBloqueCursoPage(bloqueId: number, page: number) {
+  bloqueCursosPage.value = { ...bloqueCursosPage.value, [bloqueId]: page };
+  ensureBloqueCursos(bloqueId, page);
+}
+function toggleBloqueLista(bloqueId: number) {
+  toggleFolder(`bloque-${bloqueId}-lista`);
+  if (isFolderOpen(`bloque-${bloqueId}-lista`)) ensureBloqueCursos(bloqueId, getBloqueCursoPage(bloqueId));
+}
+
+/** Nivel 2b: autores por bloque, paginados desde /facets (courses) */
+type BloqueAutor = { autor: string; count: number };
+const bloqueAutoresCache = ref<Record<string, BloqueAutor[]>>({});
+const bloqueAutoresTotal = ref<Record<number, number>>({});
+const bloqueAutoresLoading = ref<Record<number, boolean>>({});
+const bloqueAutoresPage = ref<Record<number, number>>({});
+
+function getBloqueAutorPage(bloqueId: number) {
+  return bloqueAutoresPage.value[bloqueId] || 1;
+}
+function getBloqueAutores(bloqueId: number): BloqueAutor[] {
+  return bloqueAutoresCache.value[`${bloqueId}#${getBloqueAutorPage(bloqueId)}`] ?? [];
+}
+function totalPagesBloqueAutores(bloqueId: number) {
+  return Math.max(1, Math.ceil((bloqueAutoresTotal.value[bloqueId] ?? 0) / itemsPerPageBloqueAutores));
+}
+async function ensureBloqueAutores(bloqueId: number, page = 1) {
+  const ck = `${bloqueId}#${page}`;
+  if (bloqueAutoresCache.value[ck] || bloqueAutoresLoading.value[bloqueId]) return;
+  bloqueAutoresLoading.value = { ...bloqueAutoresLoading.value, [bloqueId]: true };
+  try {
+    const res = await CategoryService.getFacets<BloqueAutor>(bloqueId, {
+      by: "autor",
+      offset: (page - 1) * itemsPerPageBloqueAutores,
+      limit: itemsPerPageBloqueAutores,
+    });
+    bloqueAutoresCache.value = { ...bloqueAutoresCache.value, [ck]: res.items };
+    bloqueAutoresTotal.value = { ...bloqueAutoresTotal.value, [bloqueId]: res.total };
+  } finally {
+    bloqueAutoresLoading.value = { ...bloqueAutoresLoading.value, [bloqueId]: false };
+  }
+}
+function setBloqueAutorPage(bloqueId: number, page: number) {
+  bloqueAutoresPage.value = { ...bloqueAutoresPage.value, [bloqueId]: page };
+  ensureBloqueAutores(bloqueId, page);
+}
+function toggleBloqueAutores(bloqueId: number) {
+  toggleFolder(`bloque-${bloqueId}-plat`);
+  if (isFolderOpen(`bloque-${bloqueId}-plat`)) ensureBloqueAutores(bloqueId, getBloqueAutorPage(bloqueId));
+}
 
 const getPilarColorClasses = (pilarId: number) => {
   if (pilarId === 100)
@@ -671,7 +916,10 @@ const canAccessCurso = (curso: { es_gratis?: boolean }) =>
 
 const handleCourseClick = (curso: { es_gratis?: boolean }, url: string | undefined) => {
   if (!url) return;
-  if (curso.es_gratis && !category.value?.user_bought) {
+  if(showCourseModal){
+    showCourseModal.value= false;
+  }
+  if (curso.es_gratis && !userAuth.getProfile()?.user?.email) {
     pendingFreeCourseUrl.value = url;
     freeCourseEmail.value = "";
     freeCourseEmailError.value = "";
@@ -715,260 +963,223 @@ const contentHeading = computed(() => {
   return "Contenido del paquete";
 });
 
-// ── Cursos agrupados por subcategoría ──
-// El backend devuelve `seccion_lista_por_subcategoria` con 3 formas posibles
-// según el tier (bloque / pilar / combinado). Las normalizamos a una estructura
-// uniforme detectando la profundidad en runtime.
-type SubcatGrupo = { subcategoria: string; cursos: ICursoSubcategoria[] };
-type TemaGrupo = { tema?: string; subcategorias: SubcatGrupo[] };
-type PilarGrupo = { pilar?: string; temas: TemaGrupo[] };
+async function fetchSubcategoriaStructure() {
+  if (!categoryId.value) return;
+  subcategoriaLoading.value = true;
+  const q = searchTermSubcat.value.trim() || undefined;
+  try {
+    const temaRes = await CategoryService.getFacets<{
+      tema_id: number;
+      titulo: string;
+      count: number;
+    }>(categoryId.value, { by: "tema", limit: 200, q });
 
-const toSubcatGrupos = (
-  mapa: Record<string, ICursoSubcategoria[]>,
-): SubcatGrupo[] =>
-  Object.entries(mapa).map(([subcategoria, cursos]) => ({
-    subcategoria,
-    cursos: cursos ?? [],
-  }));
+    const scopes: { temaId?: number; tema?: string }[] =
+      temaRes.total > 0
+        ? temaRes.items.map((t) => ({ temaId: t.tema_id, tema: t.titulo }))
+        : [{ temaId: undefined, tema: undefined }];
 
-const subcategoriaGroups = computed<PilarGrupo[]>(() => {
-  let raw: ISeccionListaPorSubcategoria | string | undefined =
-    category.value?.seccion_lista_por_subcategoria;
+    const perScope = await Promise.all(
+      scopes.map(async (scope) => {
+        const targetId = scope.temaId ?? categoryId.value!;
+        const [countRes, freeRes] = await Promise.all([
+          CategoryService.getFacets<{ subcategoria: string; count: number }>(
+            targetId,
+            { by: "subcategoria", limit: 200, q },
+          ),
+          CategoryService.getFacets<{ subcategoria: string; count: number }>(
+            targetId,
+            { by: "subcategoria", limit: 200, q, only_free: true },
+          ),
+        ]);
+        const freeBySubcat = new Map(
+          freeRes.items.map((it) => [it.subcategoria, it.count]),
+        );
+        return countRes.items.map((it) => ({
+          temaId: scope.temaId,
+          tema: scope.tema,
+          subcategoria: it.subcategoria,
+          count: it.count,
+          freeCount: freeBySubcat.get(it.subcategoria) ?? 0,
+        }));
+      }),
+    );
 
-  if (typeof raw === "string") {
-    try {
-      raw = JSON.parse(raw) as ISeccionListaPorSubcategoria;
-    } catch {
-      return [];
-    }
+    subcategoriaFlatList.value = perScope.flat().map((it, idx) => ({
+      key: `${it.temaId ?? "leaf"}-${idx}`,
+      ...it,
+    }));
+  } finally {
+    subcategoriaLoading.value = false;
+    subcategoriaLoaded.value = true;
   }
-  if (!raw || typeof raw !== "object") return [];
-
-  const firstVal = Object.values(raw)[0];
-
-  // Nivel 1 (bloque): { [subcategoria]: Curso[] }
-  if (Array.isArray(firstVal)) {
-    return [
-      {
-        pilar: undefined,
-        temas: [
-          {
-            tema: undefined,
-            subcategorias: toSubcatGrupos(
-              raw as Record<string, ICursoSubcategoria[]>,
-            ),
-          },
-        ],
-      },
-    ];
-  }
-
-  if (!firstVal || typeof firstVal !== "object") return [];
-  const firstVal2 = Object.values(firstVal)[0];
-
-  // Nivel 2 (pilar): { [tema]: { [subcategoria]: Curso[] } }
-  if (Array.isArray(firstVal2)) {
-    const porTema = raw as Record<string, Record<string, ICursoSubcategoria[]>>;
-    return [
-      {
-        pilar: undefined,
-        temas: Object.entries(porTema).map(([tema, subMapa]) => ({
-          tema,
-          subcategorias: toSubcatGrupos(subMapa),
-        })),
-      },
-    ];
-  }
-
-  // Nivel 3 (combinado / pilar completo):
-  // { [pilar]: { [tema]: { [subcategoria]: Curso[] } } }
-  const porPilar = raw as Record<
-    string,
-    Record<string, Record<string, ICursoSubcategoria[]>>
-  >;
-  return Object.entries(porPilar).map(([pilar, temasMapa]) => ({
-    pilar,
-    temas: Object.entries(temasMapa).map(([tema, subMapa]) => ({
-      tema,
-      subcategorias: toSubcatGrupos(subMapa),
-    })),
-  }));
-});
-
-// Lista plana de subcategorías (con su pilar/tema) para poder paginar sin
-// renderizar de golpe todos los cursos cuando hay muchos.
-type SubcatFlatItem = {
-  key: string;
-  pilar?: string;
-  tema?: string;
-  subcategoria: string;
-  cursos: ICursoSubcategoria[];
-};
-
-const subcategoriaFlatList = computed<SubcatFlatItem[]>(() => {
-  const result: SubcatFlatItem[] = [];
-  subcategoriaGroups.value.forEach((pilarGrupo, pIdx) => {
-    pilarGrupo.temas.forEach((temaGrupo, tIdx) => {
-      temaGrupo.subcategorias.forEach((sub, sIdx) => {
-        result.push({
-          key: `${pIdx}-${tIdx}-${sIdx}`,
-          pilar: pilarGrupo.pilar,
-          tema: temaGrupo.tema,
-          subcategoria: sub.subcategoria,
-          cursos: sub.cursos,
-        });
-      });
-    });
-  });
-  // Ordenar: primero las categorías con más cursos.
-  result.sort((a, b) => b.cursos.length - a.cursos.length);
-  return result;
-});
+}
 
 /** "Cursos por categoría" en modo búsqueda: estilo de cabecera / contenedor */
 const isSubcatBuscando = computed(
   () => searchTermSubcat.value.trim().length > 0,
 );
 
-/** Coloca los cursos gratis al frente dentro de una subcategoría (si el toggle está activo) */
-const sortCursosFreeFirst = (item: SubcatFlatItem): SubcatFlatItem =>
-  onlyFreeSubcat.value ? { ...item, cursos: sortFreeFirst(item.cursos) } : item;
+/** Indica si una subcategoría contiene al menos un curso gratis */
+const subcatHasFree = (item: SubcatFlatItem) => item.freeCount > 0;
 
 /** Coloca las subcategorías con algún curso gratis al frente (si el toggle está activo) */
 const sortSubcatsFreeFirst = (items: SubcatFlatItem[]): SubcatFlatItem[] => {
   if (!onlyFreeSubcat.value) return items;
-  const hasFree = (it: SubcatFlatItem) => it.cursos.some((c) => c.es_gratis);
-  return [...items.filter(hasFree), ...items.filter((it) => !hasFree(it))];
+  return [
+    ...items.filter(subcatHasFree),
+    ...items.filter((it) => !subcatHasFree(it)),
+  ];
 };
 
-const filteredSubcategoriaFlatList = computed<SubcatFlatItem[]>(() => {
-  const list = subcategoriaFlatList.value;
-  const searchTerm = searchTermSubcat.value.trim().toLowerCase();
-
-  if (searchTerm) {
-    // Filtra por nombre de curso: solo subcategorías con coincidencias,
-    // y dentro de ellas solo los cursos que coinciden.
-    const results: SubcatFlatItem[] = [];
-    list.forEach((item) => {
-      const matched = item.cursos.filter((c) =>
-        c.name_del_curso?.toLowerCase().includes(searchTerm),
-      );
-      if (matched.length) results.push({ ...item, cursos: matched });
-    });
-    // Con el toggle activo, gratis primero dentro de cada subcat y a nivel de subcats.
-    return sortSubcatsFreeFirst(results.map(sortCursosFreeFirst));
-  }
-
-  // Sin búsqueda: si viene por referido, ancla su subcategoría al frente
-  // y dentro de ella coloca el curso del referido de primero (la promo gana sobre el free-first).
-  const promoTerm = promoSubcatTerm.value.trim().toLowerCase();
-  if (promoTerm) {
-    const idx = list.findIndex((item) =>
-      item.cursos.some((c) =>
-        c.name_del_curso?.toLowerCase().includes(promoTerm),
-      ),
-    );
-    if (idx !== -1) {
-      const item = list[idx];
-      const cIdx = item.cursos.findIndex((c) =>
-        c.name_del_curso?.toLowerCase().includes(promoTerm),
-      );
-      const anchored =
-        cIdx > 0
-          ? {
-              ...item,
-              cursos: [
-                item.cursos[cIdx],
-                ...item.cursos.filter((_, i) => i !== cIdx),
-              ],
-            }
-          : item;
-      const rest = sortSubcatsFreeFirst(
-        list.filter((_, i) => i !== idx).map(sortCursosFreeFirst),
-      );
-      return [anchored, ...rest];
-    }
-  }
-
-  // Con el toggle activo, gratis primero dentro de cada subcat y a nivel de subcats.
-  return sortSubcatsFreeFirst(list.map(sortCursosFreeFirst));
+const displaySubcategoriaList = computed<SubcatFlatItem[]>(() => {
+  const base = sortSubcatsFreeFirst(subcategoriaFlatList.value);
+  if (!promoAnchorKey.value) return base;
+  const idx = base.findIndex((it) => it.key === promoAnchorKey.value);
+  if (idx <= 0) return base;
+  const copy = [...base];
+  const [anchored] = copy.splice(idx, 1);
+  copy.unshift(anchored);
+  return copy;
 });
 
+/** Clave de caché por (grupo, página) para la paginación server-side de cursos */
+function cursoCacheKey(item: SubcatFlatItem, page: number) {
+  return `${item.key}#${page}`;
+}
+
+/** Carga (server-side, por página) los cursos de una subcategoría al expandirla / paginar */
+async function ensureSubcatCursos(item: SubcatFlatItem, page = 1) {
+  if (!categoryId.value) return;
+  const ck = cursoCacheKey(item, page);
+  if (subcatCursosCache.value[ck] || subcatCursosLoading.value[item.key]) return;
+  subcatCursosLoading.value = { ...subcatCursosLoading.value, [item.key]: true };
+  try {
+    const res = await CategoryService.getCourses(categoryId.value, {
+      subcategoria: item.subcategoria,
+      tema_id: item.temaId,
+      offset: (page - 1) * itemsPerPageCursosCat,
+      limit: itemsPerPageCursosCat,
+      q: searchTermSubcat.value.trim() || undefined,
+    });
+    subcatCursosCache.value = { ...subcatCursosCache.value, [ck]: res.items };
+  } finally {
+    subcatCursosLoading.value = { ...subcatCursosLoading.value, [item.key]: false };
+  }
+}
+
+/** Cursos de la página actual del grupo (desde la caché compuesta) */
+function getItemCursos(item: SubcatFlatItem): ICategoryCourseDetail[] {
+  return subcatCursosCache.value[cursoCacheKey(item, getCategoriaCursoPage(item.key))] ?? [];
+}
+
+function toggleSubcatFolder(item: SubcatFlatItem) {
+  toggleFolder("subcat-" + item.key);
+  if (isFolderOpen("subcat-" + item.key)) ensureSubcatCursos(item, getCategoriaCursoPage(item.key));
+}
+
 /** Curso resaltado por referido dentro de "Cursos por categoría" */
-const isPromoSubcatCurso = (curso: ICursoSubcategoria) => {
+const isPromoSubcatCurso = (curso: ICategoryCourseDetail) => {
   const promoTerm = promoSubcatTerm.value.trim().toLowerCase();
   return (
     !!promoTerm && !!curso.name_del_curso?.toLowerCase().includes(promoTerm)
   );
 };
 
-/**
- * Subcategoría que contiene el curso del referido (o undefined si no está
- * clasificado en "Cursos por categoría"). No todos los cursos de lista_completa
- * están en subcategorías, así que si no está aquí, el referido cae en "Lista Completa".
- */
-const findSubcatForPromo = (term: string) => {
-  const t = term.trim().toLowerCase();
-  if (!t) return undefined;
-  return subcategoriaFlatList.value.find((item) =>
-    item.cursos.some((c) => c.name_del_curso?.toLowerCase().includes(t)),
-  );
+/** Aplica el referido a la sección que realmente contiene el curso */
+const applyPromoCurso = async (name: string) => {
+  searchTermSubcat.value = "";
+  if (!categoryId.value) return;
+  const located = await CategoryService.locateCourse(categoryId.value, {
+    nombre: name,
+    limit: itemsPerPageLista,
+  });
+
+  if (located?.course?.subcategoria) {
+    if (!subcategoriaLoaded.value) await fetchSubcategoriaStructure();
+    const candidates = subcategoriaFlatList.value.filter(
+      (g) => g.subcategoria === located.course.subcategoria,
+    );
+    for (const g of candidates) {
+      const probe = await CategoryService.getCourses(categoryId.value, {
+        subcategoria: g.subcategoria,
+        tema_id: g.temaId,
+        q: name,
+        limit: 1,
+      });
+      if (probe.total > 0) {
+        promoSubcatTerm.value = name;
+        promoAnchorKey.value = g.key;
+        currentPages.value.subcategorias = 1;
+        openedFolders.value["section-subcategorias"] = true;
+        openedFolders.value["subcat-" + g.key] = true;
+        await ensureSubcatCursos(g);
+        scrollToSubcategorias();
+        return;
+      }
+    }
+  }
+
+  // No clasificado en subcategorías (o no encontrado ahí): cae en "Lista Completa".
+  promoSubcatTerm.value = "";
+  promoAnchorKey.value = null;
+  void locateAndHighlightInLista(name);
 };
 
-/** Aplica el referido a la sección que realmente contiene el curso */
-const applyPromoCurso = (name: string) => {
-  const subcatItem = findSubcatForPromo(name);
-  if (subcatItem) {
-    promoSubcatTerm.value = name;
-    searchTermSubcat.value = "";
-    currentPages.value.subcategorias = 1;
-    openedFolders.value["section-subcategorias"] = true;
-    // Expandir la subcategoría del curso para que el resaltado sea visible.
-    openedFolders.value["subcat-" + subcatItem.key] = true;
-    scrollToSubcategorias();
-  } else {
-    // No está clasificado en subcategorías: buscarlo en "Lista Completa".
-    promoHighlightTerm.value = name;
-    searchTermLista.value = name;
-    searchTermSubcat.value = "";
-    promoSubcatTerm.value = "";
-    openedFolders.value["section-lista-completa"] = false;
-    scrollToListaCompleta();
-  }
-};
+/** Ubica un curso por nombre en "Lista Completa" vía backend, salta a su página y lo resalta */
+async function locateAndHighlightInLista(name: string) {
+  if (!categoryId.value) return;
+  const located = await CategoryService.locateCourse(categoryId.value, {
+    nombre: name,
+    limit: itemsPerPageLista,
+  });
+  if (!located) return;
+
+  searchTermLista.value = "";
+  promoHighlightCourseId.value = located.course_id;
+  currentPages.value.listaCompleta = Math.floor(located.offset / itemsPerPageLista) + 1;
+  await fetchListaCompleta();
+  openedFolders.value["section-lista-completa"] = true;
+  scrollToListaCompleta();
+}
 
 const paginatedSubcategorias = computed(() => {
   const start = (currentPages.value.subcategorias - 1) * itemsPerPageSubcategorias;
-  return filteredSubcategoriaFlatList.value.slice(
+  return displaySubcategoriaList.value.slice(
     start,
     start + itemsPerPageSubcategorias,
   );
 });
 const totalPagesSubcategorias = computed(() =>
   Math.ceil(
-    filteredSubcategoriaFlatList.value.length / itemsPerPageSubcategorias,
+    displaySubcategoriaList.value.length / itemsPerPageSubcategorias,
   ),
 );
+
+/** Durante la búsqueda, todas las subcategorías visibles se muestran expandidas (ver template) */
+watch([paginatedSubcategorias, isSubcatBuscando], ([items, buscando]) => {
+  if (buscando) items.forEach((item) => ensureSubcatCursos(item));
+});
 
 function getCategoriaCursoPage(key: string) {
   return currentPagesPorCategoria.value[key] || 1;
 }
-function setCategoriaCursoPage(key: string, page: number) {
+function setCategoriaCursoPage(item: SubcatFlatItem, page: number) {
   currentPagesPorCategoria.value = {
     ...currentPagesPorCategoria.value,
-    [key]: page,
+    [item.key]: page,
   };
+  ensureSubcatCursos(item, page);
 }
+/** Total de páginas según el conteo real del grupo (facet), no el array cacheado */
 function totalPagesCategoriaCursos(item: SubcatFlatItem) {
-  return Math.ceil(item.cursos.length / itemsPerPageCursosCat);
+  return Math.max(1, Math.ceil(item.count / itemsPerPageCursosCat));
 }
-/** Cursos de la categoría paginados, conservando el índice original (cIdx) */
+/** Cursos de la página actual del grupo, conservando el índice global (cIdx) */
 function paginatedCategoriaCursos(item: SubcatFlatItem) {
   const page = getCategoriaCursoPage(item.key);
   const start = (page - 1) * itemsPerPageCursosCat;
-  return item.cursos
-    .slice(start, start + itemsPerPageCursosCat)
-    .map((curso, idx) => ({ curso, cIdx: start + idx }));
+  return getItemCursos(item).map((curso, idx) => ({ curso, cIdx: start + idx }));
 }
 </script>
 
@@ -1072,6 +1283,62 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowfullscreen
           ></iframe>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: descripción del curso -->
+    <div
+      v-if="showCourseModal"
+      class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
+      @click.self="closeCourseModal"
+    >
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
+        <div class="flex items-start justify-between gap-4 p-5 border-b border-slate-100">
+          <h3 class="font-[Poppins] text-lg font-bold text-[#0d1b2a] leading-snug">
+            {{ courseModalCurso?.name_del_curso || "Curso" }}
+          </h3>
+          <button
+            @click="closeCourseModal"
+            class="shrink-0 p-1.5 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-[#0d1b2a] transition-colors border-none cursor-pointer"
+            aria-label="Cerrar"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="p-5 overflow-y-auto flex-1">
+          <p
+            v-if="courseModalCurso && contenidoLoading[courseModalCurso.id ?? -1]"
+            class="text-sm text-slate-400 italic"
+          >
+            Cargando descripción…
+          </p>
+          <div
+            v-else-if="courseModalCurso && contenidoCache[courseModalCurso.id ?? -1]"
+            class="text-sm text-slate-600 leading-relaxed course-desc"
+            v-html="contenidoCache[courseModalCurso.id ?? -1]"
+          ></div>
+          <p v-else class="text-sm text-slate-400 italic">Sin descripción disponible.</p>
+        </div>
+
+        <div
+          v-if="courseModalCurso?.info_tecnica?.url && canAccessCurso(courseModalCurso)"
+          class="p-5 border-t border-slate-100"
+        >
+          <button
+            class="drive-btn w-full justify-center"
+            @click="handleCourseClick(courseModalCurso, courseModalCurso.info_tecnica.url)"
+          >
+            <svg class="drive-btn__icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M7.71 3.5L1.15 15l3.3 5.5 6.57-11.5-3.31-5.5z" fill="#0066DA" />
+              <path d="M16.29 3.5H7.71l6.57 11.5h8.57L16.29 3.5z" fill="#00AC47" />
+              <path d="M4.45 20.5h15.1l3.3-5.5H7.75L4.45 20.5z" fill="#FFBA00" />
+            </svg>
+            Ver curso
+          </button>
         </div>
       </div>
     </div>
@@ -1289,14 +1556,14 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
             <!-- Cursos por categoría (con descripción) -->
             <div
               id="cursos-categoria-header"
-              v-if="subcategoriaFlatList.length"
+              v-if="subcategoriaFlatList.length || isSubcatBuscando"
               class="bg-white rounded-2xl border border-slate-100/80 shadow-md overflow-hidden transition-shadow hover:shadow-lg"
             >
               <div
-                class="w-full flex items-center justify-between gap-3 p-4 lg:px-6"
+                class="w-full flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 p-4 lg:px-6"
               >
                 <button
-                  class="flex flex-1 items-center justify-between gap-3 bg-transparent border-none cursor-pointer transition-opacity hover:opacity-80 text-left"
+                  class="flex w-full sm:flex-1 min-w-0 items-center justify-between gap-3 bg-transparent border-none cursor-pointer transition-opacity hover:opacity-80 text-left"
                   @click="toggleFolder('section-subcategorias')"
                 >
                   <span class="font-[Poppins] text-base font-bold text-[#0d1b2a]"
@@ -1330,7 +1597,7 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                   type="button"
                   @click.stop="onlyFreeSubcat = !onlyFreeSubcat"
                   :aria-pressed="onlyFreeSubcat"
-                  class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-all shrink-0 cursor-pointer"
+                  class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-all shrink-0 self-start sm:self-auto cursor-pointer"
                   :class="
                     onlyFreeSubcat
                       ? 'bg-gradient-to-r from-amber-400 to-yellow-300 text-amber-900 border-amber-300 shadow-sm'
@@ -1440,32 +1707,51 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                 <div
                   v-for="item in paginatedSubcategorias"
                   :key="item.key"
-                  class="bg-white rounded-xl border border-slate-100 overflow-hidden transition-colors hover:border-slate-200"
+                  class="rounded-xl border overflow-hidden transition-colors"
+                  :class="
+                    subcatHasFree(item)
+                      ? 'bg-gradient-to-br from-amber-50 to-white border-amber-300/80 ring-1 ring-amber-200/60 shadow-sm shadow-amber-100/60'
+                      : 'bg-white border-slate-100 hover:border-slate-200'
+                  "
                 >
                   <button
-                    class="w-full flex items-center justify-between px-4 py-2.5 bg-transparent border-none cursor-pointer transition-colors hover:bg-slate-50/60"
-                    @click="toggleFolder('subcat-' + item.key)"
+                    class="w-full flex items-center justify-between px-4 py-2.5 bg-transparent border-none cursor-pointer transition-colors"
+                    :class="
+                      subcatHasFree(item)
+                        ? 'hover:bg-amber-50/60'
+                        : 'hover:bg-slate-50/60'
+                    "
+                    @click="toggleSubcatFolder(item)"
                   >
-                    <span class="text-left min-w-0">
+                    <span class="flex items-center gap-2 min-w-0">
                       <span
-                        v-if="item.pilar || item.tema"
-                        class="block text-[0.65rem] font-semibold text-slate-400 uppercase tracking-wide truncate"
+                        v-if="subcatHasFree(item)"
+                        class="shrink-0 text-amber-400 text-sm leading-none"
+                        aria-hidden="true"
+                        >✦</span
                       >
-                        {{ [item.pilar, item.tema].filter(Boolean).join(" · ") }}
+                      <span class="text-left min-w-0">
+                        <span
+                          v-if="item.tema"
+                          class="block text-[0.65rem] font-semibold text-slate-400 uppercase tracking-wide truncate"
+                        >
+                          {{ item.tema }}
+                        </span>
+                        <span
+                          class="block font-semibold text-sm truncate"
+                          :class="
+                            subcatHasFree(item)
+                              ? 'text-amber-900'
+                              : 'text-[#0d1b2a]'
+                          "
+                          >{{ item.subcategoria }}</span
+                        >
                       </span>
-                      <span class="font-semibold text-sm text-[#0d1b2a] truncate"
-                        >{{ item.subcategoria }}</span
-                      >
                     </span>
                     <span class="flex items-center gap-2 shrink-0 ml-2">
                       <span
-                        v-if="item.cursos.some((c) => c.es_gratis)"
-                        class="text-[0.65rem] font-bold uppercase tracking-wide text-amber-900 bg-gradient-to-r from-amber-400 to-yellow-300 px-2 py-0.5 rounded-md"
-                        >✨ Gratis</span
-                      >
-                      <span
                         class="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full"
-                        >{{ item.cursos.length }} cursos</span
+                        >{{ item.count }} cursos</span
                       >
                       <svg
                         class="w-4 h-4 text-slate-400 transition-transform"
@@ -1490,6 +1776,12 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                     v-show="isFolderOpen('subcat-' + item.key) || isSubcatBuscando"
                     class="border-t border-slate-50 bg-[#fafbfd] px-3 py-3 space-y-2"
                   >
+                    <div
+                      v-if="subcatCursosLoading[item.key] && !getItemCursos(item).length"
+                      class="text-xs text-slate-400 py-3 text-center"
+                    >
+                      Cargando cursos...
+                    </div>
                     <!-- Curso -->
                     <div
                       v-for="{ curso, cIdx } in paginatedCategoriaCursos(item)"
@@ -1498,21 +1790,18 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                       :class="
                         isPromoSubcatCurso(curso)
                           ? 'bg-amber-50/60 border-amber-300 ring-1 ring-amber-200'
-                          : 'bg-white border-slate-100'
+                          : curso.es_gratis
+                            ? 'bg-gradient-to-br from-amber-50 to-white border-amber-300/70'
+                            : 'bg-white border-slate-100'
                       "
                     >
                       <div class="flex items-center justify-between px-4 py-2.5 gap-3">
                         <button
                           class="flex items-center gap-3 min-w-0 flex-1 bg-transparent border-none cursor-pointer text-left p-0"
-                          @click="toggleFolder('curso-' + item.key + '-' + cIdx)"
+                          @click="openCourseModal(curso)"
                         >
                           <svg
-                            class="w-4 h-4 text-slate-400 transition-transform shrink-0"
-                            :class="{
-                              'rotate-180': isFolderOpen(
-                                'curso-' + item.key + '-' + cIdx,
-                              ),
-                            }"
+                            class="w-4 h-4 text-slate-400 shrink-0"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -1521,7 +1810,7 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                               stroke-linecap="round"
                               stroke-linejoin="round"
                               stroke-width="2"
-                              d="M19 9l-7 7-7-7"
+                              d="M9 5l7 7-7 7"
                             />
                           </svg>
                           <span
@@ -1531,32 +1820,33 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                             Tu curso
                           </span>
                           <span
-                            v-if="curso.es_gratis"
-                            class="shrink-0 text-[0.65rem] font-bold uppercase tracking-wide text-amber-900 bg-gradient-to-r from-amber-400 to-yellow-300 px-2 py-0.5 rounded-md"
+                            v-else-if="curso.es_gratis"
+                            class="shrink-0 text-amber-400 text-sm leading-none"
+                            aria-hidden="true"
+                            >✦</span
                           >
-                            Gratis
-                          </span>
                           <span
                             class="text-sm font-medium truncate"
                             :class="
                               isPromoSubcatCurso(curso)
                                 ? 'text-amber-950'
-                                : 'text-slate-700'
+                                : curso.es_gratis
+                                  ? 'text-amber-900'
+                                  : 'text-slate-700'
                             "
                             >{{ curso.name_del_curso || "Curso" }}</span
                           >
                         </button>
                         <button
                           v-if="curso.info_tecnica?.url && canAccessCurso(curso)"
-                          class="text-[0.65rem] font-semibold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border-none cursor-pointer transition-colors hover:bg-blue-100 shrink-0"
+                          class="drive-btn"
                           @click.stop="handleCourseClick(curso, curso.info_tecnica.url)"
                         >
                           <svg
-                            class="inline-block w-3 h-3 mr-1 shrink-0"
+                            class="drive-btn__icon"
                             viewBox="0 0 24 24"
                             fill="none"
                             xmlns="http://www.w3.org/2000/svg"
-                            style="vertical-align: -1px"
                           >
                             <path
                               d="M7.71 3.5L1.15 15l3.3 5.5 6.57-11.5-3.31-5.5z"
@@ -1571,23 +1861,8 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                               fill="#FFBA00"
                             />
                           </svg>
-                          Ver en Google Drive
+                          Ver curso
                         </button>
-                      </div>
-
-                      <!-- Descripción del curso (HTML) -->
-                      <div
-                        v-show="isFolderOpen('curso-' + item.key + '-' + cIdx)"
-                        class="border-t border-slate-50 px-4 py-3"
-                      >
-                        <div
-                          v-if="curso.contenido"
-                          class="text-sm text-slate-600 leading-relaxed course-desc"
-                          v-html="curso.contenido"
-                        ></div>
-                        <p v-else class="text-sm text-slate-400 italic">
-                          Sin descripción disponible.
-                        </p>
                       </div>
                     </div>
 
@@ -1599,7 +1874,7 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                       <button
                         @click="
                           setCategoriaCursoPage(
-                            item.key,
+                            item,
                             getCategoriaCursoPage(item.key) - 1,
                           )
                         "
@@ -1627,7 +1902,7 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                       <button
                         @click="
                           setCategoriaCursoPage(
-                            item.key,
+                            item,
                             getCategoriaCursoPage(item.key) + 1,
                           )
                         "
@@ -1746,12 +2021,7 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                     <span
                       class="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full"
                     >
-                      {{
-                        bloquesData.reduce(
-                          (acc, g) => acc + g.bloques.length,
-                          0,
-                        )
-                      }}
+                      {{ bloquesData.reduce((acc, g) => acc + g.total, 0) }}
                       bloques
                     </span>
                   </template>
@@ -1803,10 +2073,7 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                         formatPrice(
                           Math.round(
                             category.precio /
-                              bloquesData.reduce(
-                                (acc, g) => acc + g.bloques.length,
-                                0,
-                              ),
+                              bloquesData.reduce((acc, g) => acc + g.total, 0),
                           ),
                         )
                       }}
@@ -1838,7 +2105,7 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                     <!-- Bloques -->
                     <div class="space-y-2">
                       <div
-                        v-for="bloque in group.bloques"
+                        v-for="bloque in paginatedBloquesForPilar(group)"
                         :key="bloque.id"
                         class="bg-white rounded-xl border border-slate-100 overflow-hidden transition-colors hover:border-slate-200"
                       >
@@ -1858,14 +2125,7 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                           </div>
                           <div class="flex items-center gap-3 shrink-0 ml-2">
                             <span class="text-xs text-slate-500"
-                              >{{
-                                bloque.seccion_lista_completa
-                                  ?.cantidad_cursos ??
-                                bloque.seccion_lista_completa?.lista_completa
-                                  ?.length ??
-                                0
-                              }}
-                              cursos</span
+                              >{{ bloque.cantidad_cursos ?? 0 }} cursos</span
                             >
                             <svg
                               class="w-4 h-4 text-slate-400 transition-transform"
@@ -1892,16 +2152,14 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                           v-show="isFolderOpen(`bloque-${bloque.id}`)"
                           class="border-t border-slate-50 bg-[#fafbfd] px-4 py-3 space-y-2"
                         >
-                          <!-- Sub: Plataformas Integradas -->
+                          <!-- Sub: Autores (desde tabla courses, paginado) -->
                           <div
-                            v-if="
-                              bloque.seccion_plataformas?.plataformas?.length
-                            "
+                            v-if="bloque.cantidad_cursos"
                             class="bg-white rounded-xl border border-slate-100 overflow-hidden"
                           >
                             <button
                               class="w-full flex items-center justify-between px-4 py-2.5 bg-transparent border-none cursor-pointer transition-colors hover:bg-blue-50/30"
-                              @click="toggleFolder(`bloque-${bloque.id}-plat`)"
+                              @click="toggleBloqueAutores(bloque.id)"
                             >
                               <div class="flex items-center gap-2">
                                 <svg
@@ -1919,14 +2177,11 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                                 >
                               </div>
                               <div class="flex items-center gap-2">
-                                <span class="text-[0.65rem] text-slate-500"
-                                  >{{
-                                    bloque.seccion_plataformas
-                                      .cantidad_plataformas ??
-                                    bloque.seccion_plataformas.plataformas
-                                      .length
-                                  }}
-                                  plataformas</span
+                                <span
+                                  v-if="bloqueAutoresTotal[bloque.id] != null"
+                                  class="text-[0.65rem] text-slate-500"
+                                  >{{ bloqueAutoresTotal[bloque.id] }}
+                                  autores</span
                                 >
                                 <svg
                                   class="w-3.5 h-3.5 text-slate-400 transition-transform"
@@ -1950,43 +2205,105 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                             </button>
                             <div
                               v-show="isFolderOpen(`bloque-${bloque.id}-plat`)"
-                              class="border-t border-slate-50 bg-[#fafbfd] px-4 py-3 max-h-72 overflow-y-auto"
+                              class="border-t border-slate-50 bg-[#fafbfd] px-4 py-3"
                             >
                               <div
-                                v-for="(plat, pIdx) in bloque
-                                  .seccion_plataformas.plataformas"
+                                v-if="
+                                  bloqueAutoresLoading[bloque.id] &&
+                                  !getBloqueAutores(bloque.id).length
+                                "
+                                class="text-xs text-slate-400 py-3 text-center"
+                              >
+                                Cargando autores...
+                              </div>
+                              <div
+                                v-for="(plat, pIdx) in getBloqueAutores(
+                                  bloque.id,
+                                )"
                                 :key="pIdx"
                                 class="ml-2 pl-3 border-l-2 border-slate-200 py-1.5 flex items-center justify-between"
                               >
                                 <span
                                   class="text-xs font-medium text-slate-700"
-                                  >{{
-                                    plat.titulo_plataforma || "Módulo"
-                                  }}</span
+                                  >{{ plat.autor || "Autor" }}</span
                                 >
                                 <span class="text-[0.6rem] text-slate-400"
-                                  >{{
-                                    plat.cantidad_cursos_plataforma ??
-                                    plat.cursos?.length ??
-                                    0
-                                  }}
-                                  cursos</span
+                                  >{{ plat.count }} cursos</span
                                 >
+                              </div>
+                              <!-- Paginación de autores -->
+                              <div
+                                v-if="totalPagesBloqueAutores(bloque.id) > 1"
+                                class="flex items-center justify-center gap-3 pt-2"
+                              >
+                                <button
+                                  @click="
+                                    setBloqueAutorPage(
+                                      bloque.id,
+                                      getBloqueAutorPage(bloque.id) - 1,
+                                    )
+                                  "
+                                  :disabled="getBloqueAutorPage(bloque.id) === 1"
+                                  class="p-1 rounded-full bg-transparent border-none text-slate-500 cursor-pointer transition-all hover:bg-slate-100 disabled:opacity-35 disabled:cursor-not-allowed"
+                                >
+                                  <svg
+                                    class="w-4 h-4"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <path
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      d="M15 19l-7-7 7-7"
+                                    />
+                                  </svg>
+                                </button>
+                                <span
+                                  class="text-[0.7rem] font-semibold text-slate-500"
+                                  >Pagina {{ getBloqueAutorPage(bloque.id) }} de
+                                  {{ totalPagesBloqueAutores(bloque.id) }}</span
+                                >
+                                <button
+                                  @click="
+                                    setBloqueAutorPage(
+                                      bloque.id,
+                                      getBloqueAutorPage(bloque.id) + 1,
+                                    )
+                                  "
+                                  :disabled="
+                                    getBloqueAutorPage(bloque.id) ===
+                                    totalPagesBloqueAutores(bloque.id)
+                                  "
+                                  class="p-1 rounded-full bg-transparent border-none text-slate-500 cursor-pointer transition-all hover:bg-slate-100 disabled:opacity-35 disabled:cursor-not-allowed"
+                                >
+                                  <svg
+                                    class="w-4 h-4"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <path
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      d="M9 5l7 7-7 7"
+                                    />
+                                  </svg>
+                                </button>
                               </div>
                             </div>
                           </div>
 
-                          <!-- Sub: Lista Completa -->
+                          <!-- Sub: Lista Completa (desde tabla courses, paginado) -->
                           <div
-                            v-if="
-                              bloque.seccion_lista_completa?.lista_completa
-                                ?.length
-                            "
+                            v-if="bloque.cantidad_cursos"
                             class="bg-white rounded-xl border border-slate-100 overflow-hidden"
                           >
                             <button
                               class="w-full flex items-center justify-between px-4 py-2.5 bg-transparent border-none cursor-pointer transition-colors hover:bg-amber-50/30"
-                              @click="toggleFolder(`bloque-${bloque.id}-lista`)"
+                              @click="toggleBloqueLista(bloque.id)"
                             >
                               <div class="flex items-center gap-2">
                                 <svg
@@ -2008,13 +2325,7 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                               </div>
                               <div class="flex items-center gap-2">
                                 <span class="text-[0.65rem] text-slate-500"
-                                  >{{
-                                    bloque.seccion_lista_completa
-                                      .cantidad_cursos ??
-                                    bloque.seccion_lista_completa.lista_completa
-                                      .length
-                                  }}
-                                  cursos</span
+                                  >{{ bloque.cantidad_cursos }} cursos</span
                                 >
                                 <svg
                                   class="w-3.5 h-3.5 text-slate-400 transition-transform"
@@ -2038,16 +2349,31 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                             </button>
                             <div
                               v-show="isFolderOpen(`bloque-${bloque.id}-lista`)"
-                              class="border-t border-slate-50 bg-[#fafbfd] px-4 py-3 max-h-72 overflow-y-auto"
+                              class="border-t border-slate-50 bg-[#fafbfd] px-4 py-3"
                             >
                               <div
-                                v-for="(curso, cIdx) in bloque
-                                  .seccion_lista_completa.lista_completa"
+                                v-if="
+                                  bloqueCursosLoading[bloque.id] &&
+                                  !getBloqueCursos(bloque.id).length
+                                "
+                                class="text-xs text-slate-400 py-3 text-center"
+                              >
+                                Cargando cursos...
+                              </div>
+                              <div
+                                v-for="(curso, cIdx) in getBloqueCursos(
+                                  bloque.id,
+                                )"
                                 :key="cIdx"
                                 class="flex items-center justify-between py-2 border-b border-slate-50 last:border-0"
                               >
                                 <span class="text-xs font-medium text-slate-700 flex items-center gap-1.5"
-                                  >{{ cIdx + 1 }}.
+                                  >{{
+                                    (getBloqueCursoPage(bloque.id) - 1) *
+                                      itemsPerPageBloqueCursos +
+                                    cIdx +
+                                    1
+                                  }}.
                                   {{ curso.name_del_curso || "Curso" }}
                                   <span
                                     v-if="curso.es_gratis"
@@ -2057,7 +2383,7 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                                 >
                                 <button
                                   v-if="curso.info_tecnica?.url && canAccessCurso(curso)"
-                                  class="text-[0.6rem] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border-none cursor-pointer hover:bg-blue-100 shrink-0 ml-2"
+                                  class="drive-btn ml-2"
                                   @click.stop="
                                     handleCourseClick(
                                       curso,
@@ -2065,12 +2391,74 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                                     )
                                   "
                                 >
-                                  <svg class="inline-block w-3 h-3 mr-1 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-1px">
+                                  <svg class="drive-btn__icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M7.71 3.5L1.15 15l3.3 5.5 6.57-11.5-3.31-5.5z" fill="#0066DA"/>
                                     <path d="M16.29 3.5H7.71l6.57 11.5h8.57L16.29 3.5z" fill="#00AC47"/>
                                     <path d="M4.45 20.5h15.1l3.3-5.5H7.75L4.45 20.5z" fill="#FFBA00"/>
                                   </svg>
-                                  Ver en Google Drive
+                                  Ver curso
+                                </button>
+                              </div>
+                              <!-- Paginación de cursos del bloque -->
+                              <div
+                                v-if="totalPagesBloqueCursos(bloque.id) > 1"
+                                class="flex items-center justify-center gap-3 pt-2"
+                              >
+                                <button
+                                  @click="
+                                    setBloqueCursoPage(
+                                      bloque.id,
+                                      getBloqueCursoPage(bloque.id) - 1,
+                                    )
+                                  "
+                                  :disabled="getBloqueCursoPage(bloque.id) === 1"
+                                  class="p-1 rounded-full bg-transparent border-none text-slate-500 cursor-pointer transition-all hover:bg-slate-100 disabled:opacity-35 disabled:cursor-not-allowed"
+                                >
+                                  <svg
+                                    class="w-4 h-4"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <path
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      d="M15 19l-7-7 7-7"
+                                    />
+                                  </svg>
+                                </button>
+                                <span
+                                  class="text-[0.7rem] font-semibold text-slate-500"
+                                  >Pagina {{ getBloqueCursoPage(bloque.id) }} de
+                                  {{ totalPagesBloqueCursos(bloque.id) }}</span
+                                >
+                                <button
+                                  @click="
+                                    setBloqueCursoPage(
+                                      bloque.id,
+                                      getBloqueCursoPage(bloque.id) + 1,
+                                    )
+                                  "
+                                  :disabled="
+                                    getBloqueCursoPage(bloque.id) ===
+                                    totalPagesBloqueCursos(bloque.id)
+                                  "
+                                  class="p-1 rounded-full bg-transparent border-none text-slate-500 cursor-pointer transition-all hover:bg-slate-100 disabled:opacity-35 disabled:cursor-not-allowed"
+                                >
+                                  <svg
+                                    class="w-4 h-4"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <path
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      d="M9 5l7 7-7 7"
+                                    />
+                                  </svg>
                                 </button>
                               </div>
                             </div>
@@ -2078,14 +2466,75 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                         </div>
                       </div>
                     </div>
+                    <!-- Paginación de bloques del pilar -->
+                    <div
+                      v-if="totalPagesBloquesForPilar(group) > 1"
+                      class="flex items-center justify-center gap-3 pt-2"
+                    >
+                      <button
+                        @click="
+                          setPilarPage(
+                            group.pilar.id,
+                            getPilarPage(group.pilar.id) - 1,
+                          )
+                        "
+                        :disabled="getPilarPage(group.pilar.id) === 1"
+                        class="p-1 rounded-full bg-transparent border-none text-slate-500 cursor-pointer transition-all hover:bg-slate-100 disabled:opacity-35 disabled:cursor-not-allowed"
+                      >
+                        <svg
+                          class="w-4 h-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M15 19l-7-7 7-7"
+                          />
+                        </svg>
+                      </button>
+                      <span class="text-[0.7rem] font-semibold text-slate-500"
+                        >Pagina {{ getPilarPage(group.pilar.id) }} de
+                        {{ totalPagesBloquesForPilar(group) }}</span
+                      >
+                      <button
+                        @click="
+                          setPilarPage(
+                            group.pilar.id,
+                            getPilarPage(group.pilar.id) + 1,
+                          )
+                        "
+                        :disabled="
+                          getPilarPage(group.pilar.id) ===
+                          totalPagesBloquesForPilar(group)
+                        "
+                        class="p-1 rounded-full bg-transparent border-none text-slate-500 cursor-pointer transition-all hover:bg-slate-100 disabled:opacity-35 disabled:cursor-not-allowed"
+                      >
+                        <svg
+                          class="w-4 h-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- Plataformas -->
+            <!-- Plataformas (Autores) -->
             <div
-              v-if="category?.seccion_plataformas?.plataformas?.length"
+              v-if="plataformasTotal > 0 || plataformasLoading"
               class="bg-white rounded-2xl border border-slate-100/80 shadow-md overflow-hidden transition-shadow hover:shadow-lg"
             >
               <button
@@ -2099,11 +2548,7 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                   <span
                     class="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full"
                   >
-                    {{
-                      category?.seccion_plataformas?.cantidad_plataformas ??
-                      category?.seccion_plataformas?.plataformas?.length ??
-                      0
-                    }}
+                    {{ plataformasTotal }}
                     autores
                   </span>
                   <svg
@@ -2129,20 +2574,20 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                 class="accordion-body border-t border-slate-100 p-4 lg:px-6 max-h-[600px] overflow-y-auto bg-slate-50/40"
               >
                 <div
-                  v-if="!category?.seccion_plataformas?.plataformas?.length"
+                  v-if="!plataformasItems.length"
                   class="text-sm text-slate-500 py-4 text-center"
                 >
                   Sin elementos
                 </div>
 
                 <div
-                  v-for="plataforma in paginatedPlataformas"
-                  :key="plataforma.originalIndex"
+                  v-for="plataforma in plataformasItems"
+                  :key="plataforma.autor"
                   class="mb-2 bg-white rounded-xl border border-slate-100 overflow-hidden transition-colors hover:border-slate-200"
                 >
                   <div
                     class="flex items-center justify-between px-4 py-3 cursor-pointer transition-colors hover:bg-blue-50/30"
-                    @click="toggleFolder(`plat-${plataforma.originalIndex}`)"
+                    @click="togglePlataforma(plataforma.autor)"
                   >
                     <div class="flex items-center gap-3">
                       <span
@@ -2163,23 +2608,19 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                         </svg>
                       </span>
                       <span class="font-semibold text-[#0d1b2a]">{{
-                        plataforma.titulo_plataforma || "Modulo"
+                        plataforma.autor || "Modulo"
                       }}</span>
                     </div>
                     <div class="flex items-center gap-3">
                       <span class="text-xs text-slate-500"
-                        >{{
-                          plataforma.cantidad_cursos_plataforma ??
-                          plataforma.cursos?.length ??
-                          0
-                        }}
+                        >{{ plataforma.count }}
                         cursos</span
                       >
                       <svg
                         class="w-4 h-4 text-slate-400 transition-transform"
                         :class="{
                           'rotate-180': isFolderOpen(
-                            `plat-${plataforma.originalIndex}`,
+                            `plat-${plataforma.autor}`,
                           ),
                         }"
                         fill="none"
@@ -2196,11 +2637,17 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                     </div>
                   </div>
                   <div
-                    v-show="isFolderOpen(`plat-${plataforma.originalIndex}`)"
+                    v-show="isFolderOpen(`plat-${plataforma.autor}`)"
                     class="border-t border-slate-50 bg-[#fafbfd] px-4 py-3"
                   >
                     <div
-                      v-for="(curso, cIndex) in plataforma.cursos || []"
+                      v-if="platCursosLoading[plataforma.autor] && !getPlatCursos(plataforma.autor).length"
+                      class="text-xs text-slate-400 py-3 text-center"
+                    >
+                      Cargando cursos...
+                    </div>
+                    <div
+                      v-for="(curso, cIndex) in getPlatCursos(plataforma.autor)"
                       :key="cIndex"
                       class="ml-3 pl-4 border-l-2 border-blue-100 py-2.5 flex items-center justify-between group/item hover:border-l-blue-400 transition-colors"
                     >
@@ -2208,7 +2655,12 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                         <span
                           class="w-5 h-5 rounded-md bg-blue-50 text-blue-500 flex items-center justify-center shrink-0 text-[0.6rem] font-bold group-hover/item:bg-blue-100 transition-colors"
                         >
-                          {{ cIndex + 1 }}
+                          {{
+                            (getPlatCursoPage(plataforma.autor) - 1) *
+                              itemsPerPagePlatCursos +
+                            cIndex +
+                            1
+                          }}
                         </span>
                         <span
                           class="text-sm font-medium text-slate-600 group-hover/item:text-slate-800 transition-colors truncate"
@@ -2222,17 +2674,78 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                       </div>
                       <button
                         v-if="curso.info_tecnica?.url && canAccessCurso(curso)"
-                        class="text-[0.65rem] font-semibold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border-none cursor-pointer transition-colors hover:bg-blue-100 shrink-0 ml-3"
+                        class="drive-btn ml-3"
                         @click.stop="
                           handleCourseClick(curso, curso.info_tecnica.url)
                         "
                       >
-                        <svg class="inline-block w-3 h-3 mr-1 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-1px">
+                        <svg class="drive-btn__icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M7.71 3.5L1.15 15l3.3 5.5 6.57-11.5-3.31-5.5z" fill="#0066DA"/>
                           <path d="M16.29 3.5H7.71l6.57 11.5h8.57L16.29 3.5z" fill="#00AC47"/>
                           <path d="M4.45 20.5h15.1l3.3-5.5H7.75L4.45 20.5z" fill="#FFBA00"/>
                         </svg>
-                        Ver en Google Drive
+                        Ver curso
+                      </button>
+                    </div>
+                    <!-- Paginación de cursos del autor -->
+                    <div
+                      v-if="totalPagesPlatCursos(plataforma.count) > 1"
+                      class="flex items-center justify-center gap-3 pt-2"
+                    >
+                      <button
+                        @click="
+                          setPlatCursoPage(
+                            plataforma.autor,
+                            getPlatCursoPage(plataforma.autor) - 1,
+                          )
+                        "
+                        :disabled="getPlatCursoPage(plataforma.autor) === 1"
+                        class="p-1 rounded-full bg-transparent border-none text-slate-500 cursor-pointer transition-all hover:bg-slate-100 disabled:opacity-35 disabled:cursor-not-allowed"
+                      >
+                        <svg
+                          class="w-4 h-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M15 19l-7-7 7-7"
+                          />
+                        </svg>
+                      </button>
+                      <span class="text-[0.7rem] font-semibold text-slate-500"
+                        >Pagina {{ getPlatCursoPage(plataforma.autor) }} de
+                        {{ totalPagesPlatCursos(plataforma.count) }}</span
+                      >
+                      <button
+                        @click="
+                          setPlatCursoPage(
+                            plataforma.autor,
+                            getPlatCursoPage(plataforma.autor) + 1,
+                          )
+                        "
+                        :disabled="
+                          getPlatCursoPage(plataforma.autor) ===
+                          totalPagesPlatCursos(plataforma.count)
+                        "
+                        class="p-1 rounded-full bg-transparent border-none text-slate-500 cursor-pointer transition-all hover:bg-slate-100 disabled:opacity-35 disabled:cursor-not-allowed"
+                      >
+                        <svg
+                          class="w-4 h-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
                       </button>
                     </div>
                   </div>
@@ -2243,7 +2756,7 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                   class="flex items-center justify-center gap-4 mt-4 pt-3"
                 >
                   <button
-                    @click="currentPages.plataformas--"
+                    @click="goToPlataformasPage(currentPages.plataformas - 1)"
                     :disabled="currentPages.plataformas === 1"
                     class="p-1.5 rounded-full bg-transparent border-none text-slate-500 cursor-pointer transition-all hover:bg-slate-100 hover:text-[#0d1b2a] disabled:opacity-35 disabled:cursor-not-allowed"
                   >
@@ -2266,7 +2779,7 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                     {{ totalPagesPlataformas }}</span
                   >
                   <button
-                    @click="currentPages.plataformas++"
+                    @click="goToPlataformasPage(currentPages.plataformas + 1)"
                     :disabled="
                       currentPages.plataformas === totalPagesPlataformas
                     "
@@ -2290,219 +2803,17 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
               </div>
             </div>
 
-            <!-- Bloques -->
-            <div
-              v-if="category?.seccion_temas?.temas?.length"
-              class="bg-white rounded-2xl border border-slate-100/80 shadow-md overflow-hidden transition-shadow hover:shadow-lg"
-            >
-              <button
-                class="w-full flex items-center justify-between p-4 lg:px-6 bg-transparent border-none cursor-pointer transition-colors hover:bg-slate-50/60"
-                @click="toggleFolder('section-bloques')"
-              >
-                <span class="font-[Poppins] text-base font-bold text-[#0d1b2a]"
-                  >Bloques</span
-                >
-                <span class="flex items-center gap-3">
-                  <span
-                    class="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full"
-                  >
-                    {{
-                      computedBloquesCount ??
-                      category?.seccion_temas?.temas?.length ??
-                      0
-                    }}
-                    bloques
-                  </span>
-                  <svg
-                    class="w-5 h-5 text-slate-400 transition-transform duration-300"
-                    :class="{ 'rotate-180': isFolderOpen('section-bloques') }"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </span>
-              </button>
-              <div
-                v-show="isFolderOpen('section-bloques')"
-                class="accordion-body border-t border-slate-100 p-4 lg:px-6 max-h-[600px] overflow-y-auto bg-slate-50/40"
-              >
-                <div
-                  v-if="!category?.seccion_temas?.temas?.length"
-                  class="text-sm text-slate-500 py-4 text-center"
-                >
-                  Sin elementos
-                </div>
-                <div
-                  v-for="bloque in paginatedBloques"
-                  :key="bloque.originalIndex"
-                  class="mb-2 bg-white rounded-xl border border-slate-100 overflow-hidden transition-colors hover:border-slate-200"
-                >
-                  <div
-                    class="flex items-center justify-between px-4 py-3 cursor-pointer transition-colors hover:bg-emerald-50/30"
-                    @click="toggleFolder(`bloque-${bloque.originalIndex}`)"
-                  >
-                    <div class="flex items-center gap-3">
-                      <span
-                        class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0"
-                      >
-                        <svg
-                          class="w-4 h-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          stroke-width="2"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                          />
-                        </svg>
-                      </span>
-                      <span class="font-semibold text-[#0d1b2a]">{{
-                        bloque.titulo_tema || "Bloque"
-                      }}</span>
-                    </div>
-                    <div class="flex items-center gap-3">
-                      <span class="text-xs text-slate-500"
-                        >{{
-                          bloque.cantidad_cursos_tema ??
-                          bloque.cursos?.length ??
-                          0
-                        }}
-                        cursos</span
-                      >
-                      <svg
-                        class="w-4 h-4 text-slate-400 transition-transform"
-                        :class="{
-                          'rotate-180': isFolderOpen(
-                            `bloque-${bloque.originalIndex}`,
-                          ),
-                        }"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M19 9l-7 7-7-7"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                  <div
-                    v-show="isFolderOpen(`bloque-${bloque.originalIndex}`)"
-                    class="border-t border-slate-50 bg-[#fafbfd] px-4 py-3"
-                  >
-                    <div
-                      v-for="(curso, cIndex) in bloque.cursos || []"
-                      :key="cIndex"
-                      class="ml-3 pl-4 border-l-2 border-emerald-100 py-2.5 flex items-center justify-between group/item hover:border-l-emerald-400 transition-colors"
-                    >
-                      <div class="flex items-center gap-2.5 min-w-0">
-                        <span
-                          class="w-5 h-5 rounded-md bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0 text-[0.6rem] font-bold group-hover/item:bg-emerald-100 transition-colors"
-                        >
-                          {{ cIndex + 1 }}
-                        </span>
-                        <span
-                          class="text-sm font-medium text-slate-600 group-hover/item:text-slate-800 transition-colors truncate"
-                        >
-                          {{ curso.name_del_curso || "Leccion" }}
-                        </span>
-                        <span
-                          v-if="curso.es_gratis"
-                          class="shrink-0 text-[0.6rem] font-bold uppercase tracking-wide text-amber-900 bg-gradient-to-r from-amber-400 to-yellow-300 px-1.5 py-0.5 rounded-md"
-                        >Gratis</span>
-                      </div>
-                      <button
-                        v-if="curso.info_tecnica?.url && canAccessCurso(curso)"
-                        class="text-[0.65rem] font-semibold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border-none cursor-pointer transition-colors hover:bg-blue-100 shrink-0 ml-3"
-                        @click.stop="
-                          handleCourseClick(curso, curso.info_tecnica.url)
-                        "
-                      >
-                        <svg class="inline-block w-3 h-3 mr-1 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-1px">
-                          <path d="M7.71 3.5L1.15 15l3.3 5.5 6.57-11.5-3.31-5.5z" fill="#0066DA"/>
-                          <path d="M16.29 3.5H7.71l6.57 11.5h8.57L16.29 3.5z" fill="#00AC47"/>
-                          <path d="M4.45 20.5h15.1l3.3-5.5H7.75L4.45 20.5z" fill="#FFBA00"/>
-                        </svg>
-                        Ver en Google Drive
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div
-                  v-if="totalPagesBloques > 1"
-                  class="flex items-center justify-center gap-4 mt-4 pt-3"
-                >
-                  <button
-                    @click="currentPages.bloques--"
-                    :disabled="currentPages.bloques === 1"
-                    class="p-1.5 rounded-full bg-transparent border-none text-slate-500 cursor-pointer transition-all hover:bg-slate-100 hover:text-[#0d1b2a] disabled:opacity-35 disabled:cursor-not-allowed"
-                  >
-                    <svg
-                      class="w-5 h-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M15 19l-7-7 7-7"
-                      />
-                    </svg>
-                  </button>
-                  <span class="text-xs font-semibold text-slate-500"
-                    >Pagina {{ currentPages.bloques }} de
-                    {{ totalPagesBloques }}</span
-                  >
-                  <button
-                    @click="currentPages.bloques++"
-                    :disabled="currentPages.bloques === totalPagesBloques"
-                    class="p-1.5 rounded-full bg-transparent border-none text-slate-500 cursor-pointer transition-all hover:bg-slate-100 hover:text-[#0d1b2a] disabled:opacity-35 disabled:cursor-not-allowed"
-                  >
-                    <svg
-                      class="w-5 h-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </div>
-
             <!-- Lista Completa -->
             <div
               id="lista-completa-header"
-              v-if="category?.seccion_lista_completa?.lista_completa?.length"
+              v-if="listaCompletaTotal > 0 || listaCompletaLoading"
               class="bg-white rounded-2xl border border-slate-100/80 shadow-md overflow-hidden transition-shadow hover:shadow-lg"
             >
               <div
-                class="w-full flex items-center justify-between gap-3 p-4 lg:px-6"
+                class="w-full flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 p-4 lg:px-6"
               >
                 <button
-                  class="flex flex-1 items-center justify-between gap-3 bg-transparent border-none cursor-pointer transition-opacity hover:opacity-80 text-left"
+                  class="flex w-full sm:flex-1 min-w-0 items-center justify-between gap-3 bg-transparent border-none cursor-pointer transition-opacity hover:opacity-80 text-left"
                   @click="toggleFolder('section-lista-completa')"
                 >
                   <span class="font-[Poppins] text-base font-bold text-[#0d1b2a]"
@@ -2514,12 +2825,7 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                     >
                       <template v-if="computedBloquesCount !== null"
                         >{{ computedBloquesCount }} bloques &middot; </template
-                      >{{
-                        category?.seccion_lista_completa?.cantidad_cursos ??
-                        category?.seccion_lista_completa?.lista_completa
-                          ?.length ??
-                        0
-                      }}
+                      >{{ listaCompletaTotal }}
                       cursos
                     </span>
                     <svg
@@ -2544,7 +2850,7 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                   type="button"
                   @click.stop="onlyFreeLista = !onlyFreeLista"
                   :aria-pressed="onlyFreeLista"
-                  class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-all shrink-0 cursor-pointer"
+                  class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-all shrink-0 self-start sm:self-auto cursor-pointer"
                   :class="
                     onlyFreeLista
                       ? 'bg-gradient-to-r from-amber-400 to-yellow-300 text-amber-900 border-amber-300 shadow-sm'
@@ -2625,7 +2931,14 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                 </div>
 
                 <div
-                  v-if="!filteredListaCompleta.length"
+                  v-if="listaCompletaLoading"
+                  class="text-sm text-slate-500 py-8 text-center"
+                >
+                  Cargando cursos...
+                </div>
+
+                <div
+                  v-else-if="!listaCompletaItems.length"
                   class="text-sm text-slate-500 py-8 text-center flex flex-col items-center justify-center"
                 >
                   <svg
@@ -2647,13 +2960,14 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                 </div>
 
                 <div
-                  v-for="curso in paginatedListaCompleta"
-                  :key="'lc-' + curso.vistaListaIndex + '-' + (curso.name_del_curso ?? '')"
+                  v-for="(curso, idx) in listaCompletaItems"
+                  v-else
+                  :key="'lc-' + curso.id"
                   class="mb-1.5 rounded-xl border overflow-hidden transition-all group"
                   :class="
                     isPromoItem(curso)
                       ? 'bg-amber-50/60 border-amber-300 ring-1 ring-amber-200 hover:border-amber-400 hover:shadow-sm'
-                      : isListaBusquedaDestacado(curso)
+                      : isListaBusquedaDestacado(idx)
                         ? 'bg-white border-sky-300 ring-1 ring-sky-200/90 shadow-sm shadow-sky-100 hover:border-sky-400 hover:shadow-md'
                         : 'bg-white border-slate-100 hover:border-blue-200 hover:shadow-sm'
                   "
@@ -2661,33 +2975,23 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                   <div class="flex items-center justify-between px-4 py-3 gap-3">
                     <button
                       type="button"
-                      class="flex items-center gap-3 min-w-0 flex-1 bg-transparent border-none text-left p-0"
-                      :class="curso.contenido ? 'cursor-pointer' : 'cursor-default'"
-                      @click="
-                        curso.contenido &&
-                          toggleFolder('lc-curso-' + curso.vistaListaIndex)
-                      "
+                      class="flex items-center gap-3 min-w-0 flex-1 bg-transparent border-none text-left p-0 cursor-pointer"
+                      @click="openCourseModal(curso)"
                     >
                       <span
                         class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold transition-colors"
                         :class="
                           isPromoItem(curso)
                             ? 'bg-amber-100 text-amber-800 group-hover:bg-amber-200'
-                            : isListaBusquedaDestacado(curso)
+                            : isListaBusquedaDestacado(idx)
                               ? 'bg-sky-600 text-white group-hover:bg-sky-700'
                               : 'bg-blue-50 text-blue-600 group-hover:bg-blue-100'
                         "
                       >
-                        {{ curso.vistaListaIndex + 1 }}
+                        {{ (currentPages.listaCompleta - 1) * itemsPerPageLista + idx + 1 }}
                       </span>
                       <svg
-                        v-if="curso.contenido"
-                        class="w-4 h-4 text-slate-400 transition-transform shrink-0"
-                        :class="{
-                          'rotate-180': isFolderOpen(
-                            'lc-curso-' + curso.vistaListaIndex,
-                          ),
-                        }"
+                        class="w-4 h-4 text-slate-400 shrink-0"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -2696,7 +3000,7 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                           stroke-linecap="round"
                           stroke-linejoin="round"
                           stroke-width="2"
-                          d="M19 9l-7 7-7-7"
+                          d="M9 5l7 7-7 7"
                         />
                       </svg>
                       <span
@@ -2716,7 +3020,7 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                         :class="
                           isPromoItem(curso)
                             ? 'text-amber-950 group-hover:text-amber-950'
-                            : isListaBusquedaDestacado(curso)
+                            : isListaBusquedaDestacado(idx)
                               ? 'text-sky-950 group-hover:text-sky-950'
                               : 'text-slate-700 group-hover:text-[#0d1b2a]'
                         "
@@ -2725,30 +3029,39 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                     </button>
                     <button
                       v-if="curso.info_tecnica?.url && canAccessCurso(curso)"
-                      class="text-[0.65rem] font-semibold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border-none cursor-pointer transition-colors hover:bg-blue-100 shrink-0 ml-3"
+                      class="drive-btn ml-3"
                       @click.stop="
                         handleCourseClick(curso, curso.info_tecnica.url)
                       "
                     >
-                      <svg class="inline-block w-3 h-3 mr-1 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-1px">
+                      <svg class="drive-btn__icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M7.71 3.5L1.15 15l3.3 5.5 6.57-11.5-3.31-5.5z" fill="#0066DA"/>
                         <path d="M16.29 3.5H7.71l6.57 11.5h8.57L16.29 3.5z" fill="#00AC47"/>
                         <path d="M4.45 20.5h15.1l3.3-5.5H7.75L4.45 20.5z" fill="#FFBA00"/>
                       </svg>
-                      Ver en Google Drive
+                      Ver curso
                     </button>
                   </div>
 
-                  <!-- Descripción del curso (HTML) -->
+                  <!-- Descripción del curso (HTML, carga perezosa) -->
                   <div
-                    v-if="curso.contenido"
-                    v-show="isFolderOpen('lc-curso-' + curso.vistaListaIndex)"
+                    v-show="isFolderOpen('lc-curso-' + curso.id)"
                     class="border-t border-slate-100 px-4 py-3 bg-white"
                   >
+                    <p
+                      v-if="contenidoLoading[curso.id ?? -1]"
+                      class="text-sm text-slate-400 italic"
+                    >
+                      Cargando descripción…
+                    </p>
                     <div
+                      v-else-if="contenidoCache[curso.id ?? -1]"
                       class="text-sm text-slate-600 leading-relaxed course-desc"
-                      v-html="curso.contenido"
+                      v-html="contenidoCache[curso.id ?? -1]"
                     ></div>
+                    <p v-else class="text-sm text-slate-400 italic">
+                      Sin descripción disponible.
+                    </p>
                   </div>
                 </div>
 
@@ -2757,7 +3070,7 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                   class="flex items-center justify-center gap-4 mt-4 pt-3"
                 >
                   <button
-                    @click="currentPages.listaCompleta--"
+                    @click="goToListaPage(currentPages.listaCompleta - 1)"
                     :disabled="currentPages.listaCompleta === 1"
                     class="p-1.5 rounded-full bg-transparent border-none text-slate-500 cursor-pointer transition-all hover:bg-slate-100 hover:text-[#0d1b2a] disabled:opacity-35 disabled:cursor-not-allowed"
                   >
@@ -2780,7 +3093,7 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                     {{ totalPagesListaCompleta }}</span
                   >
                   <button
-                    @click="currentPages.listaCompleta++"
+                    @click="goToListaPage(currentPages.listaCompleta + 1)"
                     :disabled="
                       currentPages.listaCompleta === totalPagesListaCompleta
                     "
@@ -3038,10 +3351,10 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                   </div>
                   <div>
                     <h4 class="font-bold text-[#0d1b2a] text-sm">
-                      Acceso en moviles y TV
+                      Acceso a {{ category?.cantidad_cursos ?? 0 }} cursos
                     </h4>
                     <p class="text-xs text-slate-500 mt-0.5">
-                      Estudia desde cualquier dispositivo
+                      Todo el contenido incluido en este paquete
                     </p>
                   </div>
                 </div>
@@ -3106,62 +3419,6 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                 </h3>
               </div>
               <div class="p-6 space-y-3">
-                <div
-                  class="flex items-center gap-3 p-4 rounded-xl bg-red-50/50 border border-red-100/60"
-                >
-                  <div class="p-2 rounded-lg bg-red-100 text-red-500 shrink-0">
-                    <svg
-                      class="w-5 h-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 class="font-bold text-[#0d1b2a] text-sm">
-                      Reventa de cursos
-                    </h4>
-                    <p class="text-xs text-slate-500 mt-0.5">
-                      No podras revender los cursos y generar ingresos como
-                      afiliado
-                    </p>
-                  </div>
-                </div>
-                <div
-                  class="flex items-center gap-3 p-4 rounded-xl bg-red-50/50 border border-red-100/60"
-                >
-                  <div class="p-2 rounded-lg bg-red-100 text-red-500 shrink-0">
-                    <svg
-                      class="w-5 h-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 class="font-bold text-[#0d1b2a] text-sm">
-                      70% Dto. en toda la tienda
-                    </h4>
-                    <p class="text-xs text-slate-500 mt-0.5">
-                      No tendras acceso al descuento exclusivo para futuras
-                      compras
-                    </p>
-                  </div>
-                </div>
                 <div
                   class="flex items-center gap-3 p-4 rounded-xl bg-red-50/50 border border-red-100/60"
                 >
@@ -3666,7 +3923,7 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                         d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
                       />
                     </svg>
-                    <span>Acceso en moviles y TV</span>
+                    <span>Acceso a {{ selectedCategory?.cantidad_cursos ?? 0 }} cursos</span>
                   </li>
                   <li class="flex items-center gap-2.5 text-sm text-slate-600">
                     <svg
@@ -3726,45 +3983,6 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
       </div>
     </div>
 
-    <!-- ═══ BARRA FLOTANTE DE COMPRA ═══ -->
-    <Teleport to="body">
-      <div
-        v-if="!storeemergentBuy.emergentBuy.emergent"
-        class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-[0_-4px_20px_rgba(15,23,42,0.08)] px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] lg:hidden"
-      >
-        <div class="max-w-xl mx-auto flex items-center justify-between gap-4">
-          <div class="flex items-baseline gap-1.5 shrink-0">
-            <span
-              v-if="hasDiscount"
-              class="text-[0.65rem] font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded-full self-center"
-            >
-              {{ discountPercent }}% Dto.
-            </span>
-            <span
-              class="font-[Poppins] text-xl font-extrabold text-[#0f172a] tracking-tight leading-none"
-            >
-              ${{ formatPrice(selectedCategory?.precio) }}
-            </span>
-            <span class="text-xs font-semibold text-slate-500">{{
-              currencySuffix
-            }}</span>
-          </div>
-          <button
-            @click="handleBuySelected"
-            class="flex-1 max-w-[280px] py-3 px-5 rounded-xl border-none text-sm font-bold text-white cursor-pointer transition-all active:scale-[0.97] whitespace-nowrap"
-            :class="{
-              'btn-premium-gradient': tierInfo.isPremium,
-              'bg-blue-600 shadow-lg shadow-blue-600/25':
-                selectedOption === 'upsell' && !tierInfo.isPremium,
-              'bg-emerald-600 shadow-lg shadow-emerald-600/25':
-                selectedOption === 'current' && !tierInfo.isPremium,
-            }"
-          >
-            Desbloquear paquete
-          </button>
-        </div>
-      </div>
-    </Teleport>
 
     <EmergentBuyComponent />
     <FooterComponent />
@@ -3826,6 +4044,48 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
   text-align: center;
   color: #0d1b2a;
   animation: cta-label-pulse 2s ease-in-out infinite;
+}
+
+/* Botón "Ver curso" (Google Drive): compacto + animación de hover para invitar al click */
+.drive-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1;
+  color: #1d4ed8;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 0.5rem;
+  padding: 0.3rem 0.55rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    transform 0.18s ease,
+    background-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+.drive-btn:hover {
+  background: #2563eb;
+  color: #fff;
+  transform: translateY(-1px) scale(1.05);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.28);
+}
+.drive-btn:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.22);
+}
+.drive-btn__icon {
+  width: 0.85rem;
+  height: 0.85rem;
+  flex-shrink: 0;
+  transition: transform 0.18s ease;
+}
+.drive-btn:hover .drive-btn__icon {
+  transform: scale(1.12) rotate(-5deg);
 }
 
 /* Custom scrollbar for accordion body */

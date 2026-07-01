@@ -15,66 +15,14 @@ export interface ICourse {
     url?: string;
   }
 
-  export interface ICursoSubcategoria {
-    author?: string;
-    contenido?: string;          // HTML enriquecido (descripción del curso)
-    info_tecnica?: IInfoTecnica;
-    subcategoria?: string;
-    name_del_curso?: string;
-    es_gratis?: boolean;
-  }
-
-  // Mapas por nombre (clave de texto), profundidad según el tier de la categoría:
-  export type ISubcatPorSubcategoria = Record<string, ICursoSubcategoria[]>; // bloque
-  export type ISubcatPorTema = Record<string, ISubcatPorSubcategoria>;       // pilar
-  export type ISubcatPorPilar = Record<string, ISubcatPorTema>;              // combinado
-
-  export type ISeccionListaPorSubcategoria =
-    | ISubcatPorSubcategoria
-    | ISubcatPorTema
-    | ISubcatPorPilar;
-
   export interface ICategoryCourseDetail {
+    id?: number;
     name_del_curso?: string;
     author?: string;
     contenido?: string; // HTML enriquecido (descripción del curso)
     subcategoria?: string;
     info_tecnica?: IInfoTecnica;
     es_gratis?: boolean;
-  }
-
-  export interface ICategoryPlataformaDetail {
-    titulo_plataforma?: string;
-    cantidad_cursos_plataforma?: number;
-    url_plataforma_seleccionada?: string;
-    imagen_url?: string;
-    cursos?: ICategoryCourseDetail[];
-  }
-
-  export interface ICategoryTemaDetail {
-    titulo_tema?: string;
-    cantidad_cursos_tema?: number;
-    url_tema_seleccionado?: string;
-    imagen_url?: string;
-    cursos?: ICategoryCourseDetail[];
-  }
-
-  export interface ICategorySeccionPlataformas {
-    cantidad_plataformas?: number;
-    plataformas?: ICategoryPlataformaDetail[];
-  }
-
-  export interface ICategorySeccionTemas {
-    cantidad_temas?: number;
-    url_temas?: string;
-    temas?: ICategoryTemaDetail[];
-  }
-
-  export interface ICategorySeccionListaCompleta {
-    cantidad_cursos?: number;
-    url_lista_completa?: string;
-    lista_completa?: ICategoryCourseDetail[];
-    contenido: string; // HTML enriquecido (descripción de la sección)
   }
 
   export interface ICategory {
@@ -99,13 +47,9 @@ export interface ICourse {
     cat_rel?: Array<number | string>; 
     cat_rel_info?: Array<{ id: number; titulo: string }>;
     pregunta_respuesta?: IQuestionAnswer[];
-    seccion_plataformas?: ICategorySeccionPlataformas;
-    seccion_temas?: ICategorySeccionTemas;
-    seccion_lista_completa?: ICategorySeccionListaCompleta;
     duracion?: string;
     delete_at?: string | null; // Puede ser `null`
     created_at: string;
-    seccion_lista_por_subcategoria?: ISeccionListaPorSubcategoria;
     courses: ICourse[]; // Relación con Course
   }
   

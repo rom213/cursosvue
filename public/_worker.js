@@ -1,32 +1,7 @@
 export default {
   async fetch(request, env) {
-    const url = new URL(request.url)
-
-    if (url.pathname === '/sitemap.xml' || url.pathname === '/sitemap-cursos.xml') {
-      const response = await fetch(`https://server.cursosestudiaytrabaja.store${url.pathname}`, {
-        headers: {
-          Accept: 'application/xml,text/xml,*/*',
-        },
-      })
-
-      if (!response.ok) {
-        return new Response('Sitemap unavailable', {
-          status: response.status,
-          headers: {
-            'Content-Type': 'text/plain; charset=utf-8',
-          },
-        })
-      }
-
-      return new Response(response.body, {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/xml; charset=utf-8',
-          'Cache-Control': 'public, max-age=3600',
-        },
-      })
-    }
-
+    // /sitemap.xml y /sitemap-cursos.xml se sirven como archivos estáticos
+    // desde public/ (ya no se proxean al backend).
     return env.ASSETS.fetch(request)
   },
 }

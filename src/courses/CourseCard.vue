@@ -84,13 +84,6 @@ const bloquesCount = computed(() => getBloquesCountForCategory(props.category.id
 const cursosCount = computed(() => props.category.cantidad_cursos ?? 200);
 const commentsCount = computed(() => props.category.pregunta_respuesta?.length ?? 0);
 
-// ── Keyword chips from temas ──
-const keywordChips = computed(() => {
-  const temas = props.category.seccion_temas?.temas;
-  if (!temas?.length) return [];
-  return temas.slice(0, 6).map(t => t.titulo_tema).filter(Boolean) as string[];
-});
-
 // ── Anclaje de precio ──
 const hasDiscount = computed(() =>
   props.category.precio_desc != null
@@ -254,17 +247,6 @@ const whatsappUrl = computed(() => {
         >
           {{ category.frase_1 }}
         </p>
-      </div>
-
-      <!-- ══ 3b. KEYWORD CHIPS ══ -->
-      <div v-if="keywordChips.length" class="px-5 pt-2 flex flex-wrap gap-1.5">
-        <span
-          v-for="keyword in keywordChips"
-          :key="keyword"
-          class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-md"
-        >
-          {{ keyword }}
-        </span>
       </div>
 
       <!-- ══ 4. FRASE TRANSFORMACIONAL ══ -->

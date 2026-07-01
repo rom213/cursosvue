@@ -1,10 +1,16 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue';
-import FooterComponent from '../components/footer/footer.component.vue';
-import CourseFaqSection from '../courses/courseInfoPage/CourseFaqSection.vue';
-import HomeCta from '../components/cta/HomeCta.vue';
-import PricingLevels from './PricingLevels.vue';
+import { defineAsyncComponent, onBeforeUnmount, onMounted, ref } from 'vue';
 import { icons } from './section_one/section.one.data';
+
+// Nombre para que <KeepAlive :include> en App.vue conserve esta vista al cambiar de tab
+defineOptions({ name: 'HomeView' });
+
+// Componentes bajo el fold: se cargan en chunks aparte, fuera del camino crítico
+// del primer render de la home (FAQ ~40KB, Pricing, CTA y Footer).
+const FooterComponent = defineAsyncComponent(() => import('../components/footer/footer.component.vue'));
+const CourseFaqSection = defineAsyncComponent(() => import('../courses/courseInfoPage/CourseFaqSection.vue'));
+const HomeCta = defineAsyncComponent(() => import('../components/cta/HomeCta.vue'));
+const PricingLevels = defineAsyncComponent(() => import('./PricingLevels.vue'));
 
 // Loading state for smooth transitions
 const isLoading = ref(true);
@@ -439,7 +445,8 @@ onBeforeUnmount(() => {
 </template>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap');
+/* Las fuentes (Inter + Poppins) se cargan una sola vez en index.html.
+   Se eliminó el @import duplicado y render-blocking que vivía aquí. */
 
 /* ═══════════════════════════════════════════════════════════
    TOKENS CORPORATIVOS

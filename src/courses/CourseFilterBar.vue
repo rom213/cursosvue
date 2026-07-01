@@ -96,6 +96,21 @@ const allThemesTotal = computed(() =>
     <div class="filter-scroll overflow-x-auto">
       <div class="flex items-center gap-2 justify-center whitespace-nowrap py-2.5 px-4 min-w-max mx-auto">
 
+        <!-- TODA LA TIENDA 2026 (Botón premium con shimmer) -->
+        <button
+          type="button"
+          class="toda-tienda-btn relative px-4 py-2 rounded-xl border-2 transition-all overflow-hidden"
+          :class="activeFilter === 'toda-la-tienda'
+            ? 'border-amber-400 ring-2 ring-amber-200 bg-amber-50'
+            : 'border-amber-300 hover:border-amber-400 hover:bg-amber-50'"
+          @click="handleTodaTiendaClick"
+        >
+          <span class="toda-tienda-text relative z-10 text-sm font-bold text-amber-600">
+            Toda la Tienda 2026
+          </span>
+          <div class="shimmer-overlay absolute inset-0 z-0" />
+        </button>
+
         <!-- BLOQUES INDIVIDUALES (Split Button) -->
         <div ref="bloquesBtnRef" class="relative">
           <div class="flex items-center rounded-xl border overflow-hidden transition-all"
@@ -149,20 +164,6 @@ const allThemesTotal = computed(() =>
         </div>
 
 
-        <!-- TODA LA TIENDA 2026 (Botón premium con shimmer) -->
-        <button
-          type="button"
-          class="toda-tienda-btn relative px-4 py-2 rounded-xl border-2 transition-all overflow-hidden"
-          :class="activeFilter === 'toda-la-tienda'
-            ? 'border-amber-400 ring-2 ring-amber-200 bg-amber-50'
-            : 'border-amber-300 hover:border-amber-400 hover:bg-amber-50'"
-          @click="handleTodaTiendaClick"
-        >
-          <span class="toda-tienda-text relative z-10 text-sm font-bold text-amber-600">
-            Toda la Tienda 2026
-          </span>
-          <div class="shimmer-overlay absolute inset-0 z-0" />
-        </button>
 
       </div>
     </div>

@@ -12,6 +12,9 @@ import type { ICategory } from '../types/Categorie';
 import CourseCard from './CourseCard.vue';
 import type { PillarColor } from './CourseCard.vue';
 import CourseFilterBar from './CourseFilterBar.vue';
+
+// Nombre usado por <KeepAlive :include> en App.vue (conserva la vista al cambiar de tab)
+defineOptions({ name: 'CoursesComponent' });
 import {
   classifyCategoryId,
   getPilarForThemeId,

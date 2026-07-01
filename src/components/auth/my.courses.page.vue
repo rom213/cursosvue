@@ -7,6 +7,9 @@ import PaymentService from '../../services/PaymentService';
 import GuestCheckoutService, { type GuestCourse } from '../../services/GuestCheckoutService';
 import { authStore } from '../../store/AuthStore';
 
+// Nombre usado por <KeepAlive :include> en App.vue (conserva la vista al cambiar de tab)
+defineOptions({ name: 'MyCoursesPage' });
+
 const courseBougth = ref<ICategory[]>([])
 const isLoading = ref(true)
 import FooterComponent from '../../components/footer/footer.component.vue';
@@ -272,7 +275,7 @@ const submitReview = async () => {
                 class="group flex flex-col bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden transform hover:-translate-y-1"
               >
                 <div class="relative w-full aspect-video overflow-hidden bg-gray-100">
-                  <img class="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" :src="item.imagen_url" :alt="item.titulo" />
+                  <img class="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" :src="item.imagen_url" :alt="item.titulo" loading="lazy" decoding="async" />
                   <div class="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors duration-300"></div>
                 </div>
                 <div class="flex flex-col flex-grow p-6">
@@ -376,7 +379,7 @@ const submitReview = async () => {
             
             <!-- Imagen del curso -->
             <div @click="handleClickItem(item.id)" class="relative w-full aspect-video overflow-hidden bg-gray-100 cursor-pointer">
-              <img class="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" :src="item.imagen_url" :alt="item.titulo">
+              <img class="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" :src="item.imagen_url" :alt="item.titulo" loading="lazy" decoding="async">
               <!-- Overlay sutil -->
               <div class="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors duration-300"></div>
             </div>

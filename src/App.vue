@@ -75,7 +75,13 @@ watch(() => store.profile?.user?.google_id, (id) => {
         <GoogleLogin :callback="callback" prompt auto-login />
       </div>
       <RouterView v-slot="{ Component }">
-        <KeepAlive :include="['CoursesComponent']" :max="2">
+        <!-- Conserva en memoria las vistas de navegación principales para que al
+             cambiar de pestaña no se re-monten ni vuelvan a pedir sus datos.
+             :max acota cuántas instancias se mantienen vivas (evita crecer sin límite). -->
+        <KeepAlive
+          :include="['HomeView', 'CoursesComponent', 'CourseInfoPage', 'MyCoursesPage']"
+          :max="5"
+        >
           <component :is="Component" />
         </KeepAlive>
       </RouterView>

@@ -961,8 +961,14 @@ const canAccessCurso = (curso: { es_gratis?: boolean }) =>
 
 const handleCourseClick = (curso: { es_gratis?: boolean }, url: string | undefined) => {
   if (!url) return;
-  if(showCourseModal){
-    showCourseModal.value= false;
+
+  if (showCourseModal.value) {
+    showCourseModal.value = false;
+  }
+
+  if (!canAccessCurso(curso)) {
+    showBuyGateModal.value = true;
+    return;
   }
   if (curso.es_gratis && !userAuth.getProfile()?.user?.email) {
     pendingFreeCourseUrl.value = url;
@@ -989,6 +995,29 @@ const confirmFreeCourseAccess = () => {
 const closeFreeCourseGate = () => {
   showFreeCourseGate.value = false;
   pendingFreeCourseUrl.value = "";
+};
+
+/** Modal: el curso pertenece a un paquete que aún no ha sido comprado. */
+const showBuyGateModal = ref(false);
+
+const closeBuyGateModal = () => {
+  showBuyGateModal.value = false;
+};
+
+const buyGateWhatsappUrl = computed(() => {
+  const phone = "573134141912";
+  const msg = encodeURIComponent(
+    `Hola, quiero obtener acceso a *${category.value?.titulo}* por $${formatPrice(category.value?.precio)} COP. ¿Me pueden ayudar?`,
+  );
+  return `https://wa.me/${phone}?text=${msg}`;
+});
+
+const handleBuyGateWeb = () => {
+  if (!category.value) return;
+  showBuyGateModal.value = false;
+  storeemergentBuy.setCategoryEmergent(category.value);
+  storeemergentBuy.handleEmergentBuy();
+  trackAddToCart(category.value);
 };
 
 const showVideoModal = ref(false);
@@ -1302,6 +1331,85 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
       </div>
     </div>
 
+    <!-- Modal: el curso requiere comprar el paquete -->
+    <div
+      v-if="showBuyGateModal"
+      class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
+      @click.self="closeBuyGateModal"
+    >
+      <div class="relative bg-white rounded-2xl shadow-2xl p-6 sm:p-8 max-w-md w-full">
+        <button
+          type="button"
+          @click="closeBuyGateModal"
+          class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors"
+          aria-label="Cerrar"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        <div class="mb-4 flex justify-center">
+          <div class="bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full p-3 shadow-md">
+            <svg
+              class="w-8 h-8 text-white"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+            </svg>
+          </div>
+        </div>
+
+        <h3 class="text-xl font-bold text-gray-800 mb-2 text-center">
+          ¡Este curso te está esperando! 🔓
+        </h3>
+        <p class="text-gray-600 text-center mb-5 text-sm leading-relaxed">
+          Este curso hace parte del paquete
+          <strong>{{ category?.titulo }}</strong>. Adquiérelo por
+          <strong>${{ formatPrice(category?.precio) }} COP</strong> y obtén
+          acceso inmediato y de por vida a este y todos los cursos incluidos.
+        </p>
+
+        <div class="space-y-3">
+          <button
+            type="button"
+            class="w-full h-11 rounded-xl font-bold flex justify-center items-center gap-2 transition-all duration-200 text-white shadow-md hover:-translate-y-0.5"
+            style="background-color: #5d48f7;"
+            @click="handleBuyGateWeb"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 shrink-0 opacity-80">
+              <path fill-rule="evenodd" d="M12 1.5a.75.75 0 0 1 .75.75V4.5a.75.75 0 0 1-1.5 0V2.25A.75.75 0 0 1 12 1.5ZM5.636 4.136a.75.75 0 0 1 1.06 0l1.592 1.591a.75.75 0 0 1-1.061 1.06l-1.591-1.59a.75.75 0 0 1 0-1.061Zm12.728 0a.75.75 0 0 1 0 1.06l-1.591 1.592a.75.75 0 0 1-1.06-1.061l1.59-1.591a.75.75 0 0 1 1.061 0Zm-6.816 4.496a.75.75 0 0 1 .82.311l5.228 7.917a.75.75 0 0 1-.777 1.148l-2.097-.43 1.045 3.9a.75.75 0 0 1-1.45.388l-1.044-3.899-1.601 1.42a.75.75 0 0 1-1.247-.606l.569-9.47a.75.75 0 0 1 .554-.678ZM3 10.5a.75.75 0 0 1 .75-.75H6a.75.75 0 0 1 0 1.5H3.75A.75.75 0 0 1 3 10.5Zm14.25 0a.75.75 0 0 1 .75-.75h2.25a.75.75 0 0 1 0 1.5H18a.75.75 0 0 1-.75-.75Zm-8.962 3.712a.75.75 0 0 1 0 1.061l-1.591 1.591a.75.75 0 1 1-1.061-1.06l1.591-1.592a.75.75 0 0 1 1.061 0Z" clip-rule="evenodd" />
+            </svg>
+            <span class="text-[0.9rem] font-extrabold leading-tight text-center">Comprar desde la web</span>
+          </button>
+
+          <a
+            :href="buyGateWhatsappUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="w-full h-11 rounded-xl font-bold flex justify-center items-center gap-2 transition-all duration-200 no-underline bg-white border-2 border-green-600 text-green-600 hover:bg-green-50 shadow-md hover:-translate-y-0.5"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 shrink-0">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+              <path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.554 4.122 1.523 5.855L.057 23.486a.5.5 0 0 0 .611.611l5.632-1.466A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.9 0-3.68-.524-5.2-1.433l-.373-.223-3.865 1.006 1.006-3.865-.223-.373A9.944 9.944 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/>
+            </svg>
+            <span class="text-[0.9rem] font-bold leading-tight text-center">Comprar por WhatsApp</span>
+          </a>
+        </div>
+
+        <button
+          type="button"
+          @click="closeBuyGateModal"
+          class="w-full mt-3 text-sm text-slate-400 hover:text-slate-600 transition-colors"
+        >
+          Ahora no, gracias
+        </button>
+      </div>
+    </div>
+
     <!-- Modal: video Guia rapida -->
     <div
       v-if="showVideoModal"
@@ -1370,7 +1478,7 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
         </div>
 
         <div
-          v-if="courseModalCurso?.info_tecnica?.url && canAccessCurso(courseModalCurso)"
+          v-if="courseModalCurso?.info_tecnica?.url"
           class="p-5 border-t border-slate-100"
         >
           <button
@@ -2721,7 +2829,7 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                         v-if="curso.info_tecnica?.url && canAccessCurso(curso)"
                         class="drive-btn ml-3"
                         @click.stop="
-                          handleCourseClick(curso, curso.info_tecnica.url)
+                          handleCourseClick(curso, curso?.info_tecnica?.url)
                         "
                       >
                         <svg class="drive-btn__icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

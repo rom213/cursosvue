@@ -173,6 +173,11 @@ watch(onlyFreeSubcat, () => {
   currentPagesPorCategoria.value = {};
 });
 
+watch(onlyFreeLista, () => {
+  currentPages.value.listaCompleta = 1;
+  fetchListaCompleta();
+});
+
 /** Autores (antes "Plataformas"), paginados desde el backend vía /facets?by=autor. */
 type PlataformaItem = { autor: string; count: number };
 const plataformasItems = ref<PlataformaItem[]>([]);
@@ -443,6 +448,7 @@ watch(
     openedFolders.value["section-lista-completa"] = false;
     if (route.query.q_course) {
       searchTermLista.value = route.query.q_course as string;
+      searchTermSubcat.value = route.query.q_course as string;
       openedFolders.value["section-lista-completa"] = true;
       scrollToListaCompleta();
     } else {
@@ -590,6 +596,45 @@ const discountPercent = computed(() => {
       100,
   );
 });
+
+// ── Beneficios incluidos (tab Beneficios) ──
+const includedBenefits = computed(() => [
+  {
+    title: "Certificacion Oficial",
+    desc: "Certificado al concluir todos los modulos",
+    icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z",
+  },
+  {
+    title: "A tu propio ritmo",
+    desc: "Acceso 24/7 al material. Estudia cuando quieras",
+    icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
+  },
+  {
+    title: "100% Descargable",
+    desc: "Descarga el contenido y estudia sin conexion",
+    icon: "M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4",
+  },
+  {
+    title: "Garantia de 7 dias",
+    desc: "Reembolso completo si no quedas satisfecho",
+    icon: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z",
+  },
+  {
+    title: "Acceso vitalicio",
+    desc: "Pago unico sin suscripciones ni costos ocultos",
+    icon: "M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z",
+  },
+  {
+    title: `Acceso a ${category.value?.cantidad_cursos ?? 0} cursos`,
+    desc: "Todo el contenido incluido en este paquete",
+    icon: "M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z",
+  },
+  {
+    title: "Biblioteca de 10.134 libros",
+    desc: "Acceso a una coleccion de libros digitales para complementar tu aprendizaje",
+    icon: "M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253",
+  },
+]);
 
 // ── Upsell ──
 const upsellCategory = ref<ICategory | null>(null);
@@ -3159,11 +3204,9 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
 
             <!-- Beneficios incluidos -->
             <div
-              class="bg-white rounded-2xl border border-slate-100/80 shadow-md overflow-hidden"
+              class="bg-white rounded-2xl border border-[#f1f5f9] shadow-md overflow-hidden"
             >
-              <div
-                class="bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-4"
-              >
+              <div class="bg-[#059669] px-6 py-4">
                 <h3
                   class="text-white font-[Poppins] font-bold text-lg flex items-center gap-2"
                 >
@@ -3185,10 +3228,12 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
               </div>
               <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div
-                  class="flex items-start gap-3 p-4 rounded-xl bg-emerald-50/50 border border-emerald-100/60"
+                  v-for="benefit in includedBenefits"
+                  :key="benefit.title"
+                  class="flex items-start gap-3 p-4 rounded-xl bg-[#f4fbf7] border border-[#dcf2e7]"
                 >
                   <div
-                    class="p-2 rounded-lg bg-emerald-100 text-emerald-600 shrink-0"
+                    class="p-2 rounded-lg bg-[#d1fae5] text-[#059669] shrink-0"
                   >
                     <svg
                       class="w-5 h-5"
@@ -3200,191 +3245,16 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                       <path
                         stroke-linecap="round"
                         stroke-linejoin="round"
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                        :d="benefit.icon"
                       />
                     </svg>
                   </div>
                   <div>
                     <h4 class="font-bold text-[#0d1b2a] text-sm">
-                      Certificacion Oficial
+                      {{ benefit.title }}
                     </h4>
                     <p class="text-xs text-slate-500 mt-0.5">
-                      Certificado al concluir todos los modulos
-                    </p>
-                  </div>
-                </div>
-                <div
-                  class="flex items-start gap-3 p-4 rounded-xl bg-emerald-50/50 border border-emerald-100/60"
-                >
-                  <div
-                    class="p-2 rounded-lg bg-emerald-100 text-emerald-600 shrink-0"
-                  >
-                    <svg
-                      class="w-5 h-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 class="font-bold text-[#0d1b2a] text-sm">
-                      A tu propio ritmo
-                    </h4>
-                    <p class="text-xs text-slate-500 mt-0.5">
-                      Acceso 24/7 al material. Estudia cuando quieras
-                    </p>
-                  </div>
-                </div>
-                <div
-                  class="flex items-start gap-3 p-4 rounded-xl bg-emerald-50/50 border border-emerald-100/60"
-                >
-                  <div
-                    class="p-2 rounded-lg bg-emerald-100 text-emerald-600 shrink-0"
-                  >
-                    <svg
-                      class="w-5 h-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 class="font-bold text-[#0d1b2a] text-sm">
-                      100% Descargable
-                    </h4>
-                    <p class="text-xs text-slate-500 mt-0.5">
-                      Descarga el contenido y estudia sin conexion
-                    </p>
-                  </div>
-                </div>
-                <div
-                  class="flex items-start gap-3 p-4 rounded-xl bg-emerald-50/50 border border-emerald-100/60"
-                >
-                  <div
-                    class="p-2 rounded-lg bg-emerald-100 text-emerald-600 shrink-0"
-                  >
-                    <svg
-                      class="w-5 h-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 class="font-bold text-[#0d1b2a] text-sm">
-                      Garantia de 7 dias
-                    </h4>
-                    <p class="text-xs text-slate-500 mt-0.5">
-                      Reembolso completo si no quedas satisfecho
-                    </p>
-                  </div>
-                </div>
-                <div
-                  class="flex items-start gap-3 p-4 rounded-xl bg-emerald-50/50 border border-emerald-100/60"
-                >
-                  <div
-                    class="p-2 rounded-lg bg-emerald-100 text-emerald-600 shrink-0"
-                  >
-                    <svg
-                      class="w-5 h-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 class="font-bold text-[#0d1b2a] text-sm">
-                      Acceso vitalicio
-                    </h4>
-                    <p class="text-xs text-slate-500 mt-0.5">
-                      Pago unico sin suscripciones ni costos ocultos
-                    </p>
-                  </div>
-                </div>
-                <div
-                  class="flex items-start gap-3 p-4 rounded-xl bg-emerald-50/50 border border-emerald-100/60"
-                >
-                  <div
-                    class="p-2 rounded-lg bg-emerald-100 text-emerald-600 shrink-0"
-                  >
-                    <svg
-                      class="w-5 h-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 class="font-bold text-[#0d1b2a] text-sm">
-                      Acceso a {{ category?.cantidad_cursos ?? 0 }} cursos
-                    </h4>
-                    <p class="text-xs text-slate-500 mt-0.5">
-                      Todo el contenido incluido en este paquete
-                    </p>
-                  </div>
-                </div>
-                <div
-                  class="flex items-start gap-3 p-4 rounded-xl bg-emerald-50/50 border border-emerald-100/60"
-                >
-                  <div
-                    class="p-2 rounded-lg bg-emerald-100 text-emerald-600 shrink-0"
-                  >
-                    <svg
-                      class="w-5 h-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 class="font-bold text-[#0d1b2a] text-sm">
-                      Biblioteca de 10.134 libros
-                    </h4>
-                    <p class="text-xs text-slate-500 mt-0.5">
-                      Acceso a una coleccion de libros digitales para
-                      complementar tu aprendizaje
+                      {{ benefit.desc }}
                     </p>
                   </div>
                 </div>
@@ -3394,11 +3264,9 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
             <!-- Lo que NO incluye este paquete (solo si no tiene reventa/descuento y hay upsell) -->
             <div
               v-if="!tierInfo.includesResale && upsellCategory"
-              class="bg-white rounded-2xl border border-slate-100/80 shadow-md overflow-hidden"
+              class="bg-white rounded-2xl border border-[#f1f5f9] shadow-md overflow-hidden"
             >
-              <div
-                class="bg-gradient-to-r from-slate-400 to-slate-500 px-6 py-4"
-              >
+              <div class="bg-[#64748b] px-6 py-4">
                 <h3
                   class="text-white font-[Poppins] font-bold text-lg flex items-center gap-2"
                 >
@@ -3420,7 +3288,7 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
               </div>
               <div class="p-6 space-y-3">
                 <div
-                  class="flex items-center gap-3 p-4 rounded-xl bg-red-50/50 border border-red-100/60"
+                  class="flex items-center gap-3 p-4 rounded-xl bg-[#fdf5f5] border border-[#fbe9e9]"
                 >
                   <div class="p-2 rounded-lg bg-red-100 text-red-500 shrink-0">
                     <svg
@@ -3450,7 +3318,7 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
 
                 <!-- CTA para ver el upsell -->
                 <div
-                  class="mt-4 p-4 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100/60"
+                  class="mt-4 p-4 rounded-xl bg-[#eff6ff] border border-[#dbeafe]"
                 >
                   <div class="flex items-center justify-between gap-4">
                     <div>
@@ -3464,7 +3332,7 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                     </div>
                     <button
                       @click="handleUpsellExplore"
-                      class="shrink-0 px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold border-none cursor-pointer transition-all hover:bg-blue-700 hover:-translate-y-0.5 shadow-md shadow-blue-600/20"
+                      class="shrink-0 px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold border-none cursor-pointer transition-all hover:bg-blue-700 hover:-translate-y-0.5 shadow-md"
                     >
                       Ver paquete
                     </button>

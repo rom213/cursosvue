@@ -1500,7 +1500,7 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
         <div class="order-2 lg:order-1 min-w-0">
           <!-- Tab Navigation -->
           <div
-            class="flex flex-wrap gap-1 p-1 bg-white/90 backdrop-blur-sm border border-slate-100/80 rounded-2xl shadow-md mb-4 sticky top-16 max-md:top-28 z-10"
+            class="flex flex-wrap gap-1 p-1 bg-white md:bg-white/90 md:backdrop-blur-sm border border-slate-100/80 rounded-2xl shadow-md mb-4 sticky top-16 max-md:top-28 z-10"
           >
             <button
               v-for="(tab, key) in [

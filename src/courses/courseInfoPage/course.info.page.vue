@@ -3500,7 +3500,7 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                 class="absolute inset-0 bg-black/25 flex items-center justify-center transition-colors group-hover:bg-black/15"
               >
                 <div
-                  class="bg-white/90 backdrop-blur-sm rounded-full p-3.5 shadow-lg transition-transform group-hover:scale-110"
+                  class="bg-white/90 rounded-full p-3.5 shadow-lg transition-transform group-hover:scale-110"
                 >
                   <svg
                     class="w-8 h-8 text-[#1e40af]"
@@ -3512,7 +3512,7 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                   </svg>
                 </div>
                 <span
-                  class="absolute bottom-2.5 right-2.5 bg-black/60 backdrop-blur-sm text-white text-[0.65rem] font-semibold px-2 py-0.5 rounded-md"
+                  class="absolute bottom-2.5 right-2.5 bg-black/60 text-white text-[0.65rem] font-semibold px-2 py-0.5 rounded-md"
                   >Guia rapida</span
                 >
               </div>

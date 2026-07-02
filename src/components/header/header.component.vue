@@ -226,9 +226,7 @@ const handleChangeAccount = () => {
     top: 0; left: 0;
     width: 100%;
     z-index: 50;
-    background: rgba(255, 255, 255, 0.96);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: #ffffff;
     border-bottom: 1px solid rgba(30, 64, 175, 0.08);
     box-shadow: 0 1px 12px rgba(13, 27, 42, 0.06);
     font-family: 'Inter', system-ui, sans-serif;

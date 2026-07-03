@@ -266,6 +266,51 @@ const sugerenciasBusqueda = [
 
 
 ];
+
+/** Tutoriales en video: cómo ver los cursos según el dispositivo */
+type Tutorial = {
+  id: string;
+  label: string;
+  sublabel: string;
+  embed: string;
+  dispositivo: "movil" | "pc";
+};
+
+const tutoriales: Tutorial[] = [
+  {
+    id: "iiaZRxNOH0U",
+    label: "iPhone",
+    sublabel: "iOS",
+    embed: "https://www.youtube.com/embed/iiaZRxNOH0U",
+    dispositivo: "movil",
+  },
+  {
+    id: "sd02S2_VeBs",
+    label: "Android",
+    sublabel: "Celular / Tablet",
+    embed: "https://www.youtube.com/embed/sd02S2_VeBs",
+    dispositivo: "movil",
+  },
+  {
+    id: "WrFnDHlLQFg",
+    label: "Computadora",
+    sublabel: "PC / Mac",
+    embed: "https://www.youtube.com/embed/WrFnDHlLQFg",
+    dispositivo: "pc",
+  },
+];
+
+const tutorialesMovil = computed(() =>
+  tutoriales.filter((t) => t.dispositivo === "movil"),
+);
+const tutorialPc = computed(() =>
+  tutoriales.find((t) => t.dispositivo === "pc"),
+);
+
+/** ¿Es la categoría de tutoriales para ver los cursos en otras apps? Ahí mostramos los videos por dispositivo. */
+function isAppsExternasCategory(titulo: string): boolean {
+  return normalizeForSearch(titulo ?? "").includes("otras apps");
+}
 </script>
 
 <template>
@@ -708,6 +753,120 @@ const sugerenciasBusqueda = [
                       </span>
                     </li>
                   </ul>
+                </template>
+              </div>
+
+              <!-- Video-tutoriales por dispositivo: solo en "Tutoriales para ver cursos en otras apps" -->
+              <div v-if="isAppsExternasCategory(cat.categoria)" class="mt-5">
+                <p class="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-800">
+                  <svg class="h-5 w-5 text-red-600" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"
+                    />
+                  </svg>
+                  Video-tutoriales según tu dispositivo
+                </p>
+
+                <!-- En el celular -->
+                <p class="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <span class="h-1.5 w-1.5 rounded-full bg-blue-500" aria-hidden="true" />
+                  En tu celular
+                </p>
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <figure
+                    v-for="t in tutorialesMovil"
+                    :key="t.id"
+                    class="overflow-hidden rounded-xl border border-slate-200/80 bg-slate-50/60 p-3"
+                  >
+                    <figcaption class="mb-2.5 flex items-center gap-2">
+                      <!-- Apple -->
+                      <svg
+                        v-if="t.label === 'iPhone'"
+                        class="h-5 w-5 text-slate-800"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.036-.013-3.196-1.221-3.222-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"
+                        />
+                      </svg>
+                      <!-- Android -->
+                      <svg
+                        v-else
+                        class="h-5 w-5 text-[#3DDC84]"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M17.523 15.3414c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.5511 0 .9993.4482.9993.9993.0001.5511-.4482.9997-.9993.9997m-11.046 0c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.5511 0 .9993.4482.9993.9993 0 .5511-.4482.9997-.9993.9997m11.4045-6.02l1.9973-3.4592a.416.416 0 00-.1521-.5676.416.416 0 00-.5676.1521l-2.0223 3.5013C15.5902 8.2439 13.8533 7.8508 12 7.8508s-3.5902.3931-5.1367 1.0729L4.841 5.4224a.4161.4161 0 00-.5676-.1521.4157.4157 0 00-.1521.5676l1.9973 3.4592C2.6889 11.1867.3432 14.6589 0 18.761h24c-.3435-4.1021-2.6892-7.5743-6.1185-9.4396"
+                        />
+                      </svg>
+                      <span class="text-sm font-semibold text-slate-800">{{ t.label }}</span>
+                      <span
+                        class="ml-auto rounded-full bg-slate-200/70 px-2 py-0.5 text-[10px] font-medium text-slate-500"
+                        >{{ t.sublabel }}</span
+                      >
+                    </figcaption>
+                    <div
+                      class="relative mx-auto aspect-[9/16] w-full max-w-[260px] overflow-hidden rounded-lg bg-slate-900 shadow-md"
+                    >
+                      <iframe
+                        class="absolute inset-0 h-full w-full"
+                        :src="t.embed"
+                        :title="`Cómo ver tus cursos en ${t.label}`"
+                        loading="lazy"
+                        referrerpolicy="strict-origin-when-cross-origin"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowfullscreen
+                      ></iframe>
+                    </div>
+                  </figure>
+                </div>
+
+                <!-- En la computadora -->
+                <template v-if="tutorialPc">
+                  <p class="mb-2 mt-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <span class="h-1.5 w-1.5 rounded-full bg-blue-500" aria-hidden="true" />
+                    En tu computadora
+                  </p>
+                  <figure class="overflow-hidden rounded-xl border border-slate-200/80 bg-slate-50/60 p-3">
+                    <figcaption class="mb-2.5 flex items-center gap-2">
+                      <svg
+                        class="h-5 w-5 text-slate-700"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="1.75"
+                        aria-hidden="true"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                        />
+                      </svg>
+                      <span class="text-sm font-semibold text-slate-800">{{ tutorialPc.label }}</span>
+                      <span
+                        class="ml-auto rounded-full bg-slate-200/70 px-2 py-0.5 text-[10px] font-medium text-slate-500"
+                        >{{ tutorialPc.sublabel }}</span
+                      >
+                    </figcaption>
+                    <div
+                      class="relative mx-auto aspect-video w-full max-w-[640px] overflow-hidden rounded-lg bg-slate-900 shadow-md"
+                    >
+                      <iframe
+                        class="absolute inset-0 h-full w-full"
+                        :src="tutorialPc.embed"
+                        :title="`Cómo ver tus cursos en ${tutorialPc.label}`"
+                        loading="lazy"
+                        referrerpolicy="strict-origin-when-cross-origin"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowfullscreen
+                      ></iframe>
+                    </div>
+                  </figure>
                 </template>
               </div>
             </div>

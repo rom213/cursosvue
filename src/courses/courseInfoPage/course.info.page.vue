@@ -1429,7 +1429,7 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
         <div class="relative w-full aspect-video rounded-xl overflow-hidden shadow-2xl">
           <iframe
             class="absolute inset-0 w-full h-full"
-            src="https://www.youtube.com/embed/thY0qsXxgHc"
+            src="https://www.youtube.com/embed/sH5p950KTqg?autoplay=1"
             title="Mira cómo funciona la plataforma educativa"
             loading="lazy"
             referrerpolicy="strict-origin-when-cross-origin"
@@ -3476,7 +3476,7 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                 class="absolute inset-0 bg-black/25 flex items-center justify-center transition-colors group-hover:bg-black/15"
               >
                 <div
-                  class="bg-white/90 rounded-full p-3.5 shadow-lg transition-transform group-hover:scale-110"
+                  class="play-pulse bg-white/90 rounded-full p-3.5 shadow-lg"
                 >
                   <svg
                     class="w-8 h-8 text-[#1e40af]"
@@ -3981,6 +3981,20 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
 .desc-accordion-leave-to {
   max-height: 0;
   opacity: 0;
+}
+
+/* Play button infinite pulse (scale 1 -> 1.2) */
+.play-pulse {
+  animation: play-pulse-scale 1.5s ease-in-out infinite;
+}
+@keyframes play-pulse-scale {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
 }
 
 /* Premium CTA gradient animation */

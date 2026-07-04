@@ -89,7 +89,7 @@ watch(() => store.profile?.user?.google_id, (id) => {
 
     <!-- ═══ STACK DE NOTIFICACIONES (promo + toasts) ═══ -->
     <div
-      class="fixed bottom-44 left-3 right-3 md:bottom-28 md:left-auto md:right-6 md:max-w-md z-[60] flex flex-col-reverse gap-3 pointer-events-none"
+      class="fixed bottom-6 left-3 right-3 md:bottom-28 md:left-auto md:right-6 md:max-w-md z-[60] flex flex-col-reverse gap-3 pointer-events-none"
     >
       <!-- Toast de promo (queda abajo) -->
       <Transition
@@ -107,7 +107,7 @@ watch(() => store.profile?.user?.google_id, (id) => {
           <div class="flex items-stretch">
             <!-- Zona clickeable: avatar + contenido -->
             <div
-              class="flex-1 flex items-start gap-3 p-3 md:p-4 cursor-pointer hover:bg-blue-50/60 transition-colors min-w-0"
+              class="flex-1 flex items-start gap-3 px-3 py-2.5 md:px-4 md:py-3 cursor-pointer hover:bg-blue-50/60 transition-colors min-w-0"
               @click="goToPromo"
               title="Ver promoción"
             >
@@ -119,7 +119,7 @@ watch(() => store.profile?.user?.google_id, (id) => {
               />
               <!-- Contenido -->
               <div class="flex-1 min-w-0">
-                <p class="text-blue-700 font-bold text-sm md:text-[15px] leading-tight mb-1">
+                <p class="text-blue-700 font-bold text-sm md:text-[15px] leading-tight mb-0.5">
                   ¡Tu regalo está aquí<template v-if="store.profile?.user?.given_name">, {{ store.profile.user.given_name }}</template>! <span aria-hidden="true">🎁</span>
                 </p>
                 <p class="text-gray-600 text-xs md:text-sm leading-snug">

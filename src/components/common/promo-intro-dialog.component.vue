@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { usePromoQuery } from '../../composables/usePromoQuery'
 
-const { promoName, promoType, showPromoIntro, dismissIntro } = usePromoQuery()
+const { showPromoIntro, dismissIntro } = usePromoQuery()
 
 const driveTooltipText =
   'Servicio en la nube. Puedes ver los cursos online sin consumir tu espacio de almacenamiento, o descargarlos a tu equipo para ser el dueño de los archivos para siempre.'
@@ -14,7 +14,7 @@ const showDriveTooltip = ref(false)
     appear
     enter-active-class="transition-opacity duration-300 ease-out"
     enter-from-class="opacity-0"
-    enter-to-class="opacity-100"
+    enter-to-class="opacity-100"  
     leave-active-class="transition-opacity duration-200 ease-in"
     leave-from-class="opacity-100"
     leave-to-class="opacity-0"
@@ -29,119 +29,111 @@ const showDriveTooltip = ref(false)
       @click.self="dismissIntro"
     >
       <div
-        class="promo-intro-card relative w-full max-w-sm md:max-w-lg bg-white rounded-3xl shadow-2xl shadow-blue-900/30 overflow-hidden"
+        class="promo-intro-card relative w-full max-w-sm md:max-w-lg max-h-[90vh] bg-white rounded-3xl shadow-2xl shadow-blue-900/30 overflow-hidden flex flex-col ring-1 ring-black/5"
       >
-      <!-- Botón X de cierre -->
-      <button
-        type="button"
-        class="absolute top-3 right-3 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/35 text-white transition-colors focus:outline-none focus:ring-2 focus:ring-white/60"
-        aria-label="Cerrar"
-        @click="dismissIntro"
-      >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-      <div>
-          <!-- Cabecera azul con icono regalo -->
-          <div class="promo-intro-header px-6 pt-7 pb-5 text-center">
+        <!-- Botón X de cierre -->
+        <button
+          type="button"
+          class="absolute top-3 right-3 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/35 text-white transition-colors focus:outline-none focus:ring-2 focus:ring-white/60"
+          aria-label="Cerrar"
+          @click="dismissIntro"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        <!-- Cabecera azul con icono de bienvenida -->
+        <div class="promo-intro-header shrink-0 relative px-6 pt-8 pb-7 text-center overflow-hidden">
+          <!-- Brillos decorativos -->
+          <div class="promo-blob promo-blob--1"></div>
+          <div class="promo-blob promo-blob--2"></div>
+
+          <div class="relative">
             <div
-              class="mx-auto w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center mb-3 shadow-inner"
+              class="mx-auto w-16 h-16 rounded-2xl bg-white/15 ring-1 ring-white/25 backdrop-blur-sm flex items-center justify-center mb-4 shadow-lg shadow-blue-900/20"
             >
-              <!-- Icono regalo -->
+              <!-- Icono sparkles -->
               <svg
                 class="w-9 h-9 text-white"
                 fill="none"
                 stroke="currentColor"
-                stroke-width="1.8"
+                stroke-width="1.6"
                 viewBox="0 0 24 24"
               >
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
-                  d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"
+                  d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.456-2.456L14.25 6l1.035-.259a3.375 3.375 0 002.456-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z"
                 />
               </svg>
             </div>
-            <h2 class="text-white text-lg md:text-xl font-bold leading-tight">
-              <template v-if="promoType === 'bloque'">
-                Si vienes por el bloque de
-                <span class="block text-blue-100 mt-0.5">{{ promoName }}</span>
-              </template>
-              <template v-else>
-                Si vienes para el curso de
-                <span class="block text-blue-100 mt-0.5">{{ promoName }}</span>
-              </template>
+            <h2 class="text-white text-xl md:text-2xl font-bold leading-tight tracking-tight">
+              ¡Bienvenido a nuestra comunidad!
             </h2>
-          </div>
-
-          <!-- Cuerpo -->
-          <div class="px-6 py-5 space-y-3 text-center">
-            <p class="text-gray-700 text-sm md:text-base leading-relaxed">
-              <span class="font-semibold text-gray-900">¡Ya lo tienes!</span> Y como regalo
-              especial, hoy desbloqueas el acceso a
-              <span class="font-semibold text-blue-700">todo nuestro catálogo de cursos de esta categoria</span>
-              totalmente gratis.
+            <p class="mt-1.5 text-blue-100/90 text-xs md:text-sm font-medium">
+              Cursos Estudia y Trabaja
             </p>
-            <div
-              class="flex items-start gap-3 bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 text-left"
-            >
-              <!-- Icono Google Drive (triangulo simple) -->
-              <div class="flex-shrink-0 w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm">
-                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
-                  <path d="M7.71 3.5L1.15 15l3.3 5.5 6.57-11.5-3.31-5.5z" fill="#0066DA" />
-                  <path d="M16.29 3.5h-8.58l6.57 11.5h8.57l-6.56-11.5z" fill="#00AC47" />
-                  <path d="M4.45 20.5h15.1l3.3-5.5h-15.1l-3.3 5.5z" fill="#FFBA00" />
-                </svg>
-              </div>
-              <p class="text-gray-700 text-xs md:text-sm leading-snug">
-                Todo el material está alojado en
-                <button
-                  type="button"
-                  class="relative inline-flex items-center font-semibold text-gray-900 underline decoration-dotted underline-offset-2 cursor-help focus:outline-none"
-                  :title="driveTooltipText"
-                  :aria-label="driveTooltipText"
-                  @click="showDriveTooltip = !showDriveTooltip"
-                  @mouseenter="showDriveTooltip = true"
-                  @mouseleave="showDriveTooltip = false"
-                  @focus="showDriveTooltip = true"
-                  @blur="showDriveTooltip = false"
-                >
-                  Google Drive
-                  <span
-                    v-if="showDriveTooltip"
-                    role="tooltip"
-                    class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-60 sm:w-64 z-10 rounded-lg bg-gray-900 text-white text-[11px] leading-snug font-normal px-3 py-2 shadow-lg text-center normal-case"
-                  >
-                    {{ driveTooltipText }}
-                    <span
-                      class="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-gray-900"
-                    ></span>
-                  </span>
-                </button>
-                . Solo necesitas un correo de
-                <span class="font-semibold text-gray-900">Gmail</span> para acceder al instante.
-              </p>
-            </div>
           </div>
+        </div>
 
-          <!-- Acciones -->
-          <div class="px-6 pb-6 pt-1 flex flex-col-reverse gap-2">
+        <!-- Cuerpo (scrollable si el contenido no cabe) -->
+        <div class="px-6 py-5 space-y-4 overflow-y-auto">
+          <p class="text-gray-700 text-sm md:text-base leading-relaxed text-left">
+            Aquí encontrarás paquetes de cursos relacionados a tus
+            intereses. Todos los cursos están en
             <button
               type="button"
-              class="w-full h-11 px-3 rounded-xl border border-gray-200 bg-white text-gray-600 text-sm font-medium hover:bg-gray-50 active:bg-gray-100 transition-colors whitespace-nowrap"
-              @click="dismissIntro"
+              class="relative inline-flex items-center underline decoration-dotted underline-offset-2 cursor-help focus:outline-none"
+              :title="driveTooltipText"
+              :aria-label="driveTooltipText"
+              @click="showDriveTooltip = !showDriveTooltip"
+              @mouseenter="showDriveTooltip = true"
+              @mouseleave="showDriveTooltip = false"
+              @focus="showDriveTooltip = true"
+              @blur="showDriveTooltip = false"
             >
-              Ahora no
+              Google Drive
+              <span
+                v-if="showDriveTooltip"
+                role="tooltip"
+                class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-60 sm:w-64 z-10 rounded-lg bg-gray-900 text-white text-[11px] leading-snug font-normal px-3 py-2 shadow-lg text-center normal-case"
+              >
+                {{ driveTooltipText }}
+                <span
+                  class="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-gray-900"
+                ></span>
+              </span>
             </button>
-            <button
-              type="button"
-              class="w-full h-11 px-3 rounded-xl bg-gradient-to-r from-blue-700 to-blue-500 text-white text-sm font-semibold shadow-lg shadow-blue-600/30 hover:shadow-blue-600/40 hover:brightness-105 active:brightness-95 transition-all whitespace-nowrap"
-              @click="dismissIntro"
-            >
-              ¡Quiero acceder a mis cursos!
-            </button>
-          </div>
+            , así que podrás verlos online o descargarlos
+            <strong class="font-semibold text-gray-900">para siempre</strong>. De bienvenida te damos
+            <strong class="font-semibold text-gray-900">un curso gratis</strong>, y con tu compra
+            <strong class="font-semibold text-gray-900">mantienes vivo este proyecto</strong>: tu aporte
+            se usa para cubrir el almacenamiento en la nube. Puedes adquirir los cursos a través de
+            nuestro <strong class="font-semibold text-gray-900">WhatsApp</strong> o directamente desde la
+            web. El programa de revendedores sirve para expandir nuestra comunidad, y podrás acceder a
+            él desde tu <strong class="font-semibold text-gray-900">primera compra</strong>.
+          </p>
+
+          <p class="text-gray-500 text-xs md:text-sm italic text-center pt-1">
+            ¡Felicitaciones por invertir en tu futuro! Sé bienvenido a Cursos Estudia y Trabaja.
+          </p>
+        </div>
+
+        <!-- Acciones -->
+        <div class="shrink-0 px-6 pb-6 pt-4 border-t border-gray-100">
+          <button
+            type="button"
+            class="promo-intro-cta w-full h-11 px-3 rounded-xl text-white text-sm font-semibold shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40 hover:brightness-105 active:brightness-95 transition-all whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-400/60 focus:ring-offset-2"
+            @click="dismissIntro"
+          >
+            ¡Vamos!
+          </button>
         </div>
       </div>
     </div>
@@ -150,6 +142,32 @@ const showDriveTooltip = ref(false)
 
 <style scoped>
 .promo-intro-header {
-  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 55%, #3b82f6 100%);
+}
+
+.promo-intro-cta {
+  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+}
+
+/* Brillos decorativos del encabezado */
+.promo-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(28px);
+  pointer-events: none;
+}
+.promo-blob--1 {
+  top: -2.5rem;
+  right: -2rem;
+  width: 9rem;
+  height: 9rem;
+  background: rgba(255, 255, 255, 0.22);
+}
+.promo-blob--2 {
+  bottom: -3rem;
+  left: -2.5rem;
+  width: 8rem;
+  height: 8rem;
+  background: rgba(56, 189, 248, 0.35);
 }
 </style>

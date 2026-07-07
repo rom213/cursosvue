@@ -639,33 +639,6 @@ const includedBenefits = computed(() => [
 // ── Upsell ──
 const upsellCategory = ref<ICategory | null>(null);
 
-const upsellTierLabel = computed(() => {
-  if (!upsellCategory.value) return "";
-  const type = classifyCategoryId(upsellCategory.value.id);
-  if (type === "pilares") return "🏛️ Pilar Completo";
-  if (type === "toda-la-tienda") return "👑 Toda la Tienda 2026";
-  return "";
-});
-
-const upsellBenefits = computed(() => {
-  if (!upsellCategory.value) return [];
-  const type = classifyCategoryId(upsellCategory.value.id);
-  if (type === "pilares") {
-    return [
-      "Todos los blques del pilar",
-      "Incluye reventa",
-      "70% Dto. en toda la tienda",
-    ];
-  }
-  if (type === "toda-la-tienda") {
-    return [
-      "Los 3 pilares completos",
-      "Incluye reventa",
-      "Máximo valor por tu inversión",
-    ];
-  }
-  return [];
-});
 
 const loadUpsellCategory = async () => {
   const id = category.value?.id;
@@ -693,16 +666,11 @@ const loadUpsellCategory = async () => {
   }
 };
 
-const showUpsellDetails = ref(false);
-const showBlocksList = ref(false);
 
-const upsellBreakdown = computed(() => {
-  const blocks = upsellCategory.value?.cat_rel_info ?? [];
-  const total = upsellCategory.value?.precio ?? 0;
-  const pricePerBlock =
-    blocks.length > 0 ? Math.round(total / blocks.length) : 0;
-  return { blocks, pricePerBlock };
-});
+const showFundsInfo = ref(false);
+const showWelcomeInfo = ref(false);
+
+
 
 const computedBloquesCount = computed(() => {
   const id = category.value?.id;
@@ -3555,274 +3523,159 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                   </span>
                 </div>
               </div>
-
-              <!-- ══ SELECTOR DE OPCIONES + CTA UNICO ══ -->
-              <div class="space-y-3" >
-                <!-- Opcion 1: Producto actual (siempre visible) -->
-                <label
-                  v-if="!selectedCategory?.user_bought"
-                  class="block w-full rounded-xl px-4 py-3 border-2 cursor-pointer transition-all"
-                  :class="
-                    selectedOption === 'current'
-                      ? 'border-emerald-400 bg-emerald-50/50 shadow-sm'
-                      : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50'
-                  "
-                >
-                  <input
-                    type="radio"
-                    v-model="selectedOption"
-                    value="current"
-                    class="sr-only"
-                  />
-                  <div  class="flex items-center gap-3 w-full">
-                    <div
-                      class="w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center transition-colors"
-                      :class="
-                        selectedOption === 'current'
-                          ? 'border-emerald-500 bg-emerald-500'
-                          : 'border-slate-300 bg-white'
-                      "
-                    >
-                      <div
-                        v-if="selectedOption === 'current'"
-                        class="w-1.5 h-1.5 rounded-full bg-white"
-                      />
-                    </div>
-                    <div class="flex-1 min-w-0">
-                      <p class="text-xs text-slate-500 font-medium">
-                        Este paquete
-                      </p>
-                      <p
-                        class="text-xs sm:text-sm font-bold text-[#0d1b2a] truncate"
-                      >
-                        {{ category?.titulo }}
-                      </p>
-                    </div>
-                    <span
-                      class="text-sm sm:text-base font-extrabold text-[#0d1b2a] whitespace-nowrap shrink-0"
-                    >
-                      ${{ formatPrice(category?.precio) }}
-                    </span>
-                  </div>
-                </label>
-
-                <!-- Opcion 2: Upsell (solo si hay upsell disponible) -->
-                <div v-if="upsellCategory && !tierInfo.isPremium">
-                  <label
-                    class="block w-full rounded-xl px-4 py-3 border-2 cursor-pointer transition-all"
-                    :class="
-                      selectedOption === 'upsell'
-                        ? 'border-blue-400 bg-blue-50/50 shadow-sm'
-                        : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50'
-                    "
+              <div class="mb-4 p-3 rounded-xl bg-rose-50/70 border border-rose-100">
+                <div class="flex items-start gap-2">
+                  <svg
+                    class="w-4 h-4 text-rose-500 shrink-0 mt-0.5"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
                   >
-                    <input
-                      type="radio"
-                      v-model="selectedOption"
-                      value="upsell"
-                      class="sr-only"
+                    <path
+                      d="M12 21s-6.716-4.35-9.428-8.06C.94 10.42 1.2 7.02 3.9 5.24c2.29-1.5 4.99-.98 6.5.86.4.49.77 1.05 1.1 1.62.33-.57.7-1.13 1.1-1.62 1.51-1.84 4.21-2.36 6.5-.86 2.7 1.78 2.96 5.18 1.33 7.7C18.716 16.65 12 21 12 21z"
                     />
-                    <div class="flex items-center gap-3 w-full">
-                      <div
-                        class="w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center transition-colors"
-                        :class="
-                          selectedOption === 'upsell'
-                            ? 'border-blue-500 bg-blue-500'
-                            : 'border-slate-300 bg-white'
-                        "
-                      >
-                        <div
-                          v-if="selectedOption === 'upsell'"
-                          class="w-1.5 h-1.5 rounded-full bg-white"
-                        />
-                      </div>
-                      <div class="flex-1 min-w-0">
-                        <div class="flex flex-wrap items-center gap-1.5">
-                          <span
-                            class="text-[0.6rem] font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded"
-                          >
-                            {{ upsellTierLabel }}
-                          </span>
-                          <span
-                            class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[0.55rem] font-extrabold uppercase tracking-wider text-amber-700 bg-gradient-to-r from-amber-100 to-yellow-100"
-                            >Popular</span
-                          >
-                        </div>
-                        <p
-                          class="text-xs sm:text-sm font-bold text-[#0d1b2a] truncate mt-0.5"
-                        >
-                          {{ upsellCategory.titulo }}
-                        </p>
-                      </div>
-                      <span
-                        class="text-sm sm:text-base font-extrabold text-blue-600 whitespace-nowrap shrink-0"
-                      >
-                        ${{ formatPrice(upsellCategory.precio) }}
-                      </span>
-                    </div>
-
-                    <!-- Flechita de curiosidad -->
-                    <button
-                      type="button"
-                      class="mt-2 w-full flex items-center justify-center gap-1 text-[0.65rem] font-semibold transition-colors border-none bg-transparent cursor-pointer"
-                      :class="
-                        showUpsellDetails
-                          ? 'text-blue-600'
-                          : 'text-slate-400 hover:text-blue-500'
-                      "
-                      @click.prevent.stop="
-                        showUpsellDetails = !showUpsellDetails
-                      "
+                  </svg>
+                  <p class="text-xs text-slate-600 leading-relaxed">
+                    Este valor no refleja el costo real de los cursos, sino un
+                    aporte para cubrir el almacenamiento en la nube.
+                    <span class="font-semibold text-rose-600"
+                      >Con tu compra, mantienes vivo este proyecto
+                      comunitario</span
                     >
-                      <span>{{
-                        showUpsellDetails
-                          ? "Ocultar detalles"
-                          : "¿Que incluye este paquete?"
-                      }}</span>
-                      <svg
-                        class="w-3 h-3 transition-transform duration-200"
-                        :class="showUpsellDetails ? 'rotate-180' : ''"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        stroke-width="2.5"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="M19 9l-7 7-7-7"
-                        />
-                      </svg>
-                    </button>
-                  </label>
-
-                  <!-- Panel desplegable con detalles -->
-                  <Transition
-                    enter-active-class="transition-all duration-300 ease-out"
-                    enter-from-class="opacity-0 max-h-0"
-                    enter-to-class="opacity-100 max-h-[32rem]"
-                    leave-active-class="transition-all duration-200 ease-in"
-                    leave-from-class="opacity-100 max-h-[32rem]"
-                    leave-to-class="opacity-0 max-h-0"
-                  >
-                    <div v-if="showUpsellDetails" class="overflow-hidden">
-                      <div
-                        class="mt-1 rounded-b-xl bg-blue-50/60 border border-t-0 border-blue-100 px-4 py-3 space-y-1.5"
-                      >
-                        <!-- Primer benefit: clickeable para expandir bloques -->
-                        <button
-                          type="button"
-                          class="w-full flex items-center justify-between gap-2 text-xs text-slate-700 font-semibold hover:text-blue-600 transition-colors border-none bg-transparent cursor-pointer"
-                          @click.stop="showBlocksList = !showBlocksList"
-                        >
-                          <div class="flex items-center gap-2">
-                            <svg
-                              class="w-3.5 h-3.5 text-emerald-500 shrink-0"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                              stroke-width="3"
-                            >
-                              <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M5 13l4 4L19 7"
-                              />
-                            </svg>
-                            {{ upsellBenefits[0] }}
-                          </div>
-                          <svg
-                            class="w-3 h-3 transition-transform duration-200 text-slate-400 shrink-0"
-                            :class="{ 'rotate-180': showBlocksList }"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            stroke-width="2.5"
-                          >
-                            <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              d="M19 9l-7 7-7-7"
-                            />
-                          </svg>
-                        </button>
-
-                        <!-- Lista de bloques -->
-                        <Transition
-                          enter-active-class="transition-all duration-200 ease-out"
-                          enter-from-class="opacity-0 max-h-0"
-                          enter-to-class="opacity-100 max-h-60"
-                          leave-active-class="transition-all duration-150 ease-in"
-                          leave-from-class="opacity-100 max-h-60"
-                          leave-to-class="opacity-0 max-h-0"
-                        >
-                          <div
-                            v-if="
-                              showBlocksList && upsellBreakdown.blocks.length
-                            "
-                            class="overflow-hidden pl-5 pb-1"
-                          >
-                            <p class="text-[0.65rem] text-slate-400 mb-1">
-                              {{ upsellBreakdown.blocks.length }} bloques · ~${{
-                                formatPrice(upsellBreakdown.pricePerBlock)
-                              }}
-                              c/u
-                            </p>
-                            <ul class="space-y-0.5">
-                              <li
-                                v-for="block in upsellBreakdown.blocks"
-                                :key="block.id"
-                                class="flex items-center justify-between gap-2"
-                              >
-                                <span
-                                  class="text-[0.7rem] text-slate-600 truncate"
-                                  >· {{ block.titulo }}</span
-                                >
-                                <span
-                                  class="text-[0.65rem] text-slate-400 shrink-0 tabular-nums"
-                                  >~${{
-                                    formatPrice(upsellBreakdown.pricePerBlock)
-                                  }}</span
-                                >
-                              </li>
-                            </ul>
-                          </div>
-                        </Transition>
-
-                        <!-- Resto de benefits -->
-                        <div
-                          v-for="(benefit, i) in upsellBenefits.slice(1)"
-                          :key="i"
-                          class="flex items-center gap-2 text-xs text-slate-700"
-                        >
-                          <svg
-                            class="w-3.5 h-3.5 text-emerald-500 shrink-0"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            stroke-width="3"
-                          >
-                            <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              d="M5 13l4 4L19 7"
-                            />
-                          </svg>
-                          {{ benefit }}
-                        </div>
-
-                        <button
-                          type="button"
-                          class="text-[0.65rem] font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-colors border-none bg-transparent cursor-pointer pt-0.5"
-                          @click="handleUpsellExplore"
-                        >
-                          Ver todos los detalles →
-                        </button>
-                      </div>
-                    </div>
-                  </Transition>
+                    y ayudas a democratizar la educación.
+                  </p>
                 </div>
 
+                <button
+                  type="button"
+                  class="mt-1.5 ml-6 flex items-center gap-1 text-[0.7rem] font-bold text-rose-500 hover:text-rose-600 bg-transparent border-none cursor-pointer p-0"
+                  @click="showFundsInfo = !showFundsInfo"
+                >
+                  {{ showFundsInfo ? "Ver menos" : "Ver más" }}
+                  <svg
+                    class="w-3 h-3 transition-transform duration-200"
+                    :class="showFundsInfo ? 'rotate-180' : ''"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                </button>
+
+                <Transition name="desc-accordion">
+                  <div v-if="showFundsInfo" class="overflow-hidden">
+                    <ul
+                      class="mt-2 ml-6 space-y-1.5 text-xs text-slate-600 leading-relaxed list-disc"
+                    >
+                      <li>
+                        <span class="font-semibold text-slate-700"
+                          >Costo de mantenimiento:</span
+                        >
+                        Tu pago cubre los gastos de almacenamiento en la nube.
+                      </li>
+                      <li>
+                        <span class="font-semibold text-slate-700"
+                          >Educación accesible:</span
+                        >
+                        Mantenemos los precios bajos para que el dinero no sea
+                        un freno.
+                      </li>
+                      <li>
+                        <span class="font-semibold text-slate-700"
+                          >Impacto colectivo:</span
+                        >
+                        Con tu compra, ayudas a sostener esta comunidad de
+                        aprendizaje continuo.
+                      </li>
+                    </ul>
+                  </div>
+                </Transition>
+              </div>
+              <div class="mb-4 rounded-xl bg-rose-50/70 border border-rose-100 overflow-hidden">
+                <!-- Encabezado compacto (parte visible): Sobre nosotros -->
+                <button
+                  type="button"
+                  class="w-full flex items-center gap-2 p-3 text-left bg-transparent border-none cursor-pointer"
+                  :aria-expanded="showWelcomeInfo"
+                  @click="showWelcomeInfo = !showWelcomeInfo"
+                >
+                  <svg
+                    class="w-4 h-4 text-rose-500 shrink-0"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path
+                      d="M12 21s-6.716-4.35-9.428-8.06C.94 10.42 1.2 7.02 3.9 5.24c2.29-1.5 4.99-.98 6.5.86.4.49.77 1.05 1.1 1.62.33-.57.7-1.13 1.1-1.62 1.51-1.84 4.21-2.36 6.5-.86 2.7 1.78 2.96 5.18 1.33 7.7C18.716 16.65 12 21 12 21z"
+                    />
+                  </svg>
+                  <span class="flex-1 text-sm font-bold text-slate-700">
+                    Sobre nosotros
+                  </span>
+                  <svg
+                    class="w-4 h-4 text-rose-500 shrink-0 transition-transform duration-200"
+                    :class="showWelcomeInfo ? 'rotate-180' : ''"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                </button>
+
+                <!-- Contenido colapsable -->
+                <Transition name="desc-accordion">
+                  <div v-if="showWelcomeInfo" class="overflow-hidden">
+                    <div class="px-3 pb-3">
+                      <p class="text-xs text-slate-600 leading-relaxed">
+                        Bienvenidos a nuestra comunidad, aquí encontrarás
+                        <span class="font-semibold text-rose-600"
+                          >paquetes de cursos relacionados a tus intereses</span
+                        >. Todos los cursos están en Google Drive, podrás verlos
+                        o descargarlos. De bienvenida te damos un curso gratis.
+                      </p>
+                      <ul
+                        class="mt-2 pl-4 space-y-1.5 text-xs text-slate-600 leading-relaxed list-disc"
+                      >
+                        <li>
+                          <span class="font-semibold text-slate-700"
+                            >Tu aporte:</span
+                          >
+                          Se usa para cubrir el almacenamiento en la nube. Con tu
+                          compra, mantienes vivo este proyecto.
+                        </li>
+                        <li>
+                          <span class="font-semibold text-slate-700"
+                            >Cómo comprar:</span
+                          >
+                          Puedes adquirir los cursos a través de nuestro
+                          WhatsApp o desde la web.
+                        </li>
+                        <li>
+                          <span class="font-semibold text-slate-700"
+                            >Programa de revendedores:</span
+                          >
+                          Sirve para expandir nuestra comunidad, podrás acceder
+                          a él desde tu primera compra.
+                        </li>
+                        <li>
+                          <span class="font-semibold text-slate-700"
+                            >¡Felicitaciones!</span
+                          >
+                          Por invertir en tu futuro. Sé bienvenido a Cursos
+                          Estudia y Trabaja.
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </Transition>
+              </div>
+              <div class="space-y-4">
                 <!-- BOTON UNICO DE COMPRA -->
                 <div v-if="!selectedCategory?.user_bought" class="space-y-2">
                   <p class="text-center text-[0.68rem] font-semibold text-black uppercase tracking-widest cta-label-pulse">

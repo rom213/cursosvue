@@ -103,6 +103,17 @@ const levels: PricingLevel[] = [
   <section class="pricing-section">
     <div class="pricing-inner">
 
+      <!-- Mensaje de mision -->
+      <div class="pricing-mission">
+        <svg class="pricing-mission-icon" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 21s-6.716-4.35-9.428-8.06C.94 10.42 1.2 7.02 3.9 5.24c2.29-1.5 4.99-.98 6.5.86.4.49.77 1.05 1.1 1.62.33-.57.7-1.13 1.1-1.62 1.51-1.84 4.21-2.36 6.5-.86 2.7 1.78 2.96 5.18 1.33 7.7C18.716 16.65 12 21 12 21z"/>
+        </svg>
+        <p>
+          Creemos en la educación sin barreras. No te cobramos el valor comercial de estos programas; tu aporte se destina únicamente a sostener la infraestructura técnica (alojamiento en la nube) que hace posible este proyecto.
+          <span class="pricing-mission-highlight">Al comprar, compartir o donar, no solo inviertes en ti</span>, sino que permites que miles de personas sigan aprendiendo a un costo mínimo.
+        </p>
+      </div>
+
       <!-- Encabezado -->
       <div class="pricing-header">
         <span class="pricing-label">✦ Escalera de valor</span>
@@ -254,6 +265,36 @@ const levels: PricingLevel[] = [
   z-index: 1;
   max-width: 1280px;
   margin: 0 auto;
+}
+
+/* ── Mensaje de mision ───────────────────────────────────── */
+.pricing-mission {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  max-width: 760px;
+  margin: 0 auto 2rem;
+  padding: 1rem 1.25rem;
+  background: rgba(30, 64, 175, 0.05);
+  border: 1px solid rgba(30, 64, 175, 0.14);
+  border-radius: 1rem;
+}
+.pricing-mission-icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  color: #1e40af;
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+}
+.pricing-mission p {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.65;
+  color: #475569;
+}
+.pricing-mission-highlight {
+  font-weight: 700;
+  color: #1e40af;
 }
 
 /* ── Encabezado ──────────────────────────────────────────── */

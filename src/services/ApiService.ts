@@ -58,6 +58,11 @@ class ApiService {
     public delete<T>(endpoint: string): Promise<AxiosResponse<T>> {
         return this.api.delete<T>(endpoint);
     }
+
+    /** URL base de la API (sin barra final). La usa EventService para sendBeacon/fetch keepalive. */
+    public get baseUrl(): string {
+        return (this.api.defaults.baseURL ?? "").replace(/\/+$/, "");
+    }
 }
 //https://server.cursosestudiaytrabaja.store
 //export default new ApiService('http://localhost:5002');

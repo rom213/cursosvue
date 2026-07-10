@@ -121,6 +121,7 @@ const handleChangeAccount = () => {
                     <button
                         class="profile-btn"
                         type="button"
+                        data-track="header-perfil"
                         @click="showPoverMore = !showPoverMore"
                     >
                         <img
@@ -152,6 +153,7 @@ const handleChangeAccount = () => {
                         <button
                             type="button"
                             class="profile-menu-item w-full text-left"
+                            data-track="header-cambiar-cuenta"
                             @click="handleChangeAccount"
                         >
                             <span class="w-4 h-4">
@@ -164,6 +166,7 @@ const handleChangeAccount = () => {
                         <button
                             type="button"
                             class="profile-menu-item w-full text-left text-red-600 hover:text-red-700 hover:bg-red-50"
+                            data-track="header-cerrar-sesion"
                             @click="handleLogout"
                         >
                             <span class="w-4 h-4">

@@ -7,6 +7,9 @@ import {
   type PilarDefinition,
 } from './courseFilterData'
 import type { ICategory } from '../types/Categorie'
+import { useTracking } from '../composables/useTracking'
+
+const { trackCustom } = useTracking()
 
 defineProps<{ categories: ICategory[] }>()
 
@@ -52,12 +55,14 @@ const handleTextClick = (filterType: FilterType) => {
   activeFilter.value = activeFilter.value === filterType ? 'all' : filterType
   emit('reorder', activeFilter.value === 'all' ? 'all' : filterType)
   openDropdown.value = null
+  trackCustom('UseFilter', { custom_data: { filter: activeFilter.value } })
 }
 
 const handleTodaTiendaClick = () => {
   activeFilter.value = 'toda-la-tienda'
   emit('reorder', 'toda-la-tienda')
   openDropdown.value = null
+  trackCustom('UseFilter', { custom_data: { filter: 'toda-la-tienda' } })
 }
 
 const handleItemClick = (categoryId: number) => {

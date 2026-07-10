@@ -16,6 +16,12 @@ export default [
       component: () => import('../components/admin/sales/accountManagement/management.admin.account.page.vue'),
       name: 'sales-admin-management-user',
       meta: { showHeader: false, noindex: true }
+    },
+    {
+      path: '/admin/analytics',
+      component: () => import('../components/admin/analytics/analytics.page.vue'),
+      name: 'analytics-admin',
+      meta: { showHeader: false, noindex: true }
     }
   ];
 

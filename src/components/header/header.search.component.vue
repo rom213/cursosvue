@@ -4,6 +4,9 @@ import CategoryService from '../../services/CategorieService';
 import type { ICategory } from '../../types/Categorie';
 import { useRouter } from 'vue-router';
 import { slugifyCourseName } from '../../utils/courseSlug';
+import { useTracking } from '../../composables/useTracking';
+
+const { trackCustom } = useTracking()
 
 const dataReseived = ref<ICategory[] | []>([])
 const dataInput = ref('')
@@ -19,12 +22,19 @@ watch(() => dataInput.value, (val) => {
 })
 
 const getDataSearch = () => {
-    CategoryService.searchCategories(dataInput.value, 8).then((res) => {
+    const term = dataInput.value
+    CategoryService.searchCategories(term, 8).then((res) => {
         dataReseived.value = res
+        trackCustom('Search', { search_string: term, num_items: res.length })
     }).catch(() => dataReseived.value = [])
 }
 
 const handleClickItem = (cat: ICategory) => {
+    trackCustom('SearchResultClick', {
+        content_id: cat.id,
+        content_name: cat.titulo,
+        search_string: dataInput.value,
+    })
     dataInput.value = ""
     dataReseived.value = []
     const dest = {
@@ -56,7 +66,7 @@ const handleClickOutside = () => {
 
             <!-- Interior blanco: el input real -->
             <div class="search-inner">
-                <svg class="search-icon" @click="handleSearch" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg class="search-icon" data-track="header-buscar" @click="handleSearch" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M11.5 21C16.7467 21 21 16.7467 21 11.5C21 6.25329 16.7467 2 11.5 2C6.25329 2 2 6.25329 2 11.5C2 16.7467 6.25329 21 11.5 21Z"
                         stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                     <path d="M22 22L20 20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -81,6 +91,7 @@ const handleClickOutside = () => {
                 <div class="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">Resultados</div>
                 <div v-for="(cat, index) in dataReseived" :key="index"
                      @click="handleClickItem(cat)"
+                     data-track="header-resultado-busqueda"
                     class="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 cursor-pointer transition-colors border-b border-gray-100 last:border-0">
                     <img class="w-10 h-10 rounded-lg object-cover shadow-sm bg-gray-100" :src="cat.imagen_url" alt="" loading="lazy" decoding="async" width="40" height="40">
                     <div class="flex flex-col overflow-hidden">

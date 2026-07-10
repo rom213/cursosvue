@@ -4,6 +4,9 @@ import { RouterLink } from "vue-router";
 import type { ProLesson } from "./monetizar.pro-content";
 import { proLessonContent } from "./monetizar.pro-content";
 import { proModules } from "./monetizar.content";
+import { useTracking } from "../composables/useTracking";
+
+const { trackCustom } = useTracking();
 
 // ── Active module ──────────────────────────────────────────────────────────
 const activeIdx = ref(0);
@@ -52,6 +55,18 @@ function markDone(i: number) {
   if (!current.includes(i)) {
     doneMap.value[id] = [...current, i];
     localStorage.setItem(`pro_done_${id}`, JSON.stringify(doneMap.value[id]));
+    const done = doneMap.value[id].length;
+    const total = activeLessons.value.length;
+    trackCustom("LessonProgress", {
+      content_name: activeMod.value.title,
+      custom_data: {
+        module_id: id,
+        lesson_index: i,
+        done,
+        total,
+        pct: total ? Math.round((done / total) * 100) : 0,
+      },
+    });
   }
   // Auto-advance to next lesson
   if (i < activeLessons.value.length - 1) {

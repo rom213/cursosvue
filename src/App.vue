@@ -10,17 +10,31 @@ import AuthService from './services/AuthServices';
 import { authStore } from './store/AuthStore';
 import { categoryStore } from './store/CategoryStore';
 import { emergentBuyStore } from './store/EmergentBuyStore';
+import { useTracking } from './composables/useTracking';
 
 const store = authStore() // Renamed storeAuth to store for consistency with new code
 const catStore = categoryStore()
 const buyStore = emergentBuyStore()
+const { trackCustom } = useTracking()
 
-
+/**
+ * Stitching de identidad (F3.5): al conocer al usuario logueado, emite CompleteRegistration
+ * UNA vez por sesión. Lleva el `anonymous_id` (sin rotar) del contexto y, al ir autenticado,
+ * el backend resuelve `user_id`/`google_id` desde el token → une persona anónima ↔ logueada.
+ */
+function stitchIdentityOnce(googleId?: string | null) {
+  if (!googleId) return
+  const KEY = 'ce_registration_stitched'
+  if (sessionStorage.getItem(KEY) === googleId) return
+  sessionStorage.setItem(KEY, googleId)
+  trackCustom('CompleteRegistration')
+}
 
 
 const callback = async (response: any) => {
     const ser = await AuthService.verifyToken(response.credential)
     store.setProfile(ser)
+    stitchIdentityOnce(store.profile?.user?.google_id)
 }
 
 
@@ -30,9 +44,15 @@ onMounted(async () => {
     catStore.fetchCategories()
   ])
   store.setProfile(profile)
+  stitchIdentityOnce(store.profile?.user?.google_id)
 
   const affiliaty_id = localStorage.getItem('google_affiliaty')
   if (affiliaty_id) {
+    // ReferralClick (F3.4): llegada por link de referido; una vez por sesión.
+    if (sessionStorage.getItem('ce_referral_tracked') !== affiliaty_id) {
+      sessionStorage.setItem('ce_referral_tracked', affiliaty_id)
+      trackCustom('ReferralClick', { custom_data: { affiliaty_id } })
+    }
     AuthService.get_affiliaty(String(affiliaty_id)).then((res) => {
       if (res) {
         store.nameAffiliaty = res.name

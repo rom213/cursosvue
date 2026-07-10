@@ -1,10 +1,13 @@
 <script lang="ts" setup>
 import { cartStore } from '../store/CartStore';
 import type { ICategory } from '../types/Categorie';
+import { useTracking } from '../composables/useTracking';
 
 const storeCart = cartStore()
+const { trackCustom } = useTracking()
 
 const deleteCart=(id:number)=>{
+    trackCustom('RemoveFromCart', { content_id: id, content_ids: [id] })
     storeCart.deleteItem(id)
 }
 
@@ -36,6 +39,7 @@ defineProps<{
                     <button
                         class="shrink-0 rounded-lg border border-rose-200 bg-rose-50 p-2 text-rose-600 transition hover:bg-rose-100"
                         @click="deleteCart(item.id)"
+                        data-track="carrito-eliminar-item"
                         aria-label="Eliminar del carrito"
                         title="Eliminar del carrito"
                     >

@@ -31,7 +31,7 @@ import descripcionesRaw from "./descripcionCursos.json";
 defineOptions({ name: "CourseInfoPage" });
 
 const storeemergentBuy = emergentBuyStore();
-const { trackViewItem, trackAddToCart } = useTracking();
+const { trackViewItem, trackAddToCart, trackViewContentCourse, trackCustom } = useTracking();
 enum Navegacion {
   Contenido = 1,
   Preguntas = 2,
@@ -171,11 +171,13 @@ watch(searchTermSubcat, (val) => {
 watch(onlyFreeSubcat, () => {
   currentPages.value.subcategorias = 1;
   currentPagesPorCategoria.value = {};
+  trackCustom("ToggleFreeFilter", { is_free: onlyFreeSubcat.value, custom_data: { scope: "subcategoria" } });
 });
 
 watch(onlyFreeLista, () => {
   currentPages.value.listaCompleta = 1;
   fetchListaCompleta();
+  trackCustom("ToggleFreeFilter", { is_free: onlyFreeLista.value, custom_data: { scope: "lista" } });
 });
 
 /** Autores (antes "Plataformas"), paginados desde el backend vía /facets?by=autor. */
@@ -329,10 +331,23 @@ const ensureCursoContenido = async (curso: ICategoryCourseDetail) => {
 const showCourseModal = ref(false);
 const courseModalCurso = ref<ICategoryCourseDetail | null>(null);
 
+/**
+ * Emite un único ViewContent por curso y carga de página: registra el interés al abrir su
+ * contenido y evita duplicar si además el usuario entra al curso (handleCourseClick).
+ */
+const viewedCourseIds = new Set<number>();
+function trackCourseViewOnce(curso: { id?: number; name_del_curso?: string; es_gratis?: boolean }) {
+  const id = curso?.id;
+  if (id == null || viewedCourseIds.has(id)) return;
+  viewedCourseIds.add(id);
+  trackViewContentCourse(curso);
+}
+
 const openCourseModal = (curso: ICategoryCourseDetail) => {
   courseModalCurso.value = curso;
   showCourseModal.value = true;
   ensureCursoContenido(curso);
+  trackCourseViewOnce(curso); // ViewContent del curso al ver su contenido (señal de interés)
 };
 
 const closeCourseModal = () => {
@@ -927,8 +942,14 @@ const FREE_COURSE_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const canAccessCurso = (curso: { es_gratis?: boolean }) =>
   Boolean(category.value?.user_bought) || Boolean(curso.es_gratis);
 
-const handleCourseClick = (curso: { es_gratis?: boolean }, url: string | undefined) => {
+const handleCourseClick = (
+  curso: { id?: number; name_del_curso?: string; es_gratis?: boolean },
+  url: string | undefined,
+) => {
   if (!url) return;
+
+  // ViewContent del curso individual (content_id/is_free) — F3.2. Dedupe con el que emite el modal.
+  trackCourseViewOnce(curso);
 
   if (showCourseModal.value) {
     showCourseModal.value = false;

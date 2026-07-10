@@ -30,6 +30,7 @@
     "@vue/tsconfig": "^0.7.0",
     "autoprefixer": "^10.4.20",
     "daisyui": "^5.1.26",
+    "happy-dom": "^20.10.6",
     "postcss": "^8.5.1",
     "sass-embedded": "^1.93.3",
     "sharp": "^0.34.5",

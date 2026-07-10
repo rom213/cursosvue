@@ -10,7 +10,7 @@ import type { ICategory } from '../types/Categorie';
 import { useTracking } from '../composables/useTracking';
 const storeCart = cartStore()
 const userAuth = authStore()
-const { trackBeginCheckout, trackAddPaymentInfo, persistPurchaseData } = useTracking()
+const { trackBeginCheckout, trackAddPaymentInfo, persistPurchaseData, trackCustom } = useTracking()
 
 const cart = ref<ICategory[]>([]);
 const valueCart = ref<number>(0)
@@ -48,6 +48,12 @@ onMounted(() => {
     valueCart.value += item.precio || 0
   });
   if (cart.value?.length) {
+    trackCustom('ViewCart', {
+      content_ids: cart.value.map((c) => c.id),
+      num_items: cart.value.length,
+      value: valueCart.value,
+      currency: 'COP',
+    })
     trackBeginCheckout(cart.value, valueCart.value)
   }
 
@@ -293,6 +299,7 @@ const buyCategoriesPayPal = async () => {
             <button
               class="mt-3 w-full rounded-xl bg-[#CDFF00] py-3 text-sm font-extrabold text-slate-900 transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-70"
               :disabled="isProcessingPayment"
+              data-track="carrito-desbloquear"
               @click="handleBuyClick"
             >
               {{ isProcessingPayment ? 'Lo estamos alistando para ti...' : 'Desbloquear paquete' }}
@@ -386,6 +393,7 @@ const buyCategoriesPayPal = async () => {
                 v-if="!isOnlyPaypal()"
                 @click="buyCategoriesWompi()"
                 :disabled="isProcessingPayment"
+                data-track="carrito-pagar-wompi"
                 class="w-full rounded-xl border-2 border-emerald-600 bg-emerald-50 hover:bg-emerald-100 disabled:opacity-70 disabled:cursor-not-allowed transition-all transform active:scale-[0.99] px-4 py-3 flex flex-col items-center gap-2 shadow-md shadow-emerald-200"
               >
                 <div class="flex items-center gap-2 w-full justify-center">
@@ -411,6 +419,7 @@ const buyCategoriesPayPal = async () => {
                 v-if="!isGuest"
                 @click="buyCategoriesPayPal()"
                 :disabled="isProcessingPayment"
+                data-track="carrito-pagar-paypal"
                 class="w-full rounded-xl border-2 border-blue-500 bg-blue-50 hover:bg-blue-100 disabled:opacity-70 disabled:cursor-not-allowed transition-all transform active:scale-[0.99] px-4 py-3 flex items-center justify-center gap-3 shadow-md shadow-blue-200"
               >
                 <div class="h-6 w-6 text-[#003087] shrink-0">

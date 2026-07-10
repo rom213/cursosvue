@@ -5,6 +5,8 @@ import authRoutes from './auth.routes';
 import courseRoutes from './course.routes';
 import adminRoutes from './admin.routes';
 import { registerSeoGuards } from './seo';
+import { registerTrackingGuards } from './tracking';
+import { registerClickTracking } from './clickTracking';
 
 const routes = [
   ...publicRoutes,
@@ -19,5 +21,7 @@ const router = createRouter({
 });
 
 registerSeoGuards(router);
+registerTrackingGuards(router);
+registerClickTracking(router);
 
 export default router;

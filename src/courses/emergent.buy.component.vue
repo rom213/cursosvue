@@ -12,7 +12,7 @@ import { useTracking } from "../composables/useTracking";
 
 const storeemergentBuy = emergentBuyStore();
 const userAuth = authStore();
-const { trackBeginCheckout, trackAddPaymentInfo } = useTracking();
+const { trackBeginCheckout, trackAddPaymentInfo, trackCustom } = useTracking();
 
 const emailVerified = ref(false);
 const isEditingAccessEmail = ref(false);
@@ -337,6 +337,12 @@ const handleBuy = async () => {
         : storeemergentBuy.emergentBuy.optionBuyPay === OptionBuyPay.Wompi
           ? "Wompi"
           : "PayU";
+    trackCustom("SelectPaymentMethod", {
+      content_id: cat.id,
+      value: price,
+      currency: "COP",
+      custom_data: { payment_method: payMethod },
+    });
     trackBeginCheckout([cat], price);
     trackAddPaymentInfo([cat], price, payMethod);
   }
@@ -463,6 +469,7 @@ watch(
         </h3>
         <button
           @click="storeemergentBuy.handleEmergentBuy()"
+          data-track="emergente-cerrar"
           class="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-200"
         >
           <svg
@@ -1097,6 +1104,7 @@ watch(
         <button
           @click="handleBuy()"
           :disabled="isProcessingPayment"
+          data-track="emergente-comprar"
           class="w-full rounded-lg bg-green-600 hover:bg-green-700 disabled:opacity-70 disabled:cursor-not-allowed text-white font-bold text-base py-3 transition-all active:scale-[0.99] flex items-center justify-center gap-2"
         >
           <span

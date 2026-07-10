@@ -2,6 +2,12 @@
 import type { AxiosResponse } from "axios";
 import ApiService from "./ApiService";
 import type { ICuponResponsePayu, IPaymentResponsePayPal, IPaymentResponsePayu } from "../types/Payment";
+import { useTracking } from "../composables/useTracking";
+
+/** ApplyCoupon (F3.4): un cupón se aplica al generar la firma/link de un pago real. */
+function trackApplyCoupon(cupon: string) {
+  useTracking().trackCustom("ApplyCoupon", { custom_data: { cupon } });
+}
 
 
 class CuponService {
@@ -26,6 +32,7 @@ class CuponService {
   }
 
   static async generate_signature_reference_code_cupon(data: { categories: any[], cupon: string }): Promise<ICuponResponsePayu | null> {
+    trackApplyCoupon(data.cupon);
     try {
       const response: AxiosResponse<ICuponResponsePayu> = await ApiService.post<ICuponResponsePayu>("/payu-firm-cupon", data);
       return response.data;
@@ -36,6 +43,7 @@ class CuponService {
   }
 
   static async generate_signature_reference_code_cupon_guess(data: { categories: any[], cupon: string }): Promise<ICuponResponsePayu | null> {
+    trackApplyCoupon(data.cupon);
     try {
       const response: AxiosResponse<ICuponResponsePayu> = await ApiService.post<ICuponResponsePayu>("/payu-firm-cupon-guess", data);
       return response.data;
@@ -46,6 +54,7 @@ class CuponService {
   }
 
   static async generate_link_pay_paypal_cupon(data: { categories: any[], cupon: string }): Promise<IPaymentResponsePayPal | null> {
+    trackApplyCoupon(data.cupon);
     try {
       const response: AxiosResponse<any> = await ApiService.post<IPaymentResponsePayPal>("/paypal-generate-link-pay-cupon", data);
       return response.data;

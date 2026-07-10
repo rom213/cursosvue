@@ -1,8 +1,15 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { usePromoQuery } from '../../composables/usePromoQuery'
+import { useTracking } from '../../composables/useTracking'
 
 const { showPromoIntro, dismissIntro } = usePromoQuery()
+const { trackCustom } = useTracking()
+
+// PromoView (F3.4): se registra al mostrarse el diálogo de intro de la promo.
+watch(showPromoIntro, (visible) => {
+  if (visible) trackCustom('PromoView')
+}, { immediate: true })
 
 const driveTooltipText =
   'Servicio en la nube. Puedes ver los cursos online sin consumir tu espacio de almacenamiento, o descargarlos a tu equipo para ser el dueño de los archivos para siempre.'
@@ -36,6 +43,7 @@ const showDriveTooltip = ref(false)
           type="button"
           class="absolute top-3 right-3 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/35 text-white transition-colors focus:outline-none focus:ring-2 focus:ring-white/60"
           aria-label="Cerrar"
+          data-track="promo-cerrar"
           @click="dismissIntro"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
@@ -130,6 +138,7 @@ const showDriveTooltip = ref(false)
           <button
             type="button"
             class="promo-intro-cta w-full h-11 px-3 rounded-xl text-white text-sm font-semibold shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40 hover:brightness-105 active:brightness-95 transition-all whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-400/60 focus:ring-offset-2"
+            data-track="promo-vamos"
             @click="dismissIntro"
           >
             ¡Vamos!

@@ -69,6 +69,9 @@ export interface ContentItem {
 export interface ContentResponse {
   kind: string;
   range: AnalyticsRange;
+  total: number;
+  offset: number;
+  limit: number;
   items: ContentItem[];
 }
 
@@ -86,6 +89,7 @@ export interface ContentParams {
   date_to?: string;
   channel?: string | null;
   device?: string | null;
+  offset?: number;
   limit?: number;
 }
 
@@ -120,6 +124,9 @@ export interface PaidToFree {
 export interface AcquisitionResponse {
   by: "channel" | "campaign" | "referral";
   range: AnalyticsRange;
+  total: number;
+  offset: number;
+  limit: number;
   items: AcquisitionItem[];
   paid_to_free: PaidToFree;
   /** Solo con by=campaign: hay ≥1 costo cargado → el front muestra la columna ROAS (P4). */
@@ -199,6 +206,9 @@ export interface SearchInternalItem {
 
 export interface SearchInternalResponse {
   range: AnalyticsRange;
+  total: number;
+  offset: number;
+  limit: number;
   items: SearchInternalItem[];
 }
 
@@ -212,6 +222,9 @@ export interface SearchPaidTermItem {
 
 export interface SearchPaidTermsResponse {
   range: AnalyticsRange;
+  total: number;
+  offset: number;
+  limit: number;
   items: SearchPaidTermItem[];
 }
 
@@ -221,6 +234,12 @@ export interface SegmentParams {
   date_to?: string;
   channel?: string | null;
   device?: string | null;
+}
+
+/** Params de paginación reutilizables por los endpoints con offset/limit. */
+export interface PageParams {
+  offset?: number;
+  limit?: number;
 }
 
 // ------------------------------------------------------------------ P3: Retención
@@ -288,12 +307,16 @@ export interface SeoItem {
 export interface SeoResponse {
   kind: "queries" | "pages" | "opportunities";
   range: AnalyticsRange;
+  total: number;
+  offset: number;
+  limit: number;
   items: SeoItem[];
 }
 
 export interface SeoParams {
   date_from?: string;
   date_to?: string;
+  offset?: number;
   limit?: number;
 }
 
@@ -358,6 +381,9 @@ export interface CourseInterestItem {
 
 export interface CoursesInterestResponse {
   range: AnalyticsRange;
+  total: number;
+  offset: number;
+  limit: number;
   items: CourseInterestItem[];
 }
 
@@ -459,6 +485,9 @@ export interface NavigationClicksResponse {
   page_path: string | null;
   current: NavClickTotals;
   previous: NavClickTotals;
+  total: number;
+  offset: number;
+  limit: number;
   items: NavClickItem[];
 }
 
@@ -484,6 +513,7 @@ export interface NavigationParams extends SegmentParams {
 }
 export interface NavigationClicksParams extends SegmentParams {
   page_path?: string | null;
+  offset?: number;
   limit?: number;
 }
 
@@ -515,7 +545,7 @@ class AnalyticsService {
 
   static async getAcquisition(
     by: "channel" | "campaign" | "referral",
-    params: SegmentParams & { limit?: number } = {}
+    params: SegmentParams & PageParams = {}
   ): Promise<AcquisitionResponse> {
     const res: AxiosResponse<AcquisitionResponse> = await ApiService.get(
       `${BASE}/acquisition`,
@@ -553,7 +583,7 @@ class AnalyticsService {
   }
 
   static async getSearchInternal(
-    params: SegmentParams & { limit?: number } = {}
+    params: SegmentParams & PageParams = {}
   ): Promise<SearchInternalResponse> {
     const res: AxiosResponse<SearchInternalResponse> = await ApiService.get(
       `${BASE}/search/internal`,
@@ -563,7 +593,7 @@ class AnalyticsService {
   }
 
   static async getSearchPaidTerms(
-    params: SegmentParams & { limit?: number } = {}
+    params: SegmentParams & PageParams = {}
   ): Promise<SearchPaidTermsResponse> {
     const res: AxiosResponse<SearchPaidTermsResponse> = await ApiService.get(
       `${BASE}/search/paid-terms`,
@@ -617,7 +647,7 @@ class AnalyticsService {
 
   // ---------------------------------------------------------------- Cursos de interés + bitácora
   static async getCoursesInterest(
-    params: SegmentParams & { limit?: number } = {}
+    params: SegmentParams & PageParams = {}
   ): Promise<CoursesInterestResponse> {
     const res: AxiosResponse<CoursesInterestResponse> = await ApiService.get(
       `${BASE}/courses-interest`,

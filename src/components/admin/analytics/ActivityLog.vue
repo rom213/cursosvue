@@ -21,7 +21,7 @@ const EVENT_LABELS: Record<string, string> = {
   PageView: "Vio página",
   Search: "Buscó",
   Lead: "Lead",
-  Contact: "Contacto",
+  Contact: "WhatsApp",
 };
 
 function fmtDate(iso: string): string {

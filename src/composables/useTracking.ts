@@ -252,6 +252,29 @@ export function useTracking() {
     })
   }
 
+  /** Click en un CTA "comprar por WhatsApp": intención de compra negociada fuera de la web.
+   *  `source` distingue el CTA ('pack-panel' | 'buy-gate' | 'course-card').
+   *  Emisión dual (dataLayer→GTM/Pixel + backend con el MISMO event_id → dedup navegador↔servidor):
+   *  el Pixel dispara `Contact` en el navegador y el backend guarda la fila en `user_events`. */
+  function trackWhatsAppIntent(category: ICategory, source: string) {
+    const item = mapCategoryToItem(category)
+    emit(
+      'contact_stape',
+      {
+        ecommerce: { currency: CURRENCY, value: item.price, items: [item] },
+        contact_method: 'whatsapp',
+        source
+      },
+      {
+        event_name: 'Contact',
+        fields: {
+          ...fbFieldsFromCategory(category),
+          custom_data: { method: 'whatsapp', intent: 'purchase', source }
+        }
+      }
+    )
+  }
+
   return {
     trackViewItem,
     trackAddToCart,
@@ -262,6 +285,7 @@ export function useTracking() {
     persistPurchaseData,
     getPendingPurchase,
     trackCustom,
-    trackViewContentCourse
+    trackViewContentCourse,
+    trackWhatsAppIntent
   }
 }

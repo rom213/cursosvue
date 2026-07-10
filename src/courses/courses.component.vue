@@ -12,6 +12,7 @@ import type { ICategory } from '../types/Categorie';
 import CourseCard from './CourseCard.vue';
 import type { PillarColor } from './CourseCard.vue';
 import CourseFilterBar from './CourseFilterBar.vue';
+import { useTracking } from '../composables/useTracking';
 
 // Nombre usado por <KeepAlive :include> en App.vue (conserva la vista al cambiar de tab)
 defineOptions({ name: 'CoursesComponent' });
@@ -32,6 +33,7 @@ const categorStore = categoryStore();
 const storeAuth = authStore();
 const cartSt = cartStore();
 const router = useRouter();
+const { trackAddToCart } = useTracking();
 
 // Búsqueda en catálogo (sin pre-rellenar desde promo: el banner/dialog ya orienta al usuario)
 const searchTerm = ref('');
@@ -267,6 +269,7 @@ const currencySuffix = computed(() =>
 const addCarCategory = (item: ICategory) => {
   if (cartSt.validateCart(item)) {
     cartSt.setCart(item);
+    trackAddToCart(item);          // solo si de verdad entró al carrito
   }
 };
 
@@ -279,6 +282,7 @@ const handleBuy = (item: ICategory) => {
   storeemergentBuy.handleChangeOptionsEmergentBuy(OptionsEmergentBuy.UserInternal)
   storeemergentBuy.handleEmergentBuy();
   storeemergentBuy.setCategoryEmergent(item);
+  trackAddToCart(item);            // intención de compra desde la tarjeta (quick-buy)
 };
 
 const getUpsellCategory = (category: ICategory): ICategory | null => {

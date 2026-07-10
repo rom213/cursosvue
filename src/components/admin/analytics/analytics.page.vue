@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, watch, onMounted, computed } from "vue";
+import { ref, watch, onMounted, computed, type Ref } from "vue";
 import AnalyticsService, {
   type OverviewResponse,
   type ContentItem,
@@ -38,6 +38,7 @@ import NavFlowTable from "./NavFlowTable.vue";
 import NavFlowSankey from "./NavFlowSankey.vue";
 import PageClicksRanking from "./PageClicksRanking.vue";
 import SessionTimeline from "./SessionTimeline.vue";
+import PaginationBar from "./PaginationBar.vue";
 
 // --- Estado compartido entre tabs (vive en la página, no en cada componente) ---
 function localISO(d: Date): string {
@@ -88,10 +89,16 @@ const tabs: { value: Tab; label: string }[] = [
 ];
 
 const overview = ref<OverviewResponse | null>(null);
-const content = ref<{ courses: ContentItem[]; categories: ContentItem[]; filters: ContentItem[] }>({
+const content = ref<{
+  courses: ContentItem[]; categories: ContentItem[]; filters: ContentItem[];
+  coursesTotal: number; categoriesTotal: number; filtersTotal: number;
+}>({
   courses: [],
   categories: [],
   filters: [],
+  coursesTotal: 0,
+  categoriesTotal: 0,
+  filtersTotal: 0,
 });
 
 // P2
@@ -116,7 +123,9 @@ const funnel = ref<FunnelResponse | null>(null);
 const paymentMethods = ref<PaymentMethodItem[]>([]);
 const abandoned = ref<AbandonedResponse | null>(null);
 const searchInternal = ref<SearchInternalItem[]>([]);
+const searchInternalTotal = ref(0);
 const searchPaid = ref<SearchPaidTermItem[]>([]);
+const searchPaidTotal = ref(0);
 
 // P3
 const retentionWeeks = ref<number>(8);
@@ -133,9 +142,23 @@ const seoKindTabs: { value: "queries" | "pages" | "opportunities"; label: string
   { value: "opportunities", label: "Oportunidades" },
 ];
 const seo = ref<SeoItem[]>([]);
+const seoTotal = ref(0);
 
 // Cursos de interés + bitácora
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 50; // listas (bitácora, personas, abandonados)
+const PAGE_SIZE_RANKING = 20; // rankings agregados (contenido, cursos, adquisición, búsqueda, seo, clicks)
+// Offset de paginación por tabla. Cada uno lo mueve su handler `pageX` (que recarga en el acto);
+// `resetOffsets()` los pone a 0 cuando cambia rango/segmento/sub-filtro.
+const contentCoursesOffset = ref(0);
+const contentCategoriesOffset = ref(0);
+const contentFiltersOffset = ref(0);
+const acqOffset = ref(0);
+const abandonedOffset = ref(0);
+const searchIntOffset = ref(0);
+const searchPaidOffset = ref(0);
+const seoOffset = ref(0);
+const coursesInterestOffset = ref(0);
+const navClicksOffset = ref(0);
 const coursesInterest = ref<CoursesInterestResponse | null>(null);
 const peopleInterest = ref<PeopleInterestResponse | null>(null);
 const peopleOffset = ref(0);
@@ -145,6 +168,7 @@ const activityEventName = ref<string | null>(null);
 const activityContentId = ref<number | null>(null);
 const activityEventTabs: { value: string | null; label: string }[] = [
   { value: null, label: "Interés (curso)" },
+  { value: "Contact", label: "WhatsApp" },
   { value: "Purchase", label: "Compras" },
   { value: "AddToCart", label: "Carrito" },
   { value: "InitiateCheckout", label: "Checkout" },
@@ -247,11 +271,14 @@ async function loadContent() {
   error.value = null;
   try {
     const [c, cat, f] = await Promise.all([
-      AnalyticsService.getContent({ kind: "courses", ...commonParams() }),
-      AnalyticsService.getContent({ kind: "categories", ...commonParams() }),
-      AnalyticsService.getContent({ kind: "filters", ...commonParams() }),
+      AnalyticsService.getContent({ kind: "courses", ...commonParams(), offset: contentCoursesOffset.value, limit: PAGE_SIZE_RANKING }),
+      AnalyticsService.getContent({ kind: "categories", ...commonParams(), offset: contentCategoriesOffset.value, limit: PAGE_SIZE_RANKING }),
+      AnalyticsService.getContent({ kind: "filters", ...commonParams(), offset: contentFiltersOffset.value, limit: PAGE_SIZE_RANKING }),
     ]);
-    content.value = { courses: c.items, categories: cat.items, filters: f.items };
+    content.value = {
+      courses: c.items, categories: cat.items, filters: f.items,
+      coursesTotal: c.total, categoriesTotal: cat.total, filtersTotal: f.total,
+    };
   } catch (e) {
     console.error(e);
     error.value = "No se pudo cargar el contenido.";
@@ -264,7 +291,11 @@ async function loadAcquisition() {
   loading.value = true;
   error.value = null;
   try {
-    acquisition.value = await AnalyticsService.getAcquisition(acqBy.value, commonParams());
+    acquisition.value = await AnalyticsService.getAcquisition(acqBy.value, {
+      ...commonParams(),
+      offset: acqOffset.value,
+      limit: PAGE_SIZE_RANKING,
+    });
   } catch (e) {
     console.error(e);
     error.value = "No se pudo cargar la adquisición.";
@@ -280,7 +311,7 @@ async function loadFunnel() {
     const [f, pm, ab] = await Promise.all([
       AnalyticsService.getFunnel({ ...commonParams(), compare_to: funnelCompare.value }),
       AnalyticsService.getPaymentMethods(commonParams()),
-      AnalyticsService.getAbandonedCheckouts({ ...commonParams(), limit: 50 }),
+      AnalyticsService.getAbandonedCheckouts({ ...commonParams(), offset: abandonedOffset.value, limit: PAGE_SIZE }),
     ]);
     funnel.value = f;
     paymentMethods.value = pm.items;
@@ -298,11 +329,13 @@ async function loadSearch() {
   error.value = null;
   try {
     const [si, sp] = await Promise.all([
-      AnalyticsService.getSearchInternal({ ...commonParams(), limit: 20 }),
-      AnalyticsService.getSearchPaidTerms({ ...commonParams(), limit: 20 }),
+      AnalyticsService.getSearchInternal({ ...commonParams(), offset: searchIntOffset.value, limit: PAGE_SIZE_RANKING }),
+      AnalyticsService.getSearchPaidTerms({ ...commonParams(), offset: searchPaidOffset.value, limit: PAGE_SIZE_RANKING }),
     ]);
     searchInternal.value = si.items;
+    searchInternalTotal.value = si.total;
     searchPaid.value = sp.items;
+    searchPaidTotal.value = sp.total;
   } catch (e) {
     console.error(e);
     error.value = "No se pudo cargar la búsqueda.";
@@ -336,9 +369,11 @@ async function loadSeo() {
     const res = await AnalyticsService.getSearchSeo(seoKind.value, {
       date_from: range.value.date_from,
       date_to: range.value.date_to,
-      limit: 50,
+      offset: seoOffset.value,
+      limit: PAGE_SIZE_RANKING,
     });
     seo.value = res.items;
+    seoTotal.value = res.total;
   } catch (e) {
     console.error(e);
     error.value = "No se pudo cargar el SEO.";
@@ -352,7 +387,11 @@ async function loadCoursesInterest() {
   error.value = null;
   try {
     const [ci, people] = await Promise.all([
-      AnalyticsService.getCoursesInterest({ ...commonParams(), limit: 50 }),
+      AnalyticsService.getCoursesInterest({
+        ...commonParams(),
+        offset: coursesInterestOffset.value,
+        limit: PAGE_SIZE_RANKING,
+      }),
       AnalyticsService.getCoursesInterestPeople({
         ...commonParams(),
         offset: peopleOffset.value,
@@ -398,7 +437,8 @@ async function loadNavigation() {
       AnalyticsService.getNavigationClicks({
         ...commonParams(),
         page_path: navSelectedPage.value,
-        limit: 30,
+        offset: navClicksOffset.value,
+        limit: PAGE_SIZE_RANKING,
       }),
     ]);
     navMap.value = map;
@@ -417,7 +457,8 @@ async function loadNavClicks() {
     navClicks.value = await AnalyticsService.getNavigationClicks({
       ...commonParams(),
       page_path: navSelectedPage.value,
-      limit: 30,
+      offset: navClicksOffset.value,
+      limit: PAGE_SIZE_RANKING,
     });
   } catch (e) {
     console.error(e);
@@ -425,10 +466,12 @@ async function loadNavClicks() {
 }
 function selectNavPage(path: string) {
   navSelectedPage.value = path;
+  navClicksOffset.value = 0; // nuevo drill-down → volver a la primera página del ranking
   loadNavClicks();
 }
 function clearNavPage() {
   navSelectedPage.value = null;
+  navClicksOffset.value = 0;
   loadNavClicks();
 }
 
@@ -491,29 +534,71 @@ const campaignNames = computed(() =>
     : []
 );
 
-/** Paginación de la bitácora / personas (avanza si hay más filas). */
-function pageActivity(dir: number) {
-  const next = activityOffset.value + dir * PAGE_SIZE;
-  if (next < 0 || (activity.value && next >= activity.value.total)) return;
-  activityOffset.value = next;
-}
-function pagePeople(dir: number) {
-  const next = peopleOffset.value + dir * PAGE_SIZE;
-  if (next < 0 || (peopleInterest.value && next >= peopleInterest.value.total)) return;
-  peopleOffset.value = next;
-}
-function selectActivityEvent(v: string | null) {
-  activityEventName.value = v;
-  activityOffset.value = 0; // reinicia la paginación al cambiar de filtro
+/** Mueve un offset (si hay más filas) y recarga esa tabla en el acto. Generaliza la paginación:
+ *  los offsets NO están en el watcher, así que avanzar de página es una sola petición. */
+function page(offsetRef: Ref<number>, total: number, pageSize: number, dir: 1 | -1, loader: () => void) {
+  const next = offsetRef.value + dir * pageSize;
+  if (next < 0 || next >= total) return;
+  offsetRef.value = next;
+  loader();
 }
 
+const pageContentCourses = (d: 1 | -1) =>
+  page(contentCoursesOffset, content.value.coursesTotal, PAGE_SIZE_RANKING, d, loadContent);
+const pageContentCategories = (d: 1 | -1) =>
+  page(contentCategoriesOffset, content.value.categoriesTotal, PAGE_SIZE_RANKING, d, loadContent);
+const pageContentFilters = (d: 1 | -1) =>
+  page(contentFiltersOffset, content.value.filtersTotal, PAGE_SIZE_RANKING, d, loadContent);
+const pageCoursesInterest = (d: 1 | -1) =>
+  page(coursesInterestOffset, coursesInterest.value?.total ?? 0, PAGE_SIZE_RANKING, d, loadCoursesInterest);
+const pagePeople = (d: 1 | -1) =>
+  page(peopleOffset, peopleInterest.value?.total ?? 0, PAGE_SIZE, d, loadCoursesInterest);
+const pageAcq = (d: 1 | -1) =>
+  page(acqOffset, acquisition.value?.total ?? 0, PAGE_SIZE_RANKING, d, loadAcquisition);
+const pageAbandoned = (d: 1 | -1) =>
+  page(abandonedOffset, abandoned.value?.total ?? 0, PAGE_SIZE, d, loadFunnel);
+const pageSearchInt = (d: 1 | -1) =>
+  page(searchIntOffset, searchInternalTotal.value, PAGE_SIZE_RANKING, d, loadSearch);
+const pageSearchPaid = (d: 1 | -1) =>
+  page(searchPaidOffset, searchPaidTotal.value, PAGE_SIZE_RANKING, d, loadSearch);
+const pageSeo = (d: 1 | -1) =>
+  page(seoOffset, seoTotal.value, PAGE_SIZE_RANKING, d, loadSeo);
+const pageActivity = (d: 1 | -1) =>
+  page(activityOffset, activity.value?.total ?? 0, PAGE_SIZE, d, loadActivity);
+const pageNavClicks = (d: 1 | -1) =>
+  page(navClicksOffset, navClicks.value?.total ?? 0, PAGE_SIZE_RANKING, d, loadNavClicks);
+
+/** Vuelve toda la paginación a la página 1. Se llama al cambiar rango/segmento/sub-filtro/tab. */
+function resetOffsets() {
+  contentCoursesOffset.value = 0;
+  contentCategoriesOffset.value = 0;
+  contentFiltersOffset.value = 0;
+  acqOffset.value = 0;
+  abandonedOffset.value = 0;
+  searchIntOffset.value = 0;
+  searchPaidOffset.value = 0;
+  seoOffset.value = 0;
+  coursesInterestOffset.value = 0;
+  peopleOffset.value = 0;
+  activityOffset.value = 0;
+  navClicksOffset.value = 0;
+}
+
+function selectActivityEvent(v: string | null) {
+  activityEventName.value = v; // el watcher resetea el offset y recarga
+}
+
+// Cambiar rango/segmento/tab/sub-filtro reinicia la paginación ANTES de recargar (evita pedir una
+// página que ya no existe). Los offsets no están aquí: sus handlers `pageX` recargan directamente.
 watch(
   [
     range, segments, granularity, activeTab, acqBy, funnelCompare,
-    retentionWeeks, retentionCohort, seoKind,
-    peopleOffset, activityOffset, activityEventName, activityContentId,
+    retentionWeeks, retentionCohort, seoKind, activityEventName, activityContentId,
   ],
-  loadActive,
+  () => {
+    resetOffsets();
+    loadActive();
+  },
   { deep: true }
 );
 onMounted(loadActive);
@@ -658,32 +743,55 @@ onMounted(loadActive);
             <ExportCsvButton filename="contenido-filtros" label="CSV filtros" :rows="content.filters" />
           </div>
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <RankingTable
-              class="lg:col-span-2"
-              title="Cursos más vistos → comprados"
-              :items="content.courses"
-              label-field="title"
-              value-field="views"
-              value-label="Vistas"
-              :show-conversion="true"
-              empty-hint="Aún no hay ViewContent con content_id en este rango (lo alimenta F3)."
-            />
-            <RankingTable
-              title="Categorías más vistas"
-              :items="content.categories"
-              label-field="key"
-              value-field="count"
-              value-label="Vistas"
-              empty-hint="Sin categorías registradas en este rango."
-            />
-            <RankingTable
-              title="Filtros más usados"
-              :items="content.filters"
-              label-field="key"
-              value-field="count"
-              value-label="Usos"
-              empty-hint="Sin eventos de filtro (UseFilter/ToggleFreeFilter) en este rango."
-            />
+            <div class="lg:col-span-2 flex flex-col gap-2">
+              <RankingTable
+                title="Cursos más vistos → comprados"
+                :items="content.courses"
+                label-field="title"
+                value-field="views"
+                value-label="Vistas"
+                :show-conversion="true"
+                empty-hint="Aún no hay ViewContent con content_id en este rango (lo alimenta F3)."
+              />
+              <PaginationBar
+                :offset="contentCoursesOffset"
+                :limit="PAGE_SIZE_RANKING"
+                :total="content.coursesTotal"
+                @page="pageContentCourses"
+              />
+            </div>
+            <div class="flex flex-col gap-2">
+              <RankingTable
+                title="Categorías más vistas"
+                :items="content.categories"
+                label-field="key"
+                value-field="count"
+                value-label="Vistas"
+                empty-hint="Sin categorías registradas en este rango."
+              />
+              <PaginationBar
+                :offset="contentCategoriesOffset"
+                :limit="PAGE_SIZE_RANKING"
+                :total="content.categoriesTotal"
+                @page="pageContentCategories"
+              />
+            </div>
+            <div class="flex flex-col gap-2">
+              <RankingTable
+                title="Filtros más usados"
+                :items="content.filters"
+                label-field="key"
+                value-field="count"
+                value-label="Usos"
+                empty-hint="Sin eventos de filtro (UseFilter/ToggleFreeFilter) en este rango."
+              />
+              <PaginationBar
+                :offset="contentFiltersOffset"
+                :limit="PAGE_SIZE_RANKING"
+                :total="content.filtersTotal"
+                @page="pageContentFilters"
+              />
+            </div>
           </div>
         </template>
 
@@ -697,6 +805,13 @@ onMounted(loadActive);
             <ExportCsvButton filename="cursos-interes" label="CSV cursos" :rows="coursesInterest?.items ?? []" />
           </div>
           <CoursesInterestTable :items="coursesInterest?.items ?? []" />
+          <PaginationBar
+            v-if="coursesInterest"
+            :offset="coursesInterestOffset"
+            :limit="PAGE_SIZE_RANKING"
+            :total="coursesInterest.total"
+            @page="pageCoursesInterest"
+          />
 
           <div class="flex items-center justify-between flex-wrap gap-2 mt-2">
             <h2 class="text-sm font-bold text-gray-500 uppercase tracking-wide">Seguimiento comercial</h2>
@@ -707,29 +822,13 @@ onMounted(loadActive);
             :items="peopleInterest.items"
             :total="peopleInterest.total"
           />
-          <div
-            v-if="peopleInterest && peopleInterest.total > PAGE_SIZE"
-            class="flex items-center justify-end gap-2"
-          >
-            <button
-              class="text-xs font-semibold px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
-              :disabled="peopleOffset === 0"
-              @click="pagePeople(-1)"
-            >
-              ← Anterior
-            </button>
-            <span class="text-xs text-gray-400 tabular-nums">
-              {{ peopleOffset + 1 }}–{{ Math.min(peopleOffset + PAGE_SIZE, peopleInterest.total) }}
-              de {{ peopleInterest.total }}
-            </span>
-            <button
-              class="text-xs font-semibold px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
-              :disabled="peopleOffset + PAGE_SIZE >= peopleInterest.total"
-              @click="pagePeople(1)"
-            >
-              Siguiente →
-            </button>
-          </div>
+          <PaginationBar
+            v-if="peopleInterest"
+            :offset="peopleOffset"
+            :limit="PAGE_SIZE"
+            :total="peopleInterest.total"
+            @page="pagePeople"
+          />
         </template>
 
         <!-- Tab: Adquisición -->
@@ -787,6 +886,12 @@ onMounted(loadActive);
             :by="acqBy"
             :has-costs="acquisition.has_costs ?? false"
           />
+          <PaginationBar
+            :offset="acqOffset"
+            :limit="PAGE_SIZE_RANKING"
+            :total="acquisition.total"
+            @page="pageAcq"
+          />
         </template>
 
         <!-- Tab: Embudo -->
@@ -842,12 +947,20 @@ onMounted(loadActive);
             :items="abandoned.items"
             :total="abandoned.total"
           />
+          <PaginationBar
+            v-if="abandoned"
+            :offset="abandonedOffset"
+            :limit="PAGE_SIZE"
+            :total="abandoned.total"
+            @page="pageAbandoned"
+          />
         </template>
 
         <!-- Tab: Búsqueda -->
         <template v-else-if="activeTab === 'search'">
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <!-- Búsqueda interna -->
+            <div class="flex flex-col gap-2">
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
               <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
                 <h3 class="text-sm font-bold text-gray-700">Búsqueda interna</h3>
@@ -879,8 +992,16 @@ onMounted(loadActive);
                 </table>
               </div>
             </div>
+            <PaginationBar
+              :offset="searchIntOffset"
+              :limit="PAGE_SIZE_RANKING"
+              :total="searchInternalTotal"
+              @page="pageSearchInt"
+            />
+            </div>
 
             <!-- Keywords pagadas -->
+            <div class="flex flex-col gap-2">
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
               <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
                 <h3 class="text-sm font-bold text-gray-700">Keywords pagadas (utm_term)</h3>
@@ -911,6 +1032,13 @@ onMounted(loadActive);
                   </tbody>
                 </table>
               </div>
+            </div>
+            <PaginationBar
+              :offset="searchPaidOffset"
+              :limit="PAGE_SIZE_RANKING"
+              :total="searchPaidTotal"
+              @page="pageSearchPaid"
+            />
             </div>
           </div>
         </template>
@@ -975,6 +1103,12 @@ onMounted(loadActive);
               ? 'Sin oportunidades SEO en este rango (o sin datos de Search Console todavía).'
               : 'Sin datos de Search Console en este rango. Lo alimenta el import nocturno de GSC (P3).'"
           />
+          <PaginationBar
+            :offset="seoOffset"
+            :limit="PAGE_SIZE_RANKING"
+            :total="seoTotal"
+            @page="pageSeo"
+          />
         </template>
 
         <!-- Tab: Actividad (bitácora de eventos individuales, sin caché) -->
@@ -1000,30 +1134,13 @@ onMounted(loadActive);
             :total="activity.total"
             @view-session="openSession"
           />
-
-          <div
-            v-if="activity && activity.total > PAGE_SIZE"
-            class="flex items-center justify-end gap-2"
-          >
-            <button
-              class="text-xs font-semibold px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
-              :disabled="activityOffset === 0"
-              @click="pageActivity(-1)"
-            >
-              ← Anterior
-            </button>
-            <span class="text-xs text-gray-400 tabular-nums">
-              {{ activityOffset + 1 }}–{{ Math.min(activityOffset + PAGE_SIZE, activity.total) }}
-              de {{ activity.total }}
-            </span>
-            <button
-              class="text-xs font-semibold px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
-              :disabled="activityOffset + PAGE_SIZE >= activity.total"
-              @click="pageActivity(1)"
-            >
-              Siguiente →
-            </button>
-          </div>
+          <PaginationBar
+            v-if="activity"
+            :offset="activityOffset"
+            :limit="PAGE_SIZE"
+            :total="activity.total"
+            @page="pageActivity"
+          />
         </template>
 
         <!-- Tab: Navegación (mapa de flujo + clicks por página + recorrido de sesión) -->
@@ -1082,11 +1199,20 @@ onMounted(loadActive);
               :selected-page="navSelectedPage"
               @select-page="selectNavPage"
             />
-            <PageClicksRanking
-              :items="navClicks?.items ?? []"
-              :page-path="navSelectedPage"
-              @clear="clearNavPage"
-            />
+            <div class="flex flex-col gap-2">
+              <PageClicksRanking
+                :items="navClicks?.items ?? []"
+                :page-path="navSelectedPage"
+                @clear="clearNavPage"
+              />
+              <PaginationBar
+                v-if="navClicks"
+                :offset="navClicksOffset"
+                :limit="PAGE_SIZE_RANKING"
+                :total="navClicks.total"
+                @page="pageNavClicks"
+              />
+            </div>
           </div>
         </template>
 

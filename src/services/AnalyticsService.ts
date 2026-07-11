@@ -342,6 +342,31 @@ export interface CampaignCostInput {
   currency?: string;
 }
 
+// ---------------------------------------------------------------- Gestión de datos (lotes + reset)
+export interface EventBatch {
+  id: number;
+  name: string;
+  note: string | null;
+  started_at: string;
+  /** Rango en días para el DateRangePicker. */
+  date_from: string;
+  date_to: string;
+  /** Instantes exactos (hora Bogotá): inicio del lote y del siguiente (null = vigente). */
+  ts_from: string;
+  ts_to: string | null;
+  /** true si el lote está programado y aún no arranca. */
+  scheduled: boolean;
+}
+
+export interface EventBatchesResponse {
+  items: EventBatch[];
+}
+
+export interface ResetEventsResponse {
+  deleted_user_events: number;
+  deleted_navigation_events: number;
+}
+
 // ------------------------------------------------------------------ P4: Tiempo real
 export interface RealtimePage {
   page: string;
@@ -696,6 +721,34 @@ class AnalyticsService {
   static async getNavigationSession(sessionId: string): Promise<NavigationSessionResponse> {
     const res: AxiosResponse<NavigationSessionResponse> = await ApiService.get(
       `${BASE}/navigation/session/${encodeURIComponent(sessionId)}`
+    );
+    return res.data;
+  }
+
+  // ---------------------------------------------------------------- Gestión de datos
+  static async getBatches(): Promise<EventBatchesResponse> {
+    const res: AxiosResponse<EventBatchesResponse> = await ApiService.get(`${BASE}/batches`);
+    return res.data;
+  }
+
+  static async createBatch(input: {
+    name: string;
+    note?: string;
+    /** "YYYY-MM-DDTHH:MM" hora Bogotá; omitir = ahora. */
+    started_at?: string;
+  }): Promise<EventBatch> {
+    const res: AxiosResponse<EventBatch> = await ApiService.post(`${BASE}/batches`, input);
+    return res.data;
+  }
+
+  static async deleteBatch(id: number): Promise<void> {
+    await ApiService.delete(`${BASE}/batches/${id}`);
+  }
+
+  static async resetEvents(confirm: string): Promise<ResetEventsResponse> {
+    const res: AxiosResponse<ResetEventsResponse> = await ApiService.post(
+      `${BASE}/events/reset`,
+      { confirm }
     );
     return res.data;
   }

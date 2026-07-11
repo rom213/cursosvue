@@ -5,6 +5,9 @@ export interface RangeValue {
   date_from: string;
   date_to: string;
   compare: boolean;
+  /** Vista de lote: instantes exactos (hora Bogotá). Cualquier cambio manual los limpia. */
+  ts_from?: string | null;
+  ts_to?: string | null;
 }
 
 const props = defineProps<{ modelValue: RangeValue }>();
@@ -27,7 +30,11 @@ function localISO(d: Date): string {
 }
 
 function emitChange() {
-  emit("update:modelValue", { ...state });
+  emit("update:modelValue", {
+    date_from: state.date_from,
+    date_to: state.date_to,
+    compare: state.compare,
+  });
 }
 
 function applyQuick(days: number) {

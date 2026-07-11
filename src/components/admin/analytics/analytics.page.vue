@@ -39,6 +39,7 @@ import NavFlowSankey from "./NavFlowSankey.vue";
 import PageClicksRanking from "./PageClicksRanking.vue";
 import SessionTimeline from "./SessionTimeline.vue";
 import PaginationBar from "./PaginationBar.vue";
+import DataToolsPanel from "./DataToolsPanel.vue";
 
 // --- Estado compartido entre tabs (vive en la página, no en cada componente) ---
 function localISO(d: Date): string {
@@ -191,8 +192,9 @@ const error = ref<string | null>(null);
 
 function commonParams() {
   return {
-    date_from: range.value.date_from,
-    date_to: range.value.date_to,
+    // Vista de lote: el instante exacto viaja EN date_from/date_to (contrato extendido del API).
+    date_from: range.value.ts_from ?? range.value.date_from,
+    date_to: range.value.ts_to ?? range.value.date_to,
     channel: segments.value.channel,
     device: segments.value.device,
   };
@@ -521,6 +523,41 @@ function refresh() {
   else loadActive();
 }
 
+const dataToolsOpen = ref(false);
+const activeBatchName = ref<string | null>(null);
+
+/** Vista de lote: días para el picker + instantes exactos. Mover `range` dispara el watch. */
+function applyBatchRange(r: {
+  date_from: string; date_to: string; ts_from: string; ts_to: string | null; name: string;
+}) {
+  activeBatchName.value = r.name;
+  range.value = {
+    compare: range.value.compare,
+    date_from: r.date_from,
+    date_to: r.date_to,
+    ts_from: r.ts_from,
+    ts_to: r.ts_to,
+  };
+}
+
+/** Salir de la vista de lote → días completos (el watch recarga). */
+function clearBatchView() {
+  range.value = {
+    date_from: range.value.date_from,
+    date_to: range.value.date_to,
+    compare: range.value.compare,
+  };
+}
+
+function fmtTs(ts: string): string {
+  return ts.slice(0, 16).replace("T", " "); // "2026-07-11 10:45"
+}
+
+/** Tras el reset: recargar el tab activo (y remontar Tiempo real si aplica) ya en cero. */
+function onResetDone() {
+  refresh();
+}
+
 // Campañas visibles → autocompletado del formulario de costos.
 const campaignNames = computed(() =>
   acqBy.value === "campaign"
@@ -613,6 +650,25 @@ onMounted(loadActive);
           <div class="flex items-center justify-between flex-wrap gap-3">
             <h1 class="text-2xl font-bold text-gray-800">Analítica</h1>
             <div class="flex items-center gap-2">
+              <span
+                v-if="range.ts_from"
+                class="inline-flex items-center gap-1.5 text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 rounded-lg px-2.5 py-1.5"
+              >
+                Lote: {{ activeBatchName || "personalizado" }} · desde {{ fmtTs(range.ts_from) }}
+                <button type="button" class="text-blue-400 hover:text-blue-700 leading-none" title="Salir de la vista de lote" @click="clearBatchView">✕</button>
+              </span>
+              <button
+                type="button"
+                class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-600 bg-white border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition-colors"
+                title="Lotes de campaña y borrado del historial"
+                @click="dataToolsOpen = true"
+              >
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
+                  <path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12" />
+                </svg>
+                Datos
+              </button>
               <button
                 type="button"
                 class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-600 bg-white border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition-colors disabled:opacity-50"
@@ -1230,6 +1286,14 @@ onMounted(loadActive);
       :loading="sessionLoading"
       :error="sessionError"
       @close="closeSession"
+    />
+
+    <!-- Modal: gestión de datos (lotes de campaña + reset) -->
+    <DataToolsPanel
+      v-if="dataToolsOpen"
+      @close="dataToolsOpen = false"
+      @apply-range="applyBatchRange"
+      @reset-done="onResetDone"
     />
   </q-page>
 </template>

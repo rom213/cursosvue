@@ -340,7 +340,7 @@ function trackCourseViewOnce(curso: { id?: number; name_del_curso?: string; es_g
   const id = curso?.id;
   if (id == null || viewedCourseIds.has(id)) return;
   viewedCourseIds.add(id);
-  trackViewContentCourse(curso);
+  trackViewContentCourse(curso, category.value);
 }
 
 const openCourseModal = (curso: ICategoryCourseDetail) => {

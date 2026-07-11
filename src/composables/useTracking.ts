@@ -45,14 +45,14 @@ function isCategoryFree(category: ICategory): boolean {
 
 /** Comercio para eventos de una sola categoría (ViewContent/AddToCart). */
 function fbFieldsFromCategory(category: ICategory): Partial<TrackedEvent> {
+  const price = category.precio_desc || category.precio || 0
   return {
     content_id: category.id,
     content_ids: [category.id],
     content_type: CONTENT_TYPE,
     content_name: category.titulo,
     is_free: isCategoryFree(category),
-    value: category.precio_desc,
-    currency: CURRENCY,
+    ...(price > 0 ? { value: price, currency: CURRENCY } : {}),
     num_items: 1
   }
 }
@@ -241,14 +241,23 @@ export function useTracking() {
     sendBackend(newEventId(), eventName, fields)
   }
 
-  /** ViewContent de un curso individual dentro de un paquete (F3.2, handleCourseClick). */
-  function trackViewContentCourse(course: { id?: number; name_del_curso?: string; es_gratis?: boolean }) {
+  /**
+   * ViewContent de un curso individual dentro de un paquete (F3.2, handleCourseClick).
+   * El curso no tiene precio propio: su valor comercial es el precio del pack que lo contiene.
+   * Si `pack` no llega o es gratis, el evento sale sin `value` (mejor omitirlo que mandar 0).
+   */
+  function trackViewContentCourse(
+    course: { id?: number; name_del_curso?: string; es_gratis?: boolean },
+    pack?: ICategory
+  ) {
+    const price = pack ? pack.precio_desc || pack.precio || 0 : 0
     trackCustom('ViewContent', {
       content_id: course.id,
       content_ids: course.id != null ? [course.id] : undefined,
       content_type: 'course',
       content_name: course.name_del_curso,
-      is_free: Boolean(course.es_gratis)
+      is_free: Boolean(course.es_gratis),
+      ...(price > 0 ? { value: price, currency: CURRENCY } : {})
     })
   }
 

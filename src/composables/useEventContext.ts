@@ -117,14 +117,19 @@ export function captureAttribution(): Attribution {
       changed = true;
     }
   }
+  // fbclid/gclid se leen CRUDOS (rawQueryParam): URLSearchParams percent-decodifica y convierte
+  // `+`→espacio, lo que altera el fbclid y hace que Meta reporte "fbclid modificado en fbc".
   for (const key of ["fbclid", "gclid"] as const) {
-    const value = params.get(key);
+    const value = rawQueryParam(key);
     if (value && stored[key] !== value) {
       stored[key] = value;
       changed = true;
     }
   }
   if (changed) safeSet(sessionStorage, EVENT_ATTRIBUTION_KEY, JSON.stringify(stored));
+  // Fija la cookie `_fbc` una sola vez al aterrizar con el fbclid EXACTO, para que todos los
+  // eventos (y el Pixel/Stape) reutilicen el mismo fbc con un timestamp estable.
+  if (stored.fbclid) ensureFbcCookie(stored.fbclid);
   return stored;
 }
 
@@ -151,6 +156,22 @@ export function getFbCookies(fbclid?: string): { fbp?: string; fbc?: string } {
     fbc = `fb.1.${Date.now()}.${fbclid}`;
   }
   return { fbp: fbp || undefined, fbc: fbc || undefined };
+}
+
+/** Duración de la cookie `_fbc` (90 días, igual que el default del Pixel de Meta). */
+const FBC_COOKIE_MAX_AGE = 90 * 24 * 60 * 60;
+
+/**
+ * Fija la cookie `_fbc` (formato oficial `fb.1.<timestamp>.<fbclid>`) UNA sola vez al aterrizar,
+ * usando el fbclid exacto. Si el Pixel/Stape ya la puso, no la toca. Así el fbc es idéntico y
+ * estable entre todos los eventos (navegador y servidor), evitando el timestamp cambiante por
+ * evento y el "fbclid modificado" que reporta Meta.
+ */
+function ensureFbcCookie(rawFbclid: string): void {
+  if (typeof document === "undefined") return;
+  if (readCookie("_fbc")) return; // el Pixel/Stape ya la fijó → no pisar
+  const fbc = `fb.1.${Date.now()}.${rawFbclid}`;
+  document.cookie = `_fbc=${fbc}; path=/; max-age=${FBC_COOKIE_MAX_AGE}; SameSite=Lax`;
 }
 
 // --- Ensamblado del contexto por evento ---------------------------------------------------
@@ -185,6 +206,17 @@ function readCookie(name: string): string | null {
   if (typeof document === "undefined") return null;
   const match = document.cookie.match(new RegExp("(?:^|; )" + name + "=([^;]*)"));
   return match ? decodeURIComponent(match[1]) : null;
+}
+
+/**
+ * Extrae un parámetro de la query string SIN decodificar (a diferencia de URLSearchParams, que
+ * percent-decodifica y convierte `+`→espacio). Necesario para `fbclid`, cuyo valor debe llegar a
+ * Meta exactamente como venía en la URL. Devuelve la subcadena cruda o null.
+ */
+function rawQueryParam(name: string): string | null {
+  if (typeof window === "undefined") return null;
+  const match = window.location.search.match(new RegExp("[?&]" + name + "=([^&#]*)"));
+  return match ? match[1] : null;
 }
 
 function safeGet(store: Storage, key: string): string | null {

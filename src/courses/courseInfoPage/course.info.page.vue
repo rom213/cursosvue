@@ -2949,7 +2949,7 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
             <!-- Lista Completa -->
             <div
               id="lista-completa-header"
-              v-if="listaCompletaTotal > 0 || listaCompletaLoading"
+              v-if="listaCompletaTotal > 0 || listaCompletaLoading || isListaBuscando"
               class="bg-white rounded-2xl border border-slate-100/80 shadow-md overflow-hidden transition-shadow hover:shadow-lg"
             >
               <div

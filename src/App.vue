@@ -3,6 +3,7 @@ import { RouterView } from 'vue-router';
 import HeaderComponent from './components/header/header.component.vue';
 import ChatbotWidgetComponent from './components/common/chatbot-widget.component.vue';
 import PromoIntroDialogComponent from './components/common/promo-intro-dialog.component.vue';
+import CampaignReturnBanner from './components/common/CampaignReturnBanner.vue';
 import { GoogleLogin } from 'vue3-google-login'; // Added GoogleLogin import
 
 import { onMounted, watch } from 'vue';
@@ -106,10 +107,12 @@ watch(() => store.profile?.user?.google_id, (id) => {
     <!-- ═══ DIALOG DE INTRODUCCION A LA PROMO ═══ -->
     <PromoIntroDialogComponent v-if="!buyStore.emergentBuy.emergent" />
 
+    <!-- Recordatorio persistente para volver a una landing de campaña visitada -->
+    <CampaignReturnBanner />
+
     <!-- ═══ CHATBOT WIDGET (Clarita) ═══ -->
     <ChatbotWidgetComponent v-if="false" />
 
   </div>
 
 </template>
-

@@ -10,6 +10,12 @@ export default [
       meta: { showHeader: true }
     },
     {
+      path: '/courses/306/tematica',
+      component: () => import('../courses/campaigns/BisuteriaCampaignPage.vue'),
+      name: 'bisuteria-campaign',
+      meta: { showHeader: true, noindex: true }
+    },
+    {
       path: '/courses/:id/:courseSlug?',
       component: () => import('../courses/courseInfoPage/course.info.page.vue'),
       name: 'courses-description',

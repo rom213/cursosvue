@@ -4,6 +4,7 @@ import { fbLogin, loadFbSdk } from '../services/FacebookSdk';
 import AuthService from '../services/AuthServices';
 import { authStore } from '../store/AuthStore';
 import { toastStore } from '../store/ToastStore';
+import type { AuthResponse } from '../types/Auth';
 
 function messageFrom409(error: unknown): string {
   if (axios.isAxiosError(error)) {
@@ -16,7 +17,7 @@ function messageFrom409(error: unknown): string {
   return 'Este correo ya está registrado con otro método de acceso.';
 }
 
-export function useFacebookLogin(options?: { onSuccess?: () => void }) {
+export function useFacebookLogin(options?: { onSuccess?: (result: AuthResponse) => void }) {
   const loading = ref(false);
   const userStore = authStore();
   const toasts = toastStore();
@@ -29,7 +30,7 @@ export function useFacebookLogin(options?: { onSuccess?: () => void }) {
       const result = await AuthService.verifyFacebookToken(accessToken);
       if (result) {
         userStore.setProfile(result);
-        options?.onSuccess?.();
+        options?.onSuccess?.(result);
       } else {
         toasts.add('error', 6000, 'No se pudo iniciar sesión con Facebook. Intenta de nuevo.');
       }

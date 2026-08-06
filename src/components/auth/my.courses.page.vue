@@ -6,6 +6,7 @@ import MessageService from '../../services/MessageService';
 import PaymentService from '../../services/PaymentService';
 import GuestCheckoutService, { type GuestCourse } from '../../services/GuestCheckoutService';
 import { authStore } from '../../store/AuthStore';
+import { useTracking } from '../../composables/useTracking';
 
 // Nombre usado por <KeepAlive :include> en App.vue (conserva la vista al cambiar de tab)
 defineOptions({ name: 'MyCoursesPage' });
@@ -17,6 +18,7 @@ import { useRoute, useRouter } from 'vue-router';
 import AffiliatyMessageComponent from '../../components/auth/affiliaty.message.component.vue';
 
 const userAuth = authStore()
+const { trackCustom } = useTracking()
 const isGuestFlow = ref(false)
 const guestCourses = ref<GuestCourse[]>([])
 const guestTransactionPending = ref(false)
@@ -109,9 +111,14 @@ onMounted(async () => {
   }
 });
 
-const hadleLinkCoursesDrive = (link: string | undefined) => {
-  if (link) {
-    window.open(link, "_blank");
+const hadleLinkCoursesDrive = (category: ICategory) => {
+  if (category.url) {
+    trackCustom('DriveAccessClick', {
+      content_id: category.id,
+      content_name: category.titulo,
+      custom_data: { source: 'my_courses' },
+    })
+    window.open(category.url, "_blank");
   }
 }
 
@@ -177,6 +184,11 @@ const submitReview = async () => {
   reviewSubmitting.value = false;
 
   if (success) {
+    trackCustom('ReviewSubmit', {
+      content_id: reviewCategoryId.value,
+      content_name: reviewCategoryName.value,
+      custom_data: { rating: reviewStars.value },
+    })
     reviewSuccess.value = '¡Reseña enviada con éxito!';
     // Mark the course as already commented locally
     const course = courseBougth.value.find(c => c.id === reviewCategoryId.value);
@@ -406,7 +418,7 @@ const submitReview = async () => {
 
               <!-- Acción inferior -->
               <div class="mt-6 pt-5 border-t border-gray-50 flex flex-col gap-3">
-                <button @click="hadleLinkCoursesDrive(item.url)"
+                <button @click="hadleLinkCoursesDrive(item)"
                   class="w-full flex items-center justify-center gap-2 bg-[#FFBF2B] hover:bg-[#FACC15] text-slate-900 font-semibold py-3 px-4 rounded-xl shadow-sm hover:shadow transition-all duration-200">
                   <span>Ver Mis Cursos</span>
                   <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

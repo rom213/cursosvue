@@ -41,7 +41,7 @@ const userAuth = authStore();
 const { activateCampaign } = useCampaignReturn();
 const {
   trackViewItem,
-  trackAddToCart,
+  trackBeginCheckout,
   trackCustom,
   trackWhatsAppIntent,
   trackViewContentCourse,
@@ -563,7 +563,7 @@ function handleWebBuy(source: string) {
   }
 
   buyStore.setCategoryEmergent(category.value);
-  trackAddToCart(category.value);
+  trackBeginCheckout([category.value], finalPrice.value);
   if (!buyStore.emergentBuy.emergent) buyStore.handleEmergentBuy();
 }
 

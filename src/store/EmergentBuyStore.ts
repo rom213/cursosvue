@@ -8,8 +8,6 @@ const { generatePayUForm } = usePayU();
 import PaymentService from '../services/PaymentService';
 import GuestCheckoutService from '../services/GuestCheckoutService';
 import CuponService from "../services/Cupon";
-import { useTracking } from "../composables/useTracking";
-const { persistPurchaseData } = useTracking();
 
 
 
@@ -71,8 +69,6 @@ export const emergentBuyStore = defineStore('emergentBuy', () => {
             }
              
             const gateway = emergentBuy.value.optionBuyPay === OptionBuyPay.Paypal ? 'paypal' : 'wompi';
-            if (category.value) persistPurchaseData([category.value], category.value.precio_desc);;
-
             console.log('se metiossssss');
             GuestCheckoutService.initGuestCheckout({
                 google_id,
@@ -96,8 +92,6 @@ export const emergentBuyStore = defineStore('emergentBuy', () => {
             if (google_affiliaty && !userAuth.profile?.user?.is_bought) {
                 value_extra= value_extra + `,${google_affiliaty}`
             }
-
-            if (category.value) persistPurchaseData([category.value], category.value.precio_desc);
 
             if (emergentBuy.value.optionBuyPay=== OptionBuyPay.PayU) {
                 PaymentService.generate_signature_reference_code({ categories: [{id_category:category.value?.id}] }).then((res) => {
@@ -135,7 +129,6 @@ export const emergentBuyStore = defineStore('emergentBuy', () => {
             let value_extra=`|${category.value?.id},${userAuth.getProfile()?.user?.google_id},${record.google_id}`
 
             const finalPrice = parseFloat(record.price);
-            if (category.value) persistPurchaseData([category.value], finalPrice);
             if (emergentBuy.value.optionBuyPay=== OptionBuyPay.PayU) {
                 generatePayUForm(finalPrice, category.value?.titulo, userAuth.getProfile()?.user?.email, record.signature, record.reference_code, value_extra);
             }
@@ -161,7 +154,6 @@ export const emergentBuyStore = defineStore('emergentBuy', () => {
             clearCupon();
 
             let value_extra=`|${category.value?.id},${emergentBuy.value.user_google_id}`
-            if (category.value) persistPurchaseData([category.value], category.value.precio_desc);
             if (emergentBuy.value.optionBuyPay=== OptionBuyPay.PayU) {
                 PaymentService.generate_signature_reference_code({ categories: [{id_category:category.value?.id}] }).then((res) => {
                     if (res?.signature) {

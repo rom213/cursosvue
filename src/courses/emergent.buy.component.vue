@@ -12,7 +12,7 @@ import { useTracking } from "../composables/useTracking";
 
 const storeemergentBuy = emergentBuyStore();
 const userAuth = authStore();
-const { trackBeginCheckout, trackAddPaymentInfo, trackCustom } = useTracking();
+const { trackAddPaymentInfo, trackGenerateLead, persistPurchaseData } = useTracking();
 
 const emailVerified = ref(false);
 const isEditingAccessEmail = ref(false);
@@ -301,6 +301,7 @@ const handleBuy = async () => {
       isProcessingPayment.value = false;
       return;
     }
+    trackGenerateLead('guest_checkout', storeemergentBuy.getCategoryEmergent()?.id)
     storeemergentBuy.emergentBuy.guest_email = email;
     storeemergentBuy.emergentBuy.guest_google_id = regResult.google_id;
   }
@@ -337,14 +338,8 @@ const handleBuy = async () => {
         : storeemergentBuy.emergentBuy.optionBuyPay === OptionBuyPay.Wompi
           ? "Wompi"
           : "PayU";
-    trackCustom("SelectPaymentMethod", {
-      content_id: cat.id,
-      value: price,
-      currency: "COP",
-      custom_data: { payment_method: payMethod },
-    });
-    trackBeginCheckout([cat], price);
     trackAddPaymentInfo([cat], price, payMethod);
+    persistPurchaseData([cat], price);
   }
   storeemergentBuy.buyCategory();
   // Si hay fallo y no hay redirección, desbloquea UI para reintento.

@@ -10,7 +10,13 @@ import type { ICategory } from '../types/Categorie';
 import { useTracking } from '../composables/useTracking';
 const storeCart = cartStore()
 const userAuth = authStore()
-const { trackBeginCheckout, trackAddPaymentInfo, persistPurchaseData, trackCustom } = useTracking()
+const {
+  trackBeginCheckout,
+  trackAddPaymentInfo,
+  persistPurchaseData,
+  trackViewCart,
+  trackGenerateLead,
+} = useTracking()
 
 const cart = ref<ICategory[]>([]);
 const valueCart = ref<number>(0)
@@ -48,13 +54,7 @@ onMounted(() => {
     valueCart.value += item.precio || 0
   });
   if (cart.value?.length) {
-    trackCustom('ViewCart', {
-      content_ids: cart.value.map((c) => c.id),
-      num_items: cart.value.length,
-      value: valueCart.value,
-      currency: 'COP',
-    })
-    trackBeginCheckout(cart.value, valueCart.value)
+    trackViewCart(cart.value, valueCart.value)
   }
 
   // Pre-carga WhatsApp del perfil si está logueado
@@ -130,6 +130,7 @@ const isOnlyPaypal = () => {
 
 const handleBuyClick = () => {
   if (isProcessingPayment.value) return
+  trackBeginCheckout(cart.value, valueCart.value)
   checkoutStep.value = 'whatsapp'
 }
 
@@ -166,6 +167,7 @@ const continueFromEmail = async () => {
     guestEmailError.value = 'No pudimos registrarte. Intenta de nuevo.'
     return
   }
+  trackGenerateLead('guest_checkout')
   guestGoogleId.value = result.google_id
   checkoutStep.value = 'payment'
 }

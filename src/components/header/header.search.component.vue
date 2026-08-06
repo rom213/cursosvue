@@ -6,7 +6,7 @@ import { useRouter } from 'vue-router';
 import { slugifyCourseName } from '../../utils/courseSlug';
 import { useTracking } from '../../composables/useTracking';
 
-const { trackCustom } = useTracking()
+const { trackSearch, trackSelectItem } = useTracking()
 
 const dataReseived = ref<ICategory[] | []>([])
 const dataInput = ref('')
@@ -25,16 +25,12 @@ const getDataSearch = () => {
     const term = dataInput.value
     CategoryService.searchCategories(term, 8).then((res) => {
         dataReseived.value = res
-        trackCustom('Search', { search_string: term, num_items: res.length })
+        trackSearch(term, res.length)
     }).catch(() => dataReseived.value = [])
 }
 
 const handleClickItem = (cat: ICategory) => {
-    trackCustom('SearchResultClick', {
-        content_id: cat.id,
-        content_name: cat.titulo,
-        search_string: dataInput.value,
-    })
+    trackSelectItem(cat, 'search_results', `Resultados: ${dataInput.value}`)
     dataInput.value = ""
     dataReseived.value = []
     const dest = {

@@ -31,7 +31,15 @@ import descripcionesRaw from "./descripcionCursos.json";
 defineOptions({ name: "CourseInfoPage" });
 
 const storeemergentBuy = emergentBuyStore();
-const { trackViewItem, trackAddToCart, trackViewContentCourse, trackCustom, trackWhatsAppIntent } = useTracking();
+const {
+  trackViewItem,
+  trackBeginCheckout,
+  trackViewContentCourse,
+  trackCustom,
+  trackWhatsAppIntent,
+  trackGenerateLead,
+  trackReferralClick,
+} = useTracking();
 enum Navegacion {
   Contenido = 1,
   Preguntas = 2,
@@ -418,9 +426,15 @@ onMounted(() => {
   category.value = storeCategory.findCategoryById(index);
 
   if (route.params.googleid) {
+    const affiliateId = String(route.params.googleid);
     AuthService.get_affiliaty(route.params.googleid).then((res) => {
+      if (!res) return;
       userAuth.nameAffiliaty = res?.name;
-      localStorage.setItem("google_affiliaty", String(route.params.googleid));
+      localStorage.setItem("google_affiliaty", affiliateId);
+      if (sessionStorage.getItem('ce_referral_tracked') !== affiliateId) {
+        sessionStorage.setItem('ce_referral_tracked', affiliateId);
+        trackReferralClick(affiliateId);
+      }
     });
   } else {
     userAuth.nameAffiliaty = undefined;
@@ -927,7 +941,7 @@ const handleBuySelected = () => {
   if (!item) return;
   storeemergentBuy.handleEmergentBuy();
   storeemergentBuy.setCategoryEmergent(item);
-  trackAddToCart(item);
+  trackBeginCheckout([item], Number(item.precio ?? item.precio_desc ?? 0));
 };
 
 
@@ -936,6 +950,7 @@ const showFreeCourseGate = ref(false);
 const freeCourseEmail = ref("");
 const freeCourseEmailError = ref("");
 const pendingFreeCourseUrl = ref("");
+const pendingFreeCourseId = ref<number>();
 const FREE_COURSE_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /** Un curso es accesible directamente si la categoría ya fue comprada, o si el curso es gratis. */
@@ -961,6 +976,7 @@ const handleCourseClick = (
   }
   if (curso.es_gratis && !userAuth.getProfile()?.user?.email) {
     pendingFreeCourseUrl.value = url;
+    pendingFreeCourseId.value = curso.id;
     freeCourseEmail.value = "";
     freeCourseEmailError.value = "";
     showFreeCourseGate.value = true;
@@ -976,14 +992,17 @@ const confirmFreeCourseAccess = () => {
     return;
   }
   const url = pendingFreeCourseUrl.value;
+  trackGenerateLead('free_course_email', pendingFreeCourseId.value)
   showFreeCourseGate.value = false;
   pendingFreeCourseUrl.value = "";
+  pendingFreeCourseId.value = undefined;
   if (url) window.location.href = url;
 };
 
 const closeFreeCourseGate = () => {
   showFreeCourseGate.value = false;
   pendingFreeCourseUrl.value = "";
+  pendingFreeCourseId.value = undefined;
 };
 
 /** Modal: el curso pertenece a un paquete que aún no ha sido comprado. */
@@ -1006,7 +1025,10 @@ const handleBuyGateWeb = () => {
   showBuyGateModal.value = false;
   storeemergentBuy.setCategoryEmergent(category.value);
   storeemergentBuy.handleEmergentBuy();
-  trackAddToCart(category.value);
+  trackBeginCheckout(
+    [category.value],
+    Number(category.value.precio ?? category.value.precio_desc ?? 0),
+  );
 };
 
 const showVideoModal = ref(false);

@@ -3,10 +3,14 @@ import AuthService from '../../services/AuthServices';
 import FooterComponent from '../footer/footer.component.vue';
 import { authStore } from '../../store/AuthStore';
 import { useFacebookLogin } from '../../composables/useFacebookLogin';
+import { useTracking } from '../../composables/useTracking';
 
 const autstore = authStore()
+const { trackAuthentication } = useTracking()
 
-const { loading: facebookLoading, handleFacebookLogin } = useFacebookLogin();
+const { loading: facebookLoading, handleFacebookLogin } = useFacebookLogin({
+  onSuccess: (result) => trackAuthentication(Boolean(result.user?.register), 'facebook'),
+});
 
 
 
@@ -16,6 +20,7 @@ const { loading: facebookLoading, handleFacebookLogin } = useFacebookLogin();
 const handleSuccess = async (response:any) => {
   const ser = await AuthService.verifyToken(response.credential)
   autstore.setProfile(ser)
+  if (ser?.user) trackAuthentication(Boolean(ser.user.register), 'google')
 };
 
 const handleError = () => {

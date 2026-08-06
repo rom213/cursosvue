@@ -33,7 +33,7 @@ const categorStore = categoryStore();
 const storeAuth = authStore();
 const cartSt = cartStore();
 const router = useRouter();
-const { trackAddToCart } = useTracking();
+const { trackAddToCart, trackBeginCheckout, trackViewItemList, trackSelectItem } = useTracking();
 
 // Búsqueda en catálogo (sin pre-rellenar desde promo: el banner/dialog ya orienta al usuario)
 const searchTerm = ref('');
@@ -56,6 +56,11 @@ const loadCategories = async () => {
   const list = await CategoryService.getAllCategories(100, 0, activeFilter.value) as ICategory[];
   const unboughtList = list.filter((item) => !item.user_bought);
   categories.value = unboughtList;
+  trackViewItemList(
+    unboughtList,
+    `catalog_${activeFilter.value}`,
+    `Catálogo ${activeFilter.value}`,
+  );
   categorStore.setCategories(categories.value);
   if (activeFilter.value === 'all') {
     const pool = new Map<number, ICategory>();
@@ -274,6 +279,10 @@ const addCarCategory = (item: ICategory) => {
 };
 
 const handleClickCourseItem = (id: number) => {
+  const item = categories.value.find((category) => category.id === id)
+  if (item) {
+    trackSelectItem(item, `catalog_${activeFilter.value}`, `Catálogo ${activeFilter.value}`)
+  }
   router.push({ name: 'courses-description', params: { id } });
 };
 
@@ -282,7 +291,7 @@ const handleBuy = (item: ICategory) => {
   storeemergentBuy.handleChangeOptionsEmergentBuy(OptionsEmergentBuy.UserInternal)
   storeemergentBuy.handleEmergentBuy();
   storeemergentBuy.setCategoryEmergent(item);
-  trackAddToCart(item);            // intención de compra desde la tarjeta (quick-buy)
+  trackBeginCheckout([item], Number(item.precio ?? item.precio_desc ?? 0));
 };
 
 const getUpsellCategory = (category: ICategory): ICategory | null => {

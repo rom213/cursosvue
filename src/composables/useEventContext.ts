@@ -181,9 +181,14 @@ function ensureFbcCookie(rawFbclid: string): void {
  * No incluye `event_id`/`event_name`/urls: los pone quien emite el evento.
  */
 export function getEventContext(): Partial<TrackedEvent> {
+  // Conserva señales preexistentes aunque el navegador/reemplazo de document.cookie
+  // falle al escribir `_fbc`; el tracking nunca debe perder un `_fbp` válido.
+  const existingFbCookies = getFbCookies();
   const attribution = captureAttribution();
   const { id: sessionId } = touchSession();
-  const { fbp, fbc } = getFbCookies(attribution.fbclid);
+  const refreshedFbCookies = getFbCookies(attribution.fbclid);
+  const fbp = refreshedFbCookies.fbp ?? existingFbCookies.fbp;
+  const fbc = refreshedFbCookies.fbc ?? existingFbCookies.fbc;
 
   return {
     anonymous_id: getAnonymousId(),

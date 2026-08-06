@@ -67,6 +67,12 @@ function markDone(i: number) {
         pct: total ? Math.round((done / total) * 100) : 0,
       },
     });
+    if (total > 0 && done === total) {
+      trackCustom("ModuleComplete", {
+        content_name: activeMod.value.title,
+        custom_data: { module_id: id, total_lessons: total },
+      });
+    }
   }
   // Auto-advance to next lesson
   if (i < activeLessons.value.length - 1) {

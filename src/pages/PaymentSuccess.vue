@@ -4,6 +4,7 @@ import { useRoute, RouterLink } from 'vue-router'
 import { authStore } from '../store/AuthStore'
 import { useTracking } from '../composables/useTracking'
 import type { TrackingUserData } from '../composables/useTracking'
+import PaymentService from '../services/PaymentService'
 
 const route = useRoute()
 const userAuthStore = authStore()
@@ -13,24 +14,35 @@ const status = ref<'success' | 'pending' | 'error'>('pending')
 const transactionId = ref('')
 const receiptCode = ref('')
 
-onMounted(() => {
+onMounted(async () => {
   // PayU sends: transactionState (4=approved, 6=declined, 5=expired, 7=pending)
   // Also: referenceCode, TX_VALUE
   const txState = route.query.transactionState as string | undefined
   const refCode = route.query.referenceCode as string || route.query.ref as string || ''
-  transactionId.value = refCode
+  const wompiTransactionId = route.query.id as string || ''
+  transactionId.value = refCode || wompiTransactionId
   receiptCode.value = route.query.receipt_code as string || ''
 
-  if (txState === '4' || txState === undefined) {
-    // 4 = approved (PayU), undefined = Wompi/PayPal (assume success if redirected back)
+  if (txState === '4' && refCode) {
+    // PayU aprobado y con referencia de orden.
     status.value = 'success'
   } else if (txState === '7') {
     status.value = 'pending'
+  } else if (txState === undefined && wompiTransactionId) {
+    const verification = await PaymentService.verifyWompiTransaction(wompiTransactionId)
+    if (verification?.status === 'completed' && verification.reference) {
+      status.value = 'success'
+      transactionId.value = verification.reference
+    } else if (verification?.status === 'pending') {
+      status.value = 'pending'
+    } else {
+      status.value = 'error'
+    }
   } else {
     status.value = 'error'
   }
 
-  // Fire purchase_stape if we have pending purchase data and payment was successful
+  // Emite purchase únicamente después de confirmar el pago y si existe el carrito pendiente.
   if (status.value === 'success') {
     const pending = getPendingPurchase()
     if (pending) {
@@ -45,7 +57,7 @@ onMounted(() => {
       }
       trackPurchaseFromPending(
         pending,
-        transactionId.value || crypto.randomUUID(),
+        transactionId.value,
         userData
       )
     }

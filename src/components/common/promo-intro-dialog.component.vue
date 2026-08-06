@@ -4,12 +4,22 @@ import { usePromoQuery } from '../../composables/usePromoQuery'
 import { useTracking } from '../../composables/useTracking'
 
 const { showPromoIntro, dismissIntro } = usePromoQuery()
-const { trackCustom } = useTracking()
+const { trackViewPromotion, trackSelectPromotion } = useTracking()
+const PROMOTION = {
+  id: 'promo_intro',
+  name: 'Bienvenida Cursos Estudia y Trabaja',
+  creative: 'promo_intro_dialog',
+}
 
 // PromoView (F3.4): se registra al mostrarse el diálogo de intro de la promo.
 watch(showPromoIntro, (visible) => {
-  if (visible) trackCustom('PromoView')
+  if (visible) trackViewPromotion(PROMOTION.id, PROMOTION.name, PROMOTION.creative)
 }, { immediate: true })
+
+function handlePromoCta() {
+  trackSelectPromotion(PROMOTION.id, PROMOTION.name, PROMOTION.creative)
+  dismissIntro()
+}
 
 const driveTooltipText =
   'Servicio en la nube. Puedes ver los cursos online sin consumir tu espacio de almacenamiento, o descargarlos a tu equipo para ser el dueño de los archivos para siempre.'
@@ -139,7 +149,7 @@ const showDriveTooltip = ref(false)
             type="button"
             class="promo-intro-cta w-full h-11 px-3 rounded-xl text-white text-sm font-semibold shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40 hover:brightness-105 active:brightness-95 transition-all whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-400/60 focus:ring-offset-2"
             data-track="promo-vamos"
-            @click="dismissIntro"
+            @click="handlePromoCta"
           >
             ¡Vamos!
           </button>

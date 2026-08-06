@@ -8,6 +8,14 @@ import {
   type GA4Item,
 } from '../analytics/ecommerce'
 import { dispatchTrackingEvent } from '../analytics/trackingDispatcher'
+import { currentPageTrackingContext } from '../analytics/pageViewCoordinator'
+
+export interface WhatsAppTrackingContext {
+  source: string
+  campaignId?: string
+  contentName?: string
+  contentCategory?: string
+}
 
 export interface TrackingUserData {
   email: string
@@ -398,22 +406,39 @@ export function useTracking() {
     })
   }
 
-  function trackWhatsAppIntent(category: ICategory, source: string) {
+  function trackWhatsAppIntent(category: ICategory, context: WhatsAppTrackingContext) {
     const item = categoryToGA4Item(category)
+    const pageContext = currentPageTrackingContext()
+    const contentName = context.contentName ?? category.titulo
+    const contentCategory = context.contentCategory ?? CONTENT_TYPE
     dispatchTrackingEvent({
       analytics: {
         name: 'whatsapp_contact',
         parameters: {
           ecommerce: { currency: TRACKING_CURRENCY, value: item.price, items: [item] },
+          content_id: String(category.id),
+          ...(context.campaignId ? { campaign_id: context.campaignId } : {}),
+          content_name: contentName,
+          content_category: contentCategory,
+          value: item.price,
+          currency: TRACKING_CURRENCY,
           contact_method: 'whatsapp',
-          source,
+          source: context.source,
+          channel: 'whatsapp',
+          ...pageContext,
         },
       },
       backend: {
         name: 'Contact',
         fields: {
           ...backendFieldsFromCategory(category),
-          custom_data: { method: 'whatsapp', intent: 'purchase', source },
+          custom_data: {
+            method: 'whatsapp',
+            intent: 'purchase',
+            source: context.source,
+            channel: 'whatsapp',
+            ...(context.campaignId ? { campaign_id: context.campaignId } : {}),
+          },
         },
       },
     })

@@ -35,10 +35,18 @@ beforeEach(async () => {
   sendEvents.mockReset()
   ;(globalThis as any).localStorage = new MemoryStorage()
   ;(globalThis as any).sessionStorage = new MemoryStorage()
-  ;(globalThis as any).document = { cookie: '' }
+  ;(globalThis as any).document = {
+    cookie: '',
+    title: 'Título final',
+    referrer: 'https://example.test/catalog?gtm_debug=preview',
+  }
   ;(globalThis as any).window = {
     dataLayer: [],
-    location: { search: '', href: 'https://example.test/courses', origin: 'https://example.test' },
+    location: {
+      search: '?gtm_debug=preview&utm_campaign=joyeria',
+      href: 'https://example.test/courses/306/tematica?gtm_debug=preview&utm_campaign=joyeria',
+      origin: 'https://example.test',
+    },
   }
   vi.resetModules()
   ;({ useTracking } = await import('../useTracking'))
@@ -107,5 +115,43 @@ describe('useTracking', () => {
     now.mockReturnValue(10_000_000 + 2 * 60 * 60 * 1000 + 1)
 
     expect(useTracking().getPendingPurchase()).toBeNull()
+  })
+
+  it('publica whatsapp_contact con contexto limpio, sin PII y conserva ecommerce', () => {
+    useTracking().trackWhatsAppIntent(category, {
+      source: 'hero',
+      campaignId: 'bisuteria_joyeria_306',
+      contentName: 'Bisutería Y Manualidades, Joyería',
+      contentCategory: 'campaign',
+    })
+
+    const browserEvent = window.dataLayer[1]
+    expect(window.dataLayer[0]).toEqual({ ecommerce: null })
+    expect(browserEvent).toMatchObject({
+      event: 'whatsapp_contact',
+      content_id: '7',
+      campaign_id: 'bisuteria_joyeria_306',
+      content_name: 'Bisutería Y Manualidades, Joyería',
+      content_category: 'campaign',
+      value: 80,
+      currency: 'COP',
+      contact_method: 'whatsapp',
+      source: 'hero',
+      channel: 'whatsapp',
+      page_title: 'Título final',
+      page_location: 'https://example.test/courses/306/tematica?utm_campaign=joyeria',
+      page_path: '/courses/306/tematica?utm_campaign=joyeria',
+      page_referrer: 'https://example.test/catalog',
+      ecommerce: {
+        currency: 'COP',
+        value: 80,
+        items: [{ item_id: '7', price: 80, quantity: 1 }],
+      },
+    })
+    expect(JSON.stringify(browserEvent)).not.toMatch(/phone|email|wa\.me|message|eventCallback|eventTimeout/)
+    expect(sendEvents).toHaveBeenCalledWith(expect.objectContaining({
+      event_id: (browserEvent as { event_id: string }).event_id,
+      event_name: 'Contact',
+    }))
   })
 })

@@ -1,4 +1,5 @@
 import type { RouteLocationNormalized, Router } from "vue-router";
+import { nextTick } from "vue";
 
 import EventService, { type TrackedEvent } from "../services/EventService";
 import {
@@ -9,7 +10,7 @@ import {
   resolveVisitKind,
   touchSession,
 } from "../composables/useEventContext";
-import { dispatchTrackingEvent } from "../analytics/trackingDispatcher";
+import { pageViewCoordinator } from "../analytics/pageViewCoordinator";
 
 /**
  * Registro de navegación SPA (F2.5). Cada ruta emite el mismo PageView a GTM y al backend;
@@ -52,24 +53,18 @@ function emit(eventName: string, referrerUrl?: string): void {
 }
 
 export function registerTrackingGuards(router: Router): void {
-  router.afterEach((to, from) => {
+  router.afterEach(async (to, from) => {
     if (typeof document === "undefined") return;
     startSession();
     const referrerUrl = referrerFor(from);
-    dispatchTrackingEvent({
-      analytics: {
-        name: "page_view",
-        parameters: {
-          page_title: document.title,
-          page_location: window.location.href,
-          page_path: to.fullPath,
-          page_referrer: referrerUrl,
-        },
-      },
-      backend: {
-        name: "PageView",
-        fields: { referrer_url: referrerUrl },
-      },
+    const token = pageViewCoordinator.begin({
+      pageLocation: window.location.href,
+      pageReferrer: referrerUrl,
     });
+
+    if (to.meta.deferPageView === true) return;
+
+    await nextTick();
+    pageViewCoordinator.complete(token, document.title);
   });
 }

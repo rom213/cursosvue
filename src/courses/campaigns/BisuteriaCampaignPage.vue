@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import CategoryService from "../../services/CategorieService";
 import MessageService from "../../services/MessageService";
@@ -9,6 +9,7 @@ import { emergentBuyStore } from "../../store/EmergentBuyStore";
 import { authStore } from "../../store/AuthStore";
 import { useTracking } from "../../composables/useTracking";
 import { useCampaignReturn } from "../../composables/useCampaignReturn";
+import { pageViewCoordinator } from "../../analytics/pageViewCoordinator";
 import EmergentBuyComponent from "../emergent.buy.component.vue";
 import FooterComponent from "../../components/footer/footer.component.vue";
 
@@ -87,6 +88,8 @@ const freeCourseEmailRef = ref<HTMLInputElement | null>(null);
 const FREE_COURSE_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 let viewTracked = false;
 let topicRequestSequence = 0;
+let componentActive = true;
+let metadataConfigured = false;
 
 const previousHead = {
   title: "",
@@ -567,9 +570,22 @@ function handleWebBuy(source: string) {
   if (!buyStore.emergentBuy.emergent) buyStore.handleEmergentBuy();
 }
 
-function handleWhatsApp(source: string) {
+type WhatsAppCtaSource = "hero" | "final" | "sticky";
+
+const whatsappSource: Record<WhatsAppCtaSource, string> = {
+  hero: "hero",
+  final: "final_cta",
+  sticky: "floating_button",
+};
+
+function handleWhatsApp(source: WhatsAppCtaSource) {
   if (!category.value) return;
-  trackWhatsAppIntent(category.value, `campaign-${source}`);
+  trackWhatsAppIntent(category.value, {
+    source: whatsappSource[source],
+    campaignId: CAMPAIGN_ID,
+    contentName: SUBCATEGORY,
+    contentCategory: "campaign",
+  });
   trackCustom("CampaignCtaClick", {
     content_id: CATEGORY_ID,
     value: finalPrice.value || undefined,
@@ -594,6 +610,7 @@ function setMeta(selector: string, attribute: "name" | "property", key: string, 
 }
 
 function setupMetadata() {
+  if (metadataConfigured) return;
   previousHead.title = document.title;
   previousHead.description = document.querySelector<HTMLMetaElement>('meta[name="description"]')?.content ?? "";
   previousHead.ogTitle = document.querySelector<HTMLMetaElement>('meta[property="og:title"]')?.content ?? "";
@@ -607,9 +624,11 @@ function setupMetadata() {
   setMeta('meta[property="og:title"]', "property", "og:title", title);
   setMeta('meta[property="og:description"]', "property", "og:description", description);
   setMeta('meta[property="og:image"]', "property", "og:image", `${window.location.origin}/images/campaigns/bisuteria/social.webp`);
+  metadataConfigured = true;
 }
 
 function restoreMetadata() {
+  if (!metadataConfigured) return;
   document.title = previousHead.title;
   const restore = (selector: string, value: string) => {
     const element = document.head.querySelector<HTMLMetaElement>(selector);
@@ -623,18 +642,40 @@ function restoreMetadata() {
   restore('meta[property="og:image"]', previousHead.ogImage);
 }
 
-onMounted(() => {
-  setupMetadata();
+onMounted(async () => {
+  const pageViewToken = pageViewCoordinator.activeTokenFor(window.location.href);
   activateCampaign({
     id: CAMPAIGN_ID,
     title: "tu ruta de Bisutería y Joyería",
     path: route.fullPath,
     categoryId: CATEGORY_ID,
   });
-  loadLanding();
+  await loadLanding();
+  if (!componentActive) return;
+
+  setupMetadata();
+  await nextTick();
+  if (!componentActive || pageViewToken == null) return;
+  pageViewCoordinator.complete(pageViewToken, document.title);
 });
 
-onBeforeUnmount(restoreMetadata);
+watch(
+  () => route.fullPath,
+  async () => {
+    if (!componentActive || !metadataConfigured || route.name !== "bisuteria-campaign") return;
+    await nextTick();
+    const pageViewToken = pageViewCoordinator.activeTokenFor(window.location.href);
+    if (componentActive && pageViewToken != null) {
+      pageViewCoordinator.complete(pageViewToken, document.title);
+    }
+  },
+  { flush: "post" },
+);
+
+onBeforeUnmount(() => {
+  componentActive = false;
+  restoreMetadata();
+});
 </script>
 
 <template>

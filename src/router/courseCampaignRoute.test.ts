@@ -16,6 +16,7 @@ describe("ruta de campaña de bisutería", () => {
     expect(resolved.name).toBe("bisuteria-campaign");
     expect(resolved.meta.showHeader).toBe(true);
     expect(resolved.meta.noindex).toBe(true);
+    expect(resolved.meta.deferPageView).toBe(true);
   });
 
   it("mantiene otros slugs como cursos individuales", () => {

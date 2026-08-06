@@ -13,7 +13,7 @@ export default [
       path: '/courses/306/tematica',
       component: () => import('../courses/campaigns/BisuteriaCampaignPage.vue'),
       name: 'bisuteria-campaign',
-      meta: { showHeader: true, noindex: true }
+      meta: { showHeader: true, noindex: true, deferPageView: true }
     },
     {
       path: '/courses/:id/:courseSlug?',

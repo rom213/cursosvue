@@ -1,6 +1,7 @@
-import type { AxiosResponse } from "axios";
+import { isAxiosError, type AxiosResponse } from "axios";
 import ApiService from "./ApiService";
 import type { ICuponResponsePayu, IPaymentResponsePayPal, IPaymentResponsePayu } from "../types/Payment";
+import type { ConfirmedPurchaseResponse } from "../analytics/purchase";
 
 
 class PaymentService {
@@ -103,6 +104,37 @@ class PaymentService {
     } catch (error) {
       console.error("Error verificando transaccion Wompi:", error);
       return null;
+    }
+  }
+
+  static async getWompiPurchaseAnalytics(
+    transactionId: string,
+  ): Promise<ConfirmedPurchaseResponse | null> {
+    try {
+      const response = await ApiService.get<ConfirmedPurchaseResponse>(
+        `/wompi/purchases/${encodeURIComponent(transactionId)}/analytics`,
+      )
+      return response.data
+    } catch (error) {
+      if (isAxiosError(error) && [401, 403].includes(error.response?.status ?? 0)) {
+        return this.getPublicWompiPurchaseAnalytics(transactionId)
+      }
+      console.error("Error obteniendo la compra confirmada de Wompi:", error)
+      return null
+    }
+  }
+
+  private static async getPublicWompiPurchaseAnalytics(
+    transactionId: string,
+  ): Promise<ConfirmedPurchaseResponse | null> {
+    try {
+      const response = await ApiService.get<ConfirmedPurchaseResponse>(
+        `/wompi/purchases/${encodeURIComponent(transactionId)}/analytics-public`,
+      )
+      return response.data
+    } catch (error) {
+      console.error("Error obteniendo la compra pública confirmada de Wompi:", error)
+      return null
     }
   }
 }

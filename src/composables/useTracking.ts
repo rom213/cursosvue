@@ -316,6 +316,10 @@ export function useTracking() {
     }
   }
 
+  function clearPendingPurchase(): void {
+    sessionStorage.removeItem(STORAGE_KEY)
+  }
+
   /** Evento de negocio no estándar. Se envía a GTM y al backend con el mismo event_id. */
   function trackCustom(eventName: string, fields?: Partial<TrackedEvent>) {
     dispatchTrackingEvent({
@@ -457,6 +461,7 @@ export function useTracking() {
     trackPurchaseFromPending,
     persistPurchaseData,
     getPendingPurchase,
+    clearPendingPurchase,
     trackCustom,
     trackSearch,
     trackAuthentication,

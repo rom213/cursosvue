@@ -1,12 +1,13 @@
 <script lang="ts" setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import type { ICategory } from '../../types/Categorie';
 import CategoryService from '../../services/CategorieService';
 import MessageService from '../../services/MessageService';
 import PaymentService from '../../services/PaymentService';
 import GuestCheckoutService, { type GuestCourse } from '../../services/GuestCheckoutService';
-import { authStore } from '../../store/AuthStore';
 import { useTracking } from '../../composables/useTracking';
+import { sendConfirmedPurchaseToDataLayer } from '../../analytics/purchase';
+import { AUTH_ACCESS_TOKEN_KEY } from '../../constants/storageKeys';
 
 // Nombre usado por <KeepAlive :include> en App.vue (conserva la vista al cambiar de tab)
 defineOptions({ name: 'MyCoursesPage' });
@@ -17,8 +18,7 @@ import FooterComponent from '../../components/footer/footer.component.vue';
 import { useRoute, useRouter } from 'vue-router';
 import AffiliatyMessageComponent from '../../components/auth/affiliaty.message.component.vue';
 
-const userAuth = authStore()
-const { trackCustom } = useTracking()
+const { trackCustom, clearPendingPurchase } = useTracking()
 const isGuestFlow = ref(false)
 const guestCourses = ref<GuestCourse[]>([])
 const guestTransactionPending = ref(false)
@@ -67,10 +67,17 @@ const reloadCourses = async () => {
   isReloading.value = false;
 }
 
-onMounted(async () => {
+const transactionRequests = new Map<string, Promise<void>>()
+
+function transactionIdFromRoute(value: unknown): string | undefined {
+  const candidate = Array.isArray(value) ? value[0] : value
+  return typeof candidate === 'string' && candidate.trim() ? candidate : undefined
+}
+
+async function loadPage(transactionId?: string) {
+  isLoading.value = true
   try {
-    const transactionId = route.query.id as string | undefined;
-    const isGuest = userAuth.getProfile() == null;
+    const isGuest = !localStorage.getItem(AUTH_ACCESS_TOKEN_KEY);
 
     // Flujo guest: mostrar cursos comprados directamente sin necesidad de sesion
     if (transactionId && isGuest) {
@@ -80,6 +87,11 @@ onMounted(async () => {
       if (result?.status === 'completed') {
         guestCourses.value = result.categories || [];
         guestEmail.value = result.email ?? null;
+        sendConfirmedPurchaseToDataLayer({
+          status: result.purchase ? 'APPROVED' : result.status,
+          purchase: result.purchase,
+        })
+        if (result.purchase) clearPendingPurchase()
       } else {
         guestTransactionPending.value = true;
       }
@@ -90,16 +102,18 @@ onMounted(async () => {
     if (transactionId) {
       const [_, verifyResult] = await Promise.all([
         loadCourses(),
-        PaymentService.verifyWompiTransaction(transactionId),
+        PaymentService.getWompiPurchaseAnalytics(transactionId),
       ]);
 
-      if (verifyResult?.status === 'completed') {
+      if (verifyResult?.status === 'APPROVED') {
+        sendConfirmedPurchaseToDataLayer(verifyResult)
+        clearPendingPurchase()
         purchasedCategoryIds.value = (verifyResult.categories || []).map((c: any) => c.id);
         if (hasMissingCategories()) {
           showPaymentBanner.value = true;
           paymentBannerMessage.value = 'Tu pago fue procesado exitosamente. Tus cursos pueden tardar unos segundos en aparecer.';
         }
-      } else if (verifyResult?.status === 'pending') {
+      } else if (verifyResult?.status === 'PENDING') {
         showPaymentBanner.value = true;
         paymentBannerMessage.value = 'Tu pago aun esta siendo procesado. Por favor espera unos momentos y recarga.';
       }
@@ -109,7 +123,32 @@ onMounted(async () => {
   } finally {
     isLoading.value = false;
   }
+}
+
+function loadTransactionOnce(transactionId?: string): Promise<void> {
+  if (!transactionId) return loadPage()
+  const current = transactionRequests.get(transactionId)
+  if (current) return current
+
+  const request = loadPage(transactionId).finally(() => {
+    transactionRequests.delete(transactionId)
+  })
+  transactionRequests.set(transactionId, request)
+  return request
+}
+
+onMounted(() => {
+  void loadTransactionOnce(transactionIdFromRoute(route.query.id))
 });
+
+watch(
+  () => route.query.id,
+  (transactionId, previousTransactionId) => {
+    if (route.name !== 'mycourses' || transactionId === previousTransactionId) return
+    void loadTransactionOnce(transactionIdFromRoute(transactionId))
+  },
+  { flush: 'post' },
+)
 
 const hadleLinkCoursesDrive = (category: ICategory) => {
   if (category.url) {

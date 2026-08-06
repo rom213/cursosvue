@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
 import { authStore } from '../store/AuthStore'
 import { useTracking } from '../composables/useTracking'
@@ -12,15 +12,21 @@ const { trackPurchaseFromPending, getPendingPurchase } = useTracking()
 
 const status = ref<'success' | 'pending' | 'error'>('pending')
 const transactionId = ref('')
+const wompiTransactionId = ref('')
 const receiptCode = ref('')
+const myCoursesLink = computed(() => ({
+  name: 'mycourses',
+  query: wompiTransactionId.value ? { id: wompiTransactionId.value } : undefined,
+}))
 
 onMounted(async () => {
   // PayU sends: transactionState (4=approved, 6=declined, 5=expired, 7=pending)
   // Also: referenceCode, TX_VALUE
   const txState = route.query.transactionState as string | undefined
   const refCode = route.query.referenceCode as string || route.query.ref as string || ''
-  const wompiTransactionId = route.query.id as string || ''
-  transactionId.value = refCode || wompiTransactionId
+  const wompiId = route.query.id as string || ''
+  wompiTransactionId.value = wompiId
+  transactionId.value = refCode || wompiId
   receiptCode.value = route.query.receipt_code as string || ''
 
   if (txState === '4' && refCode) {
@@ -28,8 +34,8 @@ onMounted(async () => {
     status.value = 'success'
   } else if (txState === '7') {
     status.value = 'pending'
-  } else if (txState === undefined && wompiTransactionId) {
-    const verification = await PaymentService.verifyWompiTransaction(wompiTransactionId)
+  } else if (txState === undefined && wompiId) {
+    const verification = await PaymentService.verifyWompiTransaction(wompiId)
     if (verification?.status === 'completed' && verification.reference) {
       status.value = 'success'
       transactionId.value = verification.reference
@@ -42,8 +48,8 @@ onMounted(async () => {
     status.value = 'error'
   }
 
-  // Emite purchase únicamente después de confirmar el pago y si existe el carrito pendiente.
-  if (status.value === 'success') {
+  // PayU conserva el flujo previo. Wompi se emite en Mis Cursos desde el DTO del backend.
+  if (status.value === 'success' && txState === '4') {
     const pending = getPendingPurchase()
     if (pending) {
       const user = userAuthStore.profile?.user
@@ -84,7 +90,7 @@ onMounted(async () => {
           N° de orden: <span class="font-mono font-semibold text-slate-600">{{ receiptCode }}</span>
         </p>
         <div v-else class="mb-6"></div>
-        <RouterLink to="/mis-courses"
+        <RouterLink :to="myCoursesLink"
           class="inline-block px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors no-underline">
           Ir a Mis Cursos
         </RouterLink>

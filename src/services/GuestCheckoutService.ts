@@ -1,5 +1,6 @@
 import type { AxiosResponse } from 'axios'
 import ApiService from './ApiService'
+import type { ConfirmedPurchase } from '../analytics/purchase'
 
 export interface GuestRegisterResponse {
   google_id: string
@@ -15,9 +16,10 @@ export interface GuestCourse {
 }
 
 export interface GuestTransactionCoursesResponse {
-  status: 'completed' | 'pending' | 'not_found'
+  status: 'completed' | 'pending' | 'not_found' | 'invalid'
   email: string | null
   categories?: GuestCourse[]
+  purchase?: ConfirmedPurchase | null
 }
 
 export interface GuestInitResponse {

@@ -139,13 +139,13 @@ export const monetizationLead =
 export const monetizationOptions: MonetizationOption[] = [
   {
     id: "embajador",
-    title: "Opción 1: Embajador digital (gana el 60% de comision, consulta la calculadora para mas)",
+    title: "Opción 1: Embajador digital (gana el 50% de comision, consulta la calculadora para mas)",
     intro:
       "Es la forma más rápida. Comparte tu enlace único o tu código promocional y nosotros nos encargamos del resto.",
     bullets: [
       {
         label: "Tu ganancia",
-        text: "Por cada venta ejemplo de un pack de $48.500, recibes ",
+        text: "Por cada venta ejemplo de un pack de $18.700, recibes ",
         highlightAmount: "$28.500 COP",
         textAfter: " directos a tu cuenta.",
       },
@@ -161,17 +161,17 @@ export const monetizationOptions: MonetizationOption[] = [
     id: "reseller",
     title: "Opción 2: Modelo reseller (tú pones las reglas)",
     intro:
-      "¿Quieres ser el dueño total del flujo? Compra los packs con un 60% libre de comisiones de descuento directo y revéndelos por tu cuenta al precio que tú decidas.",
+      "¿Quieres ser el dueño total del flujo? Compra los packs con un 50% libre de comisiones de descuento directo y revéndelos por tu cuenta al precio que tú decidas.",
     bullets: [
       {
         label: "Cómo funciona",
-        text: "Si el pack cuesta $19.600, tú solo nos pagas ",
+        text: "Si el pack cuesta $9.900, tú solo nos pagas ",
         highlightAmount: "$7.800 COP",
         textAfter: ".",
       },
       {
         label: "Tu margen",
-        text: "Tú decides si lo vendes en $50.000, $80.000 o más. ¡Tienes el control total de tu rentabilidad y de tu propia base de clientes!",
+        text: "Tú decides si lo vendes en $50.000, $27.490 o más. ¡Tienes el control total de tu rentabilidad y de tu propia base de clientes!",
       },
     ],
   },
@@ -239,7 +239,7 @@ export const proModules: ProModule[] = [
       "Deja de ser un promotor y conviértete en el dueño de tu propio flujo de dinero. Aprende a comprar al por mayor y a escalar tus ventas usando publicidad pagada.",
     estadoLabel: "Solo Afiliados PRO",
     lessonTitles: [
-      "Lección 1: Cómo funciona el pago del 60%",
+      "Lección 1: Cómo funciona el pago del 50%",
       "Lección 2: Escalamiento con Facebook Ads",
       "Lección 3: Crea tu propia base de datos",
     ],
@@ -270,7 +270,7 @@ export const faqCategories: FaqCategory[] = [
         question:
           "¿Cómo puedo ganar dinero con ustedes? / ¿Cómo funciona lo de revender?",
         paragraphs: [
-          "¡Es la mejor decisión que puedes tomar! Nuestro programa te permite revender nuestros paquetes y llevarte el 60% del valor del curso directo a tu bolsillo por cada venta. Nosotros nos encargamos de entregar el acceso al cliente y dar soporte; tú solo recomiendas y ganas, si quieres vender al precio que quieras utiliza el modelo de venta a terceros.",
+          "¡Es la mejor decisión que puedes tomar! Nuestro programa te permite revender nuestros paquetes y llevarte el 50% del valor del curso directo a tu bolsillo por cada venta. Nosotros nos encargamos de entregar el acceso al cliente y dar soporte; tú solo recomiendas y ganas, si quieres vender al precio que quieras utiliza el modelo de venta a terceros.",
         ],
       },
       {
@@ -284,14 +284,14 @@ export const faqCategories: FaqCategory[] = [
         question:
           "¿Cualquier curso me sirve para ser afiliado? / Si compro un curso barato, ¿puedo monetizar? / ¿Tengo que pagar algo extra?",
         paragraphs: [
-          "El programa de revendedores no tiene ningún costo de mensualidad, pero tiene un único requisito estricto de entrada: para que el sistema te habilite el panel de afiliado y te deje monetizar, debes adquirir un Pack Principal de nuestras categorías. Una vez adquieres tu Pack Principal, quedas habilitado de por vida para ganar el 60% o mas si usas la venta a tercceros.",
+          "El programa de revendedores no tiene ningún costo de mensualidad, pero tiene un único requisito estricto de entrada: para que el sistema te habilite el panel de afiliado y te deje monetizar, debes adquirir un Pack Principal de nuestras categorías. Una vez adquieres tu Pack Principal, quedas habilitado de por vida para ganar el 50% o mas si usas la venta a tercceros.",
         ],
       },
       {
         question:
-          "¿Qué es el beneficio del '70% de descuento en toda la tienda'?",
+          "¿Qué es el beneficio del '50% de descuento en toda la tienda'?",
         paragraphs: [
-          "¡Es un premio a tu inversión! Si adquieres cualquier paquete desde $48.500 en adelante (Pilar, Combinación o Toda la Tienda), tu cuenta quedará configurada automáticamente como usuario VIP. Esto significa que cualquier otro curso o paquete que quieras comprar en el futuro te saldrá con un 70% de descuento automático.",
+          "¡Es un premio a tu inversión! Si adquieres cualquier paquete desde $18.700 en adelante (Pilar, Combinación o Toda la Tienda), tu cuenta quedará configurada automáticamente como usuario VIP. Esto significa que cualquier otro curso o paquete que quieras comprar en el futuro te saldrá con un 50% de descuento automático.",
         ],
       },
       {
@@ -309,13 +309,13 @@ export const faqCategories: FaqCategory[] = [
       {
         question: "¿Dónde saco mi link de afiliado / código de descuento?",
         paragraphs: [
-          'Debes loguearte y haber adquirido un paquete de mínimo $48.500 COP. Automáticamente en cada paquete estará activa la opción de generar link. Para crear un código promocional, ingresa a tu perfil en la sección “Monetizar”. El sistema registrará la venta a tu nombre automáticamente cuando el cliente use tu link o código.',
+          'Debes loguearte y haber adquirido un paquete de mínimo $18.700 COP. Automáticamente en cada paquete estará activa la opción de generar link. Para crear un código promocional, ingresa a tu perfil en la sección “Monetizar”. El sistema registrará la venta a tu nombre automáticamente cuando el cliente use tu link o código.',
         ],
       },
       {
         question: "¿Puedo comprar con mi propio link para tener descuento?",
         paragraphs: [
-          'No seria necesario, ya que te damos el 70% en toda la tienda para que compres los packs que quieras',
+          'No seria necesario, ya que te damos el 50% en toda la tienda para que compres los packs que quieras',
         ],
       },
     ],
@@ -339,19 +339,19 @@ export const faqCategories: FaqCategory[] = [
       {
         question: "¿Cuánto gano exactamente por cada venta con mi link o cupón?",
         paragraphs: [
-          'Te llevas el 60% de comisión neta. Para ser 100% transparentes, el cálculo es simple: al precio del paquete le restamos el 10% de descuento que le regalas a tu cliente con tu cupón para cerrar la venta. Luego descontamos la pequeña tarifa de la pasarela de pagos (Wompi), y del valor real que ingresa, el 60% va directo a tu bolsillo. Por ejemplo, por cada Tienda Completa, ganas $43.200 COP libres.',
+          'Te llevas el 50% de comisión neta. Para ser 100% transparentes, el cálculo es simple: al precio del paquete le restamos el 10% de descuento que le regalas a tu cliente con tu cupón para cerrar la venta. Luego descontamos la pequeña tarifa de la pasarela de pagos (Wompi), y del valor real que ingresa, el 50% va directo a tu bolsillo. Por ejemplo, por cada Tienda Completa, ganas $43.200 COP libres.',
         ],
       },
       {
         question: "¿Por qué se descuenta el cupón del 10% y la tarifa de Wompi de mi comisión?",
         paragraphs: [
-          'El descuento del 10% es tu mejor gancho comercial para que el cliente compre más rápido. La tarifa de Wompi es el costo estándar por procesar pagos seguros con tarjeta. Al calcular tu 60% sobre el dinero neto que realmente ingresa, mantenemos un negocio honesto, sin letras pequeñas ni costos ocultos para ninguna de las partes.',
+          'El descuento del 10% es tu mejor gancho comercial para que el cliente compre más rápido. La tarifa de Wompi es el costo estándar por procesar pagos seguros con tarjeta. Al calcular tu 50% sobre el dinero neto que realmente ingresa, mantenemos un negocio honesto, sin letras pequeñas ni costos ocultos para ninguna de las partes.',
         ],
       },
       {
         question: "¿Puedo ponerle mi propio precio a los cursos para ganar más?",
         paragraphs: [
-          '¡Totalmente! Si tienes tu propia estrategia y quieres vender a un precio mayor, usa el apartado de "Venta a Terceros". Tú le cobras a tu cliente final la cantidad que decidas, y a nosotros solo nos pagas el 60% del valor oficial para que le liberemos el acceso. ¡Todo el excedente que cobres es 100% ganancia libre para ti!',
+          '¡Totalmente! Si tienes tu propia estrategia y quieres vender a un precio mayor, usa el apartado de "Venta a Terceros". Tú le cobras a tu cliente final la cantidad que decidas, y a nosotros solo nos pagas el 50% del valor oficial para que le liberemos el acceso. ¡Todo el excedente que cobres es 100% ganancia libre para ti!',
         ],
       },
       {
@@ -407,9 +407,9 @@ export const faqCategories: FaqCategory[] = [
       },
       {
         question:
-          "¿Me descuentan impuestos o comisiones de plataforma sobre mi 60%?",
+          "¿Me descuentan impuestos o comisiones de plataforma sobre mi 50%?",
         paragraphs: [
-          "Tu comisión del 60% es neta sobre el valor comisionable del producto con un pequeño descuento de la pasarela de pago, consulta la calculadora.",
+          "Tu comisión del 50% es neta sobre el valor comisionable del producto con un pequeño descuento de la pasarela de pago, consulta la calculadora.",
         ],
       },
     ],
@@ -445,9 +445,9 @@ export const faqCategories: FaqCategory[] = [
         list: {
           ordered: false,
           items: [
-            "Opción 1 (Link de afiliado): El cliente paga en la web con descuento automático y recibes el 60% libre de comisiones.",
+            "Opción 1 (Link de afiliado): El cliente paga en la web con descuento automático y recibes el 50% libre de comisiones.",
             "Opción 2 (Código promocional): El cliente usa un cupón para un 10% de descuento extra y recibes comisión automática.",
-            "Opción 3 (Comprar para un tercero): Cobras directamente al cliente el precio que desees, luego compras en la plataforma con el 60% libre de comisiones de descuento inmediato (solo pagas el 60%) usando el correo del cliente.",
+            "Opción 3 (Comprar para un tercero): Cobras directamente al cliente el precio que desees, luego compras en la plataforma con el 50% libre de comisiones de descuento inmediato (solo pagas el 50%) usando el correo del cliente.",
           ],
         },
       },
@@ -466,9 +466,9 @@ export const faqCategories: FaqCategory[] = [
       },
       {
         question:
-          "¿Me descuentan impuestos o comisiones de plataforma sobre mi 60%?",
+          "¿Me descuentan impuestos o comisiones de plataforma sobre mi 50%?",
         paragraphs: [
-          "Tu comisión del 60% es neta sobre el valor comisionable. Nosotros cubrimos costos de servidores, pasarelas de pago y mantenimiento con el 40% restante.",
+          "Tu comisión del 50% es neta sobre el valor comisionable. Nosotros cubrimos costos de servidores, pasarelas de pago y mantenimiento con el 40% restante.",
         ],
       },
     ],
@@ -481,13 +481,13 @@ export const faqCategories: FaqCategory[] = [
         question:
           "¿Qué es exactamente un afiliado y por qué debería convertirme en uno?",
         paragraphs: [
-          "Es un socio comercial que recomienda productos digitales y gana comisión. Es ideal porque no creas el producto ni das soporte, nosotros ponemos la infraestructura y tú te llevas el 60% libre de comisiones de ganancia limpia.",
+          "Es un socio comercial que recomienda productos digitales y gana comisión. Es ideal porque no creas el producto ni das soporte, nosotros ponemos la infraestructura y tú te llevas el 50% libre de comisiones de ganancia limpia.",
         ],
       },
       {
         question: "¿Cuántos ingresos se pueden generar como afiliado?",
         paragraphs: [
-          "No hay tope. Desde un ingreso extra hasta un sueldo completo. Con la comisión del 60%, pocas ventas a la semana generan ganancias muy atractivas.",
+          "No hay tope. Desde un ingreso extra hasta un sueldo completo. Con la comisión del 50%, pocas ventas a la semana generan ganancias muy atractivas.",
         ],
       },
       {

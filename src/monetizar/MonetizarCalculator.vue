@@ -121,7 +121,7 @@ const projections = computed(() =>
               <dd class="font-medium text-gray-700">{{ formatCOP(p.costoPayU) }}</dd>
             </div>
             <div class="flex justify-between">
-              <dt class="font-light text-gray-500">Tu comisión (60%)</dt>
+              <dt class="font-light text-gray-500">Tu comisión (50%)</dt>
               <dd class="font-semibold text-emerald-600">{{ formatCOP(p.comision) }}</dd>
             </div>
           </dl>

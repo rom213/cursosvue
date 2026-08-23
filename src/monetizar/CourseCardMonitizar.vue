@@ -194,12 +194,12 @@ const copyDiscount = async () => {
           🤝 Incluye Reventa
         </span>
 
-        <!-- 🎟️ 70% Dto. (advanced+) -->
+        <!-- 🎟️ 50% Dto. (advanced+) -->
         <span
           v-if="includesDiscount"
           class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/10"
         >
-          🎟️ 70% Dto. en toda la tienda
+          🎟️ 50% Dto. en toda la tienda
         </span>
       </div>
 
@@ -319,12 +319,12 @@ const copyDiscount = async () => {
 
 
         <!-- BOTON ÚNICO DE COMPRA -->
-        <!-- Modo current: dos botones (carrito 30% + comprar 70%) -->
+        <!-- Modo current: dos botones (carrito 30% + comprar 50%) -->
         <div v-if="selectedOption === 'current'" class="flex gap-2">
           <!-- Botón Carrito (30%) -->
 
 
-          <!-- Botón Desbloquear paquete (70%) -->
+          <!-- Botón Desbloquear paquete (50%) -->
           <button
             type="button"
             class="w-[100%] rounded-xl font-bold flex justify-center items-center gap-2 transition-all duration-200 bg-orange-50 hover:bg-orange-100 border border-orange-200 text-orange-700 py-2.5 px-4 text-sm"

@@ -110,7 +110,7 @@ async function handleEmailClick(event: MouseEvent) {
                             </defs>
                         </svg>
                     </a>
-                    <a href="https://wa.me/573134141912" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="WhatsApp de soporte">
+                    <a href="https://wa.me/57320 9971514" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="WhatsApp de soporte">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M20.52 3.48A11.93 11.93 0 0012 0C5.37 0 0 5.37 0 12c0 2.11.55 4.16 1.6 5.97L0 24l6.22-1.57A11.94 11.94 0 0012 24c6.63 0 12-5.37 12-12 0-3.21-1.25-6.22-3.48-8.52z" fill="#25D366"/>
                             <path d="M17.47 14.38c-.28-.14-1.64-.81-1.9-.9-.25-.09-.44-.14-.62.14-.18.28-.71.9-.87 1.08-.16.18-.32.2-.6.07-.28-.14-1.18-.44-2.25-1.4-.83-.74-1.39-1.66-1.55-1.94-.16-.28-.02-.43.12-.57.13-.13.28-.32.42-.48.14-.16.18-.28.28-.46.09-.18.05-.34-.02-.48-.07-.14-.62-1.5-.85-2.05-.22-.54-.45-.46-.62-.47H8.3c-.18 0-.46.07-.7.34-.25.27-.94.92-.94 2.24s.96 2.6 1.1 2.78c.13.18 1.89 2.88 4.58 4.04.64.28 1.14.44 1.53.56.64.2 1.23.17 1.69.1.52-.08 1.64-.67 1.87-1.32.23-.65.23-1.2.16-1.32-.07-.12-.25-.18-.53-.32z" fill="white"/>
@@ -189,7 +189,7 @@ async function handleEmailClick(event: MouseEvent) {
                         </button>
                         <div v-if="openContact === 'whatsapp'" class="contact-detail">
                             ¿Necesitas soporte rápido? ¡Contáctanos!
-                            <a href="https://wa.me/573134141912?text=Hola%2C%20necesito%20soporte%20con%20mi%20cuenta." target="_blank" rel="noopener noreferrer" class="contact-detail-link">
+                            <a href="https://wa.me/573209971514?text=Hola%2C%20necesito%20soporte%20con%20mi%20cuenta." target="_blank" rel="noopener noreferrer" class="contact-detail-link">
                                 +57 313 414 1912 — ¡Te esperamos! 💬
                             </a>
                         </div>

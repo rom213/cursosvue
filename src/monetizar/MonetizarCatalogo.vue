@@ -175,7 +175,7 @@ function getCardProps(category: ICategory) {
     }
     typeLabel = '📌 Bloque Individual';
   } else if (filterType === 'pilares') {
-    // Pilares: reventa + 70% dto.
+    // Pilares: reventa + 50% dto.
     const pilar = PILARES.find((p) => p.pilarId === category.id);
     if (pilar) {
       pillarColor = PILAR_TO_COLOR[pilar.key];
@@ -185,7 +185,7 @@ function getCardProps(category: ICategory) {
     includesResale = true;
     includesDiscount = true;
   } else if (filterType === 'combos') {
-    // Combos: reventa + 70% dto.
+    // Combos: reventa + 50% dto.
     pillarColor = 'purple';
     const combo = COMBOS.find((c) => c.id === category.id);
     pillarLabel = `⚡ ${combo?.name ?? 'Combinacion'}`;
@@ -193,7 +193,7 @@ function getCardProps(category: ICategory) {
     includesResale = true;
     includesDiscount = true;
   } else if (filterType === 'toda-la-tienda') {
-    // Premium: reventa + 70% dto. + mejor valor
+    // Premium: reventa + 50% dto. + mejor valor
     pillarColor = 'amber';
     pillarLabel = '👑 Toda la Tienda 2026';
     typeLabel = '🏆 Pack Completo';

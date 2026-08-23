@@ -302,16 +302,16 @@ onBeforeUnmount(() => {
         <div class="glass-card has-tooltip" :class="{ 'tooltip-active': activeTooltip === 'card-3' }" @click.stop="toggleTooltip('card-3')">
           <div class="card-icon" v-html="icons.clubDescuentos" />
           <h3 class="card-title">Club de Descuentos</h3>
-          <p class="card-text">70% OFF en todas tus próximas compras.</p>
+          <p class="card-text">50% OFF en todas tus próximas compras.</p>
           <span class="tooltip tooltip-up">
             Al adquirir un paquete, desbloqueas el Club de Descuentos
-            y el modo Revendedor. Descuentos exclusivos en todo el catálogo y ganancias del 60% por cada venta.
+            y el modo Revendedor. Descuentos exclusivos en todo el catálogo y ganancias del 50% por cada venta.
           </span>
         </div>
         <div class="glass-card has-tooltip" :class="{ 'tooltip-active': activeTooltip === 'card-4' }" @click.stop="toggleTooltip('card-4')">
           <div class="card-icon" v-html="icons.trabajaYGana" />
           <h3 class="card-title">Trabaja y Gana</h3>
-          <p class="card-text">Comisiones del 60% por cada venta referida.</p>
+          <p class="card-text">Comisiones del 50% por cada venta referida.</p>
           <span class="tooltip tooltip-up">
             Gana comisiones reales por cada venta que refieras. Visita la sección de
             Monetización en el menú superior para conocer todos los detalles del programa.

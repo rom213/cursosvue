@@ -928,7 +928,7 @@ const selectedCategory = computed(() =>
 );
 
 const whatsappUrl = computed(() => {
-  const phone = "573134141912";
+  const phone = "57320 9971514";
   const item = selectedCategory.value;
   const msg = encodeURIComponent(
     `Hola, quiero obtener acceso a *${item?.titulo}* por $${formatPrice(item?.precio)} COP. ¿Me pueden ayudar?`,
@@ -1013,7 +1013,7 @@ const closeBuyGateModal = () => {
 };
 
 const buyGateWhatsappUrl = computed(() => {
-  const phone = "573134141912";
+  const phone = "57320 9971514";
   const msg = encodeURIComponent(
     `Hola, quiero obtener acceso a *${category.value?.titulo}* por $${formatPrice(category.value?.precio)} COP. ¿Me pueden ayudar?`,
   );
@@ -1616,7 +1616,7 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
             v-if="tierInfo.includesDiscount"
             class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/10"
           >
-            🎟️ 70% Dto. en toda la tienda
+            🎟️ 50% Dto. en toda la tienda
           </span>
         </div>
 

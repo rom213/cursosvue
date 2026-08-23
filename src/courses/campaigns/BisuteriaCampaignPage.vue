@@ -18,7 +18,7 @@ defineOptions({ name: "BisuteriaCampaignPage" });
 const CATEGORY_ID = 306;
 const CAMPAIGN_ID = "bisuteria_joyeria_306";
 const SUBCATEGORY = "Bisutería Y Manualidades, Joyería";
-const WHATSAPP_PHONE = "573134141912";
+const WHATSAPP_PHONE = "57320 9971514";
 const TOPIC_PAGE_SIZE = 10;
 
 type BonusTopic = { subcategoria: string; count: number };

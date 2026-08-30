@@ -93,6 +93,33 @@ export interface ContentParams {
   limit?: number;
 }
 
+// ---------------------------------------------------------- Altas de ventas externas (admin)
+export interface ExternalSaleCategory {
+  id: number;
+  title: string;
+  price: number;
+}
+
+export interface ExternalSaleCategoriesResponse {
+  items: ExternalSaleCategory[];
+}
+
+export interface ExternalSaleInput {
+  email: string;
+  category_id: number;
+}
+
+export interface ExternalSaleResult {
+  status: "success";
+  already_registered: boolean;
+  user_created: boolean;
+  user_id: number;
+  payment_id: number;
+  category_id: number;
+  price: string;
+  group_email: string;
+}
+
 // ------------------------------------------------------------------ P2: Adquisición
 export interface AcquisitionItem {
   /** channel (paid/organic/…), campaña o afiliado según `by`. */
@@ -552,6 +579,21 @@ function clean(params: Record<string, unknown>): Record<string, unknown> {
 }
 
 class AnalyticsService {
+  static async getExternalSaleCategories(): Promise<ExternalSaleCategory[]> {
+    const res: AxiosResponse<ExternalSaleCategoriesResponse> = await ApiService.get(
+      `${BASE}/external-sales/categories`
+    );
+    return res.data.items;
+  }
+
+  static async registerExternalSale(input: ExternalSaleInput): Promise<ExternalSaleResult> {
+    const res: AxiosResponse<ExternalSaleResult> = await ApiService.post(
+      `${BASE}/external-sales`,
+      input
+    );
+    return res.data;
+  }
+
   static async getOverview(params: OverviewParams = {}): Promise<OverviewResponse> {
     const res: AxiosResponse<OverviewResponse> = await ApiService.get(
       `${BASE}/overview`,

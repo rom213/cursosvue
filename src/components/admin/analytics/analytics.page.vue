@@ -40,6 +40,7 @@ import PageClicksRanking from "./PageClicksRanking.vue";
 import SessionTimeline from "./SessionTimeline.vue";
 import PaginationBar from "./PaginationBar.vue";
 import DataToolsPanel from "./DataToolsPanel.vue";
+import ExternalSalesPanel from "./ExternalSalesPanel.vue";
 
 // --- Estado compartido entre tabs (vive en la página, no en cada componente) ---
 function localISO(d: Date): string {
@@ -71,10 +72,12 @@ type Tab =
   | "seo"
   | "activity"
   | "navigation"
+  | "external_sales"
   | "realtime";
 const activeTab = ref<Tab>("overview");
 // Fuerza el remonte de RealtimePanel al refrescar (dispara su fetch inmediato).
 const realtimeKey = ref(0);
+const externalSalesKey = ref(0);
 const tabs: { value: Tab; label: string }[] = [
   { value: "overview", label: "Resumen" },
   { value: "content", label: "Contenido" },
@@ -86,6 +89,7 @@ const tabs: { value: Tab; label: string }[] = [
   { value: "seo", label: "SEO" },
   { value: "activity", label: "Actividad" },
   { value: "navigation", label: "Navegación" },
+  { value: "external_sales", label: "Ventas externas" },
   { value: "realtime", label: "Tiempo real" },
 ];
 
@@ -517,9 +521,10 @@ function loadActive() {
   }
 }
 
-/** Refresco manual del tab activo. En Tiempo real remonta el panel para forzar su fetch. */
+/** Refresco manual de paneles autocontenidos o de los datos del tab activo. */
 function refresh() {
   if (activeTab.value === "realtime") realtimeKey.value++;
+  else if (activeTab.value === "external_sales") externalSalesKey.value++;
   else loadActive();
 }
 
@@ -1270,6 +1275,11 @@ onMounted(loadActive);
               />
             </div>
           </div>
+        </template>
+
+        <!-- Alta manual protegida por require_admin; no usa ni expone las llaves HMAC. -->
+        <template v-else-if="activeTab === 'external_sales'">
+          <ExternalSalesPanel :key="externalSalesKey" />
         </template>
 
         <!-- Tab: Tiempo real (ventana fija 5 min, ignora rango/segmentos; polling propio) -->

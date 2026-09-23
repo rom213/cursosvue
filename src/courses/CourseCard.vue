@@ -123,7 +123,7 @@ const selectedOption = ref<'current' | 'upsell'>('current');
 
 
 const whatsappUrl = computed(() => {
-  const phone = '57320 9971514';
+  const phone = '573209971514';
   const msg = encodeURIComponent(
     `Hola, quiero obtener acceso a *${props.category.titulo}* por $${formatPrice(props.category.precio)} COP. ¿Me pueden ayudar?`
   );

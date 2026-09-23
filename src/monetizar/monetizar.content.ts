@@ -145,8 +145,8 @@ export const monetizationOptions: MonetizationOption[] = [
     bullets: [
       {
         label: "Tu ganancia",
-        text: "Por cada venta ejemplo de un pack de $18.700, recibes ",
-        highlightAmount: "$28.500 COP",
+        text: "Por cada venta ejemplo de un pack de $27900, recibes ",
+        highlightAmount: "$16700 COP",
         textAfter: " directos a tu cuenta.",
       },
       {
@@ -165,8 +165,8 @@ export const monetizationOptions: MonetizationOption[] = [
     bullets: [
       {
         label: "Cómo funciona",
-        text: "Si el pack cuesta $9.900, tú solo nos pagas ",
-        highlightAmount: "$7.800 COP",
+        text: "Si el pack cuesta $27900, tú solo nos pagas ",
+        highlightAmount: "$11100 COP",
         textAfter: ".",
       },
       {

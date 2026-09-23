@@ -927,11 +927,19 @@ const selectedCategory = computed(() =>
     : category.value,
 );
 
+const isWhatsappPublication = computed(() => route.query.pub === "whasapt");
+const isWhatsappReturnVisible = ref(true);
+
+const whatsappFollowUpMessage = (item?: ICategory) =>
+  `Hola, ya vi los cursos de *${item?.titulo}* y quiero continuar con la compra. ¿Me ayudan?`;
+
 const whatsappUrl = computed(() => {
-  const phone = "57320 9971514";
+  const phone = "573209971514";
   const item = selectedCategory.value;
   const msg = encodeURIComponent(
-    `Hola, quiero obtener acceso a *${item?.titulo}* por $${formatPrice(item?.precio)} COP. ¿Me pueden ayudar?`,
+    isWhatsappPublication.value
+      ? whatsappFollowUpMessage(item)
+      : `Hola, quiero obtener acceso a *${item?.titulo}* por $${formatPrice(item?.precio)} COP. ¿Me pueden ayudar?`,
   );
   return `https://wa.me/${phone}?text=${msg}`;
 });
@@ -1013,9 +1021,11 @@ const closeBuyGateModal = () => {
 };
 
 const buyGateWhatsappUrl = computed(() => {
-  const phone = "57320 9971514";
+  const phone = "573209971514";
   const msg = encodeURIComponent(
-    `Hola, quiero obtener acceso a *${category.value?.titulo}* por $${formatPrice(category.value?.precio)} COP. ¿Me pueden ayudar?`,
+    isWhatsappPublication.value
+      ? whatsappFollowUpMessage(category.value)
+      : `Hola, quiero obtener acceso a *${category.value?.titulo}* por $${formatPrice(category.value?.precio)} COP. ¿Me pueden ayudar?`,
   );
   return `https://wa.me/${phone}?text=${msg}`;
 });
@@ -1657,7 +1667,7 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
     </section>
 
     <!-- ═══ MAIN CONTENT ═══ -->
-    <div v-if="!categoryLoading" class="max-w-7xl mx-auto px-4 md:px-8 lg:px-12 pt-6 pb-24 lg:pb-8">
+    <div v-if="!categoryLoading" class="max-w-7xl mx-auto px-4 md:px-8 lg:px-12 pt-6 pb-32 sm:pb-24 lg:pb-8">
       <div
         class="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 lg:gap-8 items-start"
       >
@@ -1665,7 +1675,7 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
         <div class="order-2 lg:order-1 min-w-0">
           <!-- Tab Navigation -->
           <div
-            class="flex flex-wrap gap-1 p-1 bg-white md:bg-white/90 md:backdrop-blur-sm border border-slate-100/80 rounded-2xl shadow-md mb-4 sticky top-16 max-md:top-28 z-10"
+            class="flex gap-1 overflow-x-auto p-1 bg-white md:flex-wrap md:overflow-visible md:bg-white/90 md:backdrop-blur-sm border border-slate-100/80 rounded-2xl shadow-md mb-4 sticky top-16 max-md:top-28 z-10"
           >
             <button
               v-for="(tab, key) in [
@@ -1692,7 +1702,7 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
               ]"
               :key="key"
               @click="navegacion = tab.id"
-              class="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-semibold transition-all duration-200 border-none cursor-pointer"
+              class="shrink-0 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 border-none cursor-pointer md:flex-1 md:text-sm"
               :class="
                 navegacion === tab.id
                   ? 'bg-[#1e40af] text-white shadow-md'
@@ -1728,20 +1738,20 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
                 class="w-full flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 p-4 lg:px-6"
               >
                 <button
-                  class="flex w-full sm:flex-1 min-w-0 items-center justify-between gap-3 bg-transparent border-none cursor-pointer transition-opacity hover:opacity-80 text-left"
+                  class="flex w-full min-w-0 items-center justify-between gap-2 bg-transparent border-none cursor-pointer text-left transition-opacity hover:opacity-80 max-[359px]:gap-1 sm:flex-1 sm:gap-3"
                   @click="toggleFolder('section-subcategorias')"
                 >
-                  <span class="font-[Poppins] text-base font-bold text-[#0d1b2a]"
+                  <span class="shrink-0 whitespace-nowrap font-[Poppins] text-sm font-bold text-[#0d1b2a] max-[359px]:text-[13px] sm:text-base"
                     >Cursos por categoría</span
                   >
-                  <span class="flex items-center gap-3">
+                  <span class="flex shrink-0 items-center gap-2 max-[359px]:gap-1 sm:gap-3">
                     <span
-                      class="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full"
+                      class="whitespace-nowrap rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500 max-[359px]:px-1.5 max-[359px]:text-[10px] sm:px-2.5 sm:text-xs"
                     >
                       {{ subcategoriaFlatList.length }} categorías
                     </span>
                     <svg
-                      class="w-5 h-5 text-slate-400 transition-transform duration-300"
+                      class="h-4 w-4 text-slate-400 transition-transform duration-300 max-[359px]:h-3.5 max-[359px]:w-3.5 sm:h-5 sm:w-5"
                       :class="{
                         'rotate-180': isFolderOpen('section-subcategorias'),
                       }"
@@ -3857,6 +3867,35 @@ function paginatedCategoriaCursos(item: SubcatFlatItem) {
       </div>
     </div>
 
+
+    <aside
+      v-if="isWhatsappPublication && isWhatsappReturnVisible && !categoryLoading && selectedCategory"
+      class="fixed bottom-4 right-4 z-40 sm:bottom-6 sm:right-6"
+      aria-label="Volver a WhatsApp"
+    >
+      <button
+        type="button"
+        class="absolute -right-1 -top-2 flex h-5 w-5 items-center justify-center rounded-full border border-slate-200 bg-white text-lg leading-none text-slate-500 shadow-sm transition hover:bg-slate-100 hover:text-slate-700"
+        aria-label="Cerrar recordatorio de WhatsApp"
+        @click="isWhatsappReturnVisible = false"
+      >
+        ×
+      </button>
+      <a
+        :href="whatsappUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="flex h-11 items-center justify-center gap-2 rounded-full bg-green-600 px-4 text-sm font-bold text-white no-underline shadow-lg transition hover:bg-green-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600"
+        @click="trackWhatsAppIntent(selectedCategory, { source: 'floating_return', contentCategory: 'product' })"
+      >
+        <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+          <path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.554 4.122 1.523 5.855L.057 23.486a.5.5 0 0 0 .611.611l5.632-1.466A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.9 0-3.68-.524-5.2-1.433l-.373-.223-3.865 1.006 1.006-3.865-.223-.373A9.944 9.944 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/>
+        </svg>
+        <span class="sm:hidden">WhatsApp</span>
+        <span class="hidden sm:inline">Volver a WhatsApp</span>
+      </a>
+    </aside>
 
     <EmergentBuyComponent />
     <FooterComponent />

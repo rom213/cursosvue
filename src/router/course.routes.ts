@@ -16,6 +16,12 @@ export default [
       meta: { showHeader: true, noindex: true, deferPageView: true }
     },
     {
+      path: '/courses/103/tematica/ex',
+      component: () => import('../courses/campaigns/ExcelSapCampaignPage.vue'),
+      name: 'excel-campaign',
+      meta: { showHeader: true, noindex: true, deferPageView: true }
+    },
+    {
       path: '/courses/:id/:courseSlug?',
       component: () => import('../courses/courseInfoPage/course.info.page.vue'),
       name: 'courses-description',

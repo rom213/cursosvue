@@ -112,8 +112,16 @@ const handleChangeAccount = () => {
 
                 <!-- Auth: no logueado → Google + Facebook userStore.getProfile() == null -->
                 <div v-if="userStore.getProfile() == null" class="header-auth-btns">
-                    <!-- @ts-ignore -->
-                    <GoogleLogin :callback="handleLoginSuccess" />
+                    <div class="google-login-desktop">
+                        <GoogleLogin :callback="handleLoginSuccess" />
+                    </div>
+                    <div class="google-login-mobile" title="Iniciar sesión con Google">
+                        <GoogleLogin
+                            :callback="handleLoginSuccess"
+                            :button-config="{ type: 'icon', size: 'large', shape: 'circle' }"
+                        />
+                        <span class="google-login-label" aria-hidden="true">Acceder</span>
+                    </div>
                 </div>
 
                 <!-- Auth: logueado → avatar + dropdown -->
@@ -470,9 +478,9 @@ const handleChangeAccount = () => {
 /* Mobile (< 768px) */
 @media (max-width: 767px) {
     .header-inner      { padding: 0 0.75rem; gap: 0.4rem; }
-    .header-nav        { flex: 1; gap: 0; }
+    .header-nav        { flex: 1; min-width: 0; gap: 0; justify-content: center; }
     .nav-label         { display: none; }
-    .nav-link          { padding: 0.5rem 0.6rem; }
+    .nav-link          { padding: 0.5rem; min-width: 40px; min-height: 40px; justify-content: center; }
     .nav-icon            { width: 22px; height: 22px; }
     .nav-icon :deep(svg) { width: 22px; height: 22px; }
     .cart-icon           { width: 22px; height: 22px; }
@@ -494,6 +502,36 @@ const handleChangeAccount = () => {
     .header-inner      { gap: 0.75rem; }
     .header-nav        { gap: 0; }
     .nav-link          { padding: 0.4rem 0.55rem; }
+}
+
+/* El botón oficial de Google usa un formato compacto en pantallas pequeñas. */
+.google-login-mobile {
+    display: none;
+}
+.google-login-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #475569;
+    white-space: nowrap;
+}
+@media (max-width: 767px) {
+    .google-login-desktop {
+        display: none;
+    }
+    .google-login-mobile {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    .header-right {
+        gap: 0;
+        margin-left: 0;
+    }
+}
+@media (max-width: 360px) {
+    .google-login-label {
+        display: none;
+    }
 }
 
 /* GoogleLogin styling */

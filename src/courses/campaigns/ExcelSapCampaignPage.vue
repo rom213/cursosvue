@@ -27,6 +27,7 @@ import {
   coursesForStudyRoute,
   groupStudyCourses,
   loadStudyCatalog,
+  normalizeStudyText,
   studyCourseKey,
 } from "./studyRoutes";
 import type { StudyLevel } from "./studyRoutes";
@@ -51,8 +52,13 @@ const categoryLoading = ref(true);
 const catalogLoading = ref(true);
 const categoryError = ref(false);
 const catalogError = ref(false);
-const selectedRouteId = ref("excel");
+const selectedRouteId = ref("");
 const search = ref("");
+const catalogSearch = ref("");
+const catalogPage = ref(1);
+const catalogPageSize = 10;
+const catalogHeading = ref<HTMLElement | null>(null);
+const selectedCourseRouteTitle = ref("");
 const expandedLevels = ref<StudyLevel[]>([]);
 const routeHeading = ref<HTMLElement | null>(null);
 const routeDialog = ref<HTMLDialogElement | null>(null);
@@ -103,6 +109,26 @@ const searchTotal = computed(() =>
   courseGroups.value.reduce((sum, group) => sum + group.courses.length, 0),
 );
 const catalogTotal = computed(() => courses.value.length);
+const filteredCatalog = computed(() => {
+  const query = normalizeStudyText(catalogSearch.value);
+  return courses.value.filter((course) =>
+    normalizeStudyText(`${course.name_del_curso ?? ""} ${course.author ?? ""}`).includes(query),
+  );
+});
+const catalogPages = computed(() => Math.max(1, Math.ceil(filteredCatalog.value.length / catalogPageSize)));
+const paginatedCatalog = computed(() => filteredCatalog.value.slice(
+  (catalogPage.value - 1) * catalogPageSize,
+  catalogPage.value * catalogPageSize,
+));
+watch([catalogSearch, courses], () => { catalogPage.value = 1; });
+function changeCatalogPage(page: number) {
+  if (page < 1 || page > catalogPages.value) return;
+  catalogPage.value = page;
+  nextTick(() => {
+    catalogHeading.value?.focus({ preventScroll: true });
+    catalogHeading.value?.scrollIntoView({ behavior: scrollBehavior(), block: "start" });
+  });
+}
 const finalPrice = computed(
   () => category.value?.precio ?? category.value?.precio_desc ?? 0,
 );
@@ -308,16 +334,17 @@ async function openCourseDescription(
   event: Event,
 ) {
   courseTrigger = event.currentTarget as HTMLElement;
+  selectedCourseRouteTitle.value = routeDialogOpen.value ? selectedStudyRoute.value.title : "";
   selectedCourse.value = course;
   void loadCourseContent();
   trackCustom("CourseDescriptionOpen", {
     content_id: course.id,
     content_name: course.name_del_curso,
-    content_category: selectedStudyRoute.value.title,
+    content_category: selectedCourseRouteTitle.value || category.value?.titulo,
     custom_data: {
       campaign_id: STUDY_CAMPAIGN_ID,
       category_id: STUDY_CATEGORY_ID,
-      study_route: selectedRouteId.value,
+      study_route: routeDialogOpen.value ? selectedRouteId.value : undefined,
     },
   });
   if (course.id != null && !viewedCourseIds.has(course.id)) {
@@ -541,7 +568,7 @@ onBeforeUnmount(() => {
             DATOS</span
           >
           <h1>
-            Aprende Excel, Power BI y Office
+            Aprende Excel, Power BI, Office y SAP
             <span>y transforma datos en decisiones</span>
           </h1>
           <p class="hero-description">
@@ -685,9 +712,9 @@ onBeforeUnmount(() => {
             :key="studyRoute.id"
             type="button"
             class="route-card"
-            :class="{ selected: selectedRouteId === studyRoute.id }"
+            :class="{ selected: routeDialogOpen && selectedRouteId === studyRoute.id }"
             :style="{ '--route-accent': studyRoute.accent }"
-            :aria-pressed="selectedRouteId === studyRoute.id"
+            :aria-pressed="routeDialogOpen && selectedRouteId === studyRoute.id"
             aria-haspopup="dialog"
             aria-controls="study-route-dialog"
             @click="selectStudyRoute(studyRoute.id, $event)"
@@ -721,7 +748,7 @@ onBeforeUnmount(() => {
                       : "cursos disponibles"
                   }}</span
                 ><strong>{{
-                  selectedRouteId === studyRoute.id
+                  routeDialogOpen && selectedRouteId === studyRoute.id
                     ? "Seleccionada"
                     : "Ver ruta"
                 }}</strong></span
@@ -775,9 +802,8 @@ onBeforeUnmount(() => {
       >
     </dialog>
     <Teleport
-      v-if="routeDialogBody"
+      v-if="routeDialogOpen && routeDialogBody"
       :to="routeDialogBody"
-      :disabled="!routeDialogOpen"
     >
       <section
         v-if="!catalogLoading && !catalogError"
@@ -929,6 +955,66 @@ onBeforeUnmount(() => {
       </section>
     </Teleport>
 
+    <section id="catalogo-completo" class="section full-catalog" aria-labelledby="catalogo-titulo">
+      <div class="catalog-toolbar">
+        <div>
+          <span class="eyebrow">TODO EL CONTENIDO DEL BLOQUE</span>
+          <h2 id="catalogo-titulo" ref="catalogHeading" tabindex="-1">Todos los cursos</h2>
+          <p>Explora el catálogo completo o busca por nombre del curso o autor.</p>
+        </div>
+        <div class="search-field">
+          <label for="catalog-course-search">Buscar en todos los cursos</label>
+          <div>
+            <input id="catalog-course-search" v-model="catalogSearch" type="search" placeholder="Nombre del curso o autor" autocomplete="off" />
+            <span aria-hidden="true">⌕</span>
+          </div>
+        </div>
+      </div>
+      <div v-if="catalogLoading" aria-live="polite" aria-busy="true">
+        <div class="content-skeleton skeleton"></div>
+        <p>Cargando todos los cursos…</p>
+      </div>
+      <div v-else-if="catalogError" class="error-panel" role="alert">
+        <p>No pudimos cargar el catálogo completo.</p>
+        <button class="button button-primary" type="button" @click="loadLanding">Volver a intentar</button>
+      </div>
+      <template v-else>
+        <p class="search-results" role="status">{{ filteredCatalog.length }} {{ filteredCatalog.length === 1 ? "curso" : "cursos" }}{{ catalogSearch.trim() ? " encontrados" : " en el catálogo" }}</p>
+        <div v-if="!filteredCatalog.length" class="empty-panel">
+          <h3>{{ catalogSearch.trim() ? "No encontramos cursos con esa búsqueda" : "No hay cursos disponibles por ahora" }}</h3>
+          <button v-if="catalogSearch.trim()" class="text-button" type="button" @click="catalogSearch = ''">Limpiar búsqueda</button>
+        </div>
+        <ul v-else class="course-list catalog-course-list">
+          <li v-for="course in paginatedCatalog" :key="studyCourseKey(course)">
+                <button
+                  type="button"
+                  class="course-row"
+                  @click="openCourseDescription(course, $event)"
+                >
+                  <span class="course-icon" aria-hidden="true">▤</span
+                  ><span class="course-row-copy"
+                    ><strong>{{
+                      course.name_del_curso || "Curso sin título"
+                    }}</strong
+                    ><span
+                      v-if="course.author && course.author !== 'DESCONOCIDO'"
+                      >{{ course.author }}</span
+                    ></span
+                  ><span v-if="course.es_gratis" class="free-badge">Gratis</span
+                  ><span class="course-open-label"
+                    >Ver curso <span aria-hidden="true">→</span></span
+                  >
+                </button>
+          </li>
+        </ul>
+        <nav v-if="catalogPages > 1" class="catalog-pagination" aria-label="Paginación de todos los cursos">
+          <button class="button button-light" type="button" :disabled="catalogPage === 1" @click="changeCatalogPage(catalogPage - 1)">Anterior</button>
+          <span aria-live="polite">Página {{ catalogPage }} de {{ catalogPages }}</span>
+          <button class="button button-light" type="button" :disabled="catalogPage === catalogPages" @click="changeCatalogPage(catalogPage + 1)">Siguiente</button>
+        </nav>
+      </template>
+    </section>
+
     <section class="section how-section" aria-label="Cómo estudiar">
       <span class="eyebrow">APRENDE A TU MANERA</span>
       <h2>Un objetivo. Tu propio ritmo.</h2>
@@ -1034,7 +1120,7 @@ onBeforeUnmount(() => {
       <template v-if="selectedCourse"
         ><header class="dialog-header">
           <div>
-            <span class="eyebrow">{{ selectedStudyRoute.title }}</span>
+            <span class="eyebrow">{{ selectedCourseRouteTitle || category?.titulo || "Cursos del bloque completo" }}</span>
             <h2 id="study-course-title">
               {{ selectedCourse.name_del_curso || "Descripción del curso" }}
             </h2>
@@ -2074,6 +2160,12 @@ onBeforeUnmount(() => {
   font-size: 0.9rem;
   line-height: 1.8;
   overflow-wrap: anywhere;
+  max-width: 100%;
+  overflow-x: auto;
+}
+.course-content :deep(pre) {
+  max-width: 100%;
+  overflow-x: auto;
 }
 .course-content :deep(p) {
   margin-bottom: 1rem;
@@ -2306,7 +2398,8 @@ onBeforeUnmount(() => {
 }
 @media (max-width: 600px) {
   .study-page {
-    padding-bottom: 80px;
+    --mobile-purchase-height: calc(70px + env(safe-area-inset-bottom));
+    padding-bottom: var(--mobile-purchase-height);
   }
   .section,
   .hero-inner,
@@ -2316,35 +2409,29 @@ onBeforeUnmount(() => {
   .section {
     padding-block: 34px;
   }
+  .hero-visual {
+    display: none;
+  }
   .hero-inner {
-    padding-block: 34px;
+    padding-block: 24px;
+    gap: 20px;
   }
   .hero-copy h1 {
-    font-size: 2.25rem;
+    font-size: clamp(1.85rem, 7.5vw, 2.25rem);
+    margin-block: 14px;
   }
   .hero-description {
     font-size: 0.9rem;
+    line-height: 1.65;
   }
   .hero-actions {
     display: grid;
     grid-template-columns: 1fr;
+    margin-top: 20px;
   }
   .hero-facts {
     display: grid;
-  }
-  .hero-visual > img {
-    height: 280px;
-  }
-  .hero-image-label {
-    padding: 16px;
-    left: 10px;
-    right: 10px;
-  }
-  .hero-image-label strong {
-    font-size: 0.75rem;
-  }
-  .hero-image-label div > span {
-    font-size: 0.65rem;
+    margin-top: 18px;
   }
   .pack-strip {
     flex-direction: column;
@@ -2357,10 +2444,15 @@ onBeforeUnmount(() => {
     align-items: center;
     justify-content: space-between;
     gap: 15px;
+    flex-wrap: wrap;
+  }
+  .pack-purchase .price {
+    flex: 1 1 130px;
   }
   .pack-purchase .button {
     font-size: 0.77rem;
     padding-inline: 16px;
+    flex: 1 1 145px;
   }
   .price strong {
     font-size: 1.45rem;
@@ -2372,20 +2464,58 @@ onBeforeUnmount(() => {
   }
   .route-grid {
     grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .route-card {
+    display: grid;
+    grid-template-columns: 88px minmax(0, 1fr);
+    align-items: start;
+    padding: 14px;
+    gap: 12px;
   }
   .route-card-image {
-    height: 170px;
+    height: auto;
+    border-radius: 10px;
+  }
+  .route-card-image img {
+    height: 76px;
+    padding: 8px;
+  }
+  .route-card-tag {
+    position: static;
+    display: block;
+    margin: 0 4px 6px;
+    padding: 4px;
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+  .route-card-title {
+    gap: 8px;
+  }
+  .route-card-title h3 {
+    font-size: 1rem;
+    overflow-wrap: anywhere;
   }
   .route-card-copy p {
     min-height: 0;
   }
   .route-card-copy {
-    padding: 20px;
+    padding: 0;
+    min-width: 0;
+  }
+  .route-card-bottom {
+    flex-wrap: wrap;
+    margin-top: 12px;
+    padding-top: 10px;
+    gap: 6px 10px;
+  }
+  .route-skeleton {
+    height: 180px;
   }
   .detail-intro {
     grid-template-columns: 1fr;
-    padding: 24px;
-    gap: 22px;
+    padding: 16px;
+    gap: 16px;
   }
   .catalog-toolbar {
     flex-direction: column;
@@ -2395,22 +2525,28 @@ onBeforeUnmount(() => {
     flex-basis: auto;
   }
   .level-heading {
-    padding: 20px;
+    padding: 16px;
   }
   .course-row {
-    padding: 18px 16px;
-    gap: 11px;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: 31px minmax(0, 1fr);
+    padding: 16px 12px;
+    gap: 8px 10px;
   }
   .course-icon {
     width: 31px;
     height: 36px;
   }
   .course-row-copy {
-    min-width: 180px;
+    min-width: 0;
   }
   .course-open-label {
-    margin-left: 42px;
+    grid-column: 2;
+    margin-left: 0;
+  }
+  .free-badge {
+    grid-column: 2;
+    justify-self: start;
   }
   .course-row-copy strong {
     font-size: 0.8rem;
@@ -2442,24 +2578,130 @@ onBeforeUnmount(() => {
     z-index: 30;
     border-top: 1px solid var(--line);
     background: #fffffff5;
-    padding: 10px 12px max(10px, env(safe-area-inset-bottom));
+    padding: 10px 12px calc(12px + env(safe-area-inset-bottom));
     backdrop-filter: blur(8px);
     box-shadow: 0 -8px 30px #1528420a;
   }
   .mobile-purchase .button {
-    min-height: 46px;
+    min-height: 48px;
     padding: 11px 8px;
     font-size: 0.75rem;
   }
   .dialog-header {
-    padding: 22px 18px;
+    padding: 16px;
+    flex-shrink: 0;
+    max-height: 40dvh;
+    overflow-y: auto;
   }
   .dialog-header h2 {
     font-size: 1.08rem;
   }
   .dialog-body,
   .dialog-footer {
-    padding: 20px 18px;
+    padding: 16px;
+  }
+  .dialog-body {
+    min-height: 0;
+    overscroll-behavior: contain;
+  }
+  .dialog-footer {
+    flex-shrink: 0;
+    max-height: 35dvh;
+    overflow-y: auto;
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+  .route-dialog,
+  .course-dialog {
+    width: 100%;
+    max-width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    border: 0;
+    border-radius: 0;
+    overflow: hidden;
+  }
+  .route-dialog-header,
+  .dialog-header {
+    padding-top: max(12px, env(safe-area-inset-top));
+  }
+  .route-dialog-body {
+    padding-bottom: calc(88px + env(safe-area-inset-bottom));
+    scroll-padding-bottom: 88px;
+  }
+  .dialog-close {
+    width: 44px;
+    height: 44px;
+  }
+  .search-field input,
+  .free-dialog input {
+    font-size: 16px;
+    min-height: 48px;
+  }
+  .free-dialog {
+    padding: 20px;
+    max-height: calc(100dvh - 24px);
+    overflow-y: auto;
+  }
+  .free-actions {
+    flex-wrap: wrap;
+  }
+  .free-actions .button {
+    flex: 1 1 140px;
+  }
+  .text-button,
+  .image-credits {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+  .count-pill {
+    white-space: normal;
+  }
+  .whatsapp-float-page {
+    width: 52px;
+    height: 52px;
+    padding: 12px;
+    bottom: calc(var(--mobile-purchase-height) + 12px);
+  }
+  .whatsapp-float-page > span {
+    display: none;
+  }
+  .whatsapp-float-route {
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    max-width: calc(100% - 32px);
+  }
+}
+.full-catalog {
+  --route-accent: var(--blue);
+}
+.full-catalog h2 {
+  margin-top: 10px;
+  scroll-margin-top: 100px;
+}
+.catalog-course-list {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.catalog-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+.catalog-pagination > span {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+@media (max-width: 600px) {
+  .catalog-pagination {
+    gap: 8px;
+  }
+  .catalog-pagination .button {
+    padding-inline: 12px;
+    font-size: 0.78rem;
   }
 }
 @media (prefers-reduced-motion: reduce) {

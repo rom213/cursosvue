@@ -88,7 +88,10 @@ async function flush() {
   await nextTick();
 }
 function buttons(selector: string) {
-  return Array.from(host.querySelectorAll<HTMLButtonElement>(selector));
+  const root = selector === ".course-row"
+    ? host.querySelector(".route-dialog[open]") ?? host.querySelector(".full-catalog") ?? host
+    : host;
+  return Array.from(root.querySelectorAll<HTMLButtonElement>(selector));
 }
 async function mountPage() {
   const router = createRouter({
@@ -122,7 +125,7 @@ async function mountPage() {
 }
 async function selectRoute(title: string) {
   buttons(".route-card")
-    .find((button) => button.querySelector("h3")?.textContent === title)!
+    .find((button) => button.querySelector("h3")?.textContent === `Ruta ${title}`)!
     .click();
   await flush();
 }
@@ -163,6 +166,50 @@ afterEach(() => {
 });
 
 describe("página de rutas de datos y oficina", () => {
+  it("pagina el catálogo completo y reinicia la página al buscar sin filtrar por ruta", async () => {
+    const catalog = Array.from({ length: 23 }, (_, index) => ({
+      id: index + 1,
+      name_del_curso: `${index % 2 ? "SAP" : "Excel"} curso ${index + 1}`,
+      author: index === 22 ? "José" : "Academia",
+    }));
+    mocks.get.mockResolvedValue({ data: { items: catalog, total: 23, offset: 0, limit: 100 } });
+    await mountPage();
+    expect(host.querySelector("#ruta-detalle")).toBeNull();
+    expect(host.querySelector(".route-card.selected")).toBeNull();
+    expect(buttons(".course-row")).toHaveLength(10);
+    const [previous, next] = buttons(".catalog-pagination button");
+    expect(previous!.disabled).toBe(true);
+    next!.click();
+    await flush();
+    expect(host.querySelector(".catalog-pagination")?.textContent).toContain("Página 2 de 3");
+    expect(buttons(".course-row")[0]?.textContent).toContain("curso 11");
+    next!.click();
+    await flush();
+    expect(buttons(".course-row")).toHaveLength(3);
+    expect(next!.disabled).toBe(true);
+    previous!.click();
+    await flush();
+    expect(buttons(".course-row")).toHaveLength(10);
+    const input = host.querySelector<HTMLInputElement>("#catalog-course-search")!;
+    input.value = "jose";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    await flush();
+    expect(buttons(".course-row")).toHaveLength(1);
+    expect(buttons(".course-row")[0]?.textContent).toContain("curso 23");
+    expect(host.querySelector(".catalog-pagination")).toBeNull();
+    await selectRoute("Excel");
+    host.querySelector<HTMLButtonElement>(".route-dialog .dialog-close")!.click();
+    await flush();
+    expect(host.querySelector("#ruta-detalle")).toBeNull();
+    expect(input.value).toBe("jose");
+    input.value = "";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    await flush();
+    expect(buttons(".course-row")).toHaveLength(10);
+    expect(host.querySelector(".catalog-pagination")?.textContent).toContain("Página 1 de 3");
+    expect(buttons(".course-row")[1]?.textContent).toContain("SAP");
+  });
+
   it("muestra cursos reales, niveles, rutas disponibles y búsqueda por autor", async () => {
     await mountPage();
     expect(mocks.getCategory).toHaveBeenCalledWith(103);
@@ -174,7 +221,7 @@ describe("página de rutas de datos y oficina", () => {
     );
     expect(
       buttons(".route-card").map(
-        (button) => button.querySelector("h3")?.textContent,
+        (button) => button.querySelector("h3")?.textContent?.replace(/^Ruta /, ""),
       ),
     ).toEqual([
       "Excel",
@@ -184,6 +231,9 @@ describe("página de rutas de datos y oficina", () => {
       "Business Intelligence",
       "Productividad y colaboración",
     ]);
+    expect(host.querySelector("#ruta-detalle")).toBeNull();
+    expect(buttons(".course-row")).toHaveLength(6);
+    await selectRoute("Excel");
     expect(
       Array.from(host.querySelectorAll(".level-heading h3")).map(
         (heading) => heading.textContent,
@@ -209,7 +259,7 @@ describe("página de rutas de datos y oficina", () => {
     await selectRoute("Power BI");
     expect(input.value).toBe("");
     expect(host.querySelector("#ruta-titulo")?.textContent?.trim()).toBe(
-      "Ruta de Power BI",
+      "Ruta de Ruta Power BI",
     );
     expect(document.activeElement).toBe(host.querySelector("#ruta-titulo"));
     expect(buttons(".course-row")[0]?.textContent).toContain(
@@ -217,14 +267,14 @@ describe("página de rutas de datos y oficina", () => {
     );
   });
 
-  it("abre las rutas en un modal y mantiene desplegada la última seleccionada al cerrar", async () => {
+  it("muestra las rutas solo dentro del modal y restaura el catálogo al cerrar", async () => {
     await mountPage();
     const dialog = host.querySelector<HTMLDialogElement>(".route-dialog")!;
     expect(dialog.open).toBe(false);
-    expect(host.querySelector("#ruta-titulo")?.textContent).toContain("Excel");
+    expect(host.querySelector("#ruta-titulo")).toBeNull();
     expect(dialog.querySelector("#ruta-detalle")).toBeNull();
     const trigger = buttons(".route-card").find(
-      (button) => button.querySelector("h3")?.textContent === "Power BI",
+      (button) => button.querySelector("h3")?.textContent === "Ruta Power BI",
     )!;
     await selectRoute("Power BI");
     expect(dialog.open).toBe(true);
@@ -243,9 +293,8 @@ describe("página de rutas de datos y oficina", () => {
     await flush();
     expect(dialog.open).toBe(false);
     expect(dialog.querySelector("#ruta-detalle")).toBeNull();
-    expect(host.querySelector("#ruta-titulo")?.textContent).toContain(
-      "Power BI",
-    );
+    expect(host.querySelector("#ruta-titulo")).toBeNull();
+    expect(buttons(".course-row")).toHaveLength(6);
     expect(input.value).toBe("avanzado");
     expect(document.activeElement).toBe(trigger);
     expect(document.body.style.overflow).toBe("");
@@ -256,7 +305,7 @@ describe("página de rutas de datos y oficina", () => {
     dialog.querySelector<HTMLButtonElement>(".dialog-close")!.click();
     await flush();
     expect(dialog.open).toBe(false);
-    expect(host.querySelector("#ruta-titulo")?.textContent).toContain("Excel");
+    expect(host.querySelector("#ruta-titulo")).toBeNull();
   });
 
   it("conserva el bloqueo de scroll al cerrar una descripción sobre el modal de ruta", async () => {
@@ -316,7 +365,7 @@ describe("página de rutas de datos y oficina", () => {
       ".route-dialog .whatsapp-float-route",
     )!;
     expect(routeLink.querySelector("svg")).not.toBeNull();
-    expect(message(routeLink)).toContain("me gustó la ruta de Power BI");
+    expect(message(routeLink)).toContain("me gustó la ruta de Ruta Power BI");
     expect(message(routeLink)).toContain("bloque 103 completo");
     expect(routeLink.target).toBe("_blank");
     expect(routeLink.rel).toBe("noopener noreferrer");
@@ -330,7 +379,7 @@ describe("página de rutas de datos y oficina", () => {
     await selectRoute("Excel");
     expect(
       message(host.querySelector<HTMLAnchorElement>(".whatsapp-float-route")!),
-    ).toContain("me gustó la ruta de Excel");
+    ).toContain("me gustó la ruta de Ruta Excel");
     expect(host.querySelector(".mobile-purchase button")).not.toBeNull();
   });
 

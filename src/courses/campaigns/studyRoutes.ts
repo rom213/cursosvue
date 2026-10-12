@@ -404,7 +404,7 @@ export function studyCourseLevel(course: ICategoryCourseDetail): StudyLevel {
   if (advanced.test(title)) return "advanced";
   if (intermediate.test(title)) return "intermediate";
   if (initial.test(title)) return "initial";
-  return "unspecified";
+  return "intermediate";
 }
 
 export function coursesForStudyRoute(

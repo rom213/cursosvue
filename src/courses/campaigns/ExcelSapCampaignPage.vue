@@ -172,7 +172,7 @@ const faqs = [
   {
     question: "¿Cómo se determina el nivel?",
     answer:
-      "Los niveles son orientativos y se basan en lo que indica el título del curso. Si el título no permite confirmar la dificultad, el curso aparece en “Sin nivel indicado”. Revisa su descripción antes de elegirlo.",
+      "Los niveles son orientativos y se basan en lo que indica el título del curso. Si el título no permite confirmar la dificultad, el curso se incluye en el nivel intermedio. Revisa su descripción antes de elegirlo.",
   },
   {
     question: "¿Cómo accedo al material?",

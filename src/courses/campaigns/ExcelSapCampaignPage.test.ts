@@ -240,9 +240,8 @@ describe("página de rutas de datos y oficina", () => {
       ),
     ).toEqual([
       "Inicial 1",
-      "Intermedio 1",
+      "Intermedio 2",
       "Cursos completos 1",
-      "Cursos complementarios 1",
     ]);
     const input = host.querySelector<HTMLInputElement>("#route-course-search")!;
     input.value = "jose";

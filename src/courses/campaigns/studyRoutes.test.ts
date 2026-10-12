@@ -38,8 +38,9 @@ describe("clasificación de las rutas", () => {
     ["Excel advanced", "advanced"],
     ["Excel GrandMaster De 0 a 100", "complete"],
     ["Aprende MS Excel desde CERO a ANALISTA", "complete"],
-    ["Tablas dinámicas en Excel", "unspecified"],
-    ["Especialista en Power BI", "unspecified"],
+    ["Tablas dinámicas en Excel", "intermediate"],
+    ["Especialista en Power BI", "intermediate"],
+    ["", "intermediate"],
   ])("clasifica %s como %s", (name, level) => {
     expect(studyCourseLevel(course(1, name))).toBe(level);
   });
@@ -105,7 +106,7 @@ describe("clasificación de las rutas", () => {
     expect(coursesForStudyRoute(items, route("excel"))).toHaveLength(3);
   });
 
-  it("agrupa todos los cursos sin inventar niveles y busca sin distinguir tildes", () => {
+  it("incluye los cursos sin nivel en intermedio y busca sin distinguir tildes", () => {
     const items = [
       course(1, "Excel completo"),
       course(2, "Excel básico"),
@@ -115,14 +116,14 @@ describe("clasificación de las rutas", () => {
     const groups = groupStudyCourses(items);
     expect(groups.map((group) => group.id)).toEqual([
       "initial",
+      "intermediate",
       "advanced",
       "complete",
-      "unspecified",
     ]);
     expect(groups.flatMap((group) => group.courses)).toHaveLength(4);
     expect(groupStudyCourses(items, " jose ")[0]?.courses[0]?.id).toBe(3);
     expect(groupStudyCourses(items, "tablas dinamicas")[0]?.id).toBe(
-      "unspecified",
+      "intermediate",
     );
     expect(groupStudyCourses(items, "inexistente")).toEqual([]);
   });

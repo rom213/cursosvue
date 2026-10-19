@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { STUDY_ROUTE_QUERIES } from "./studyRouteQueries";
 import { TECHNOLOGY_ROUTES } from "./technologyRoutes";
 import { STUDY_ROUTES, coursesForStudyRoute, groupStudyCourses } from "./studyRoutes";
 
@@ -10,6 +11,12 @@ const matches = (id: string, titles: string[]) => coursesForStudyRoute(
 ).map((course) => course.name_del_curso);
 
 describe("rutas del pilar de tecnología", () => {
+  it("todas las rutas tienen consultas explícitas para la API existente", () => {
+    for (const route of [...TECHNOLOGY_ROUTES, ...STUDY_ROUTES]) {
+      expect(STUDY_ROUTE_QUERIES[route.id]?.length, route.id).toBeGreaterThan(0);
+      expect(STUDY_ROUTE_QUERIES[route.id]?.every((query) => query.trim().length > 0), route.id).toBe(true);
+    }
+  });
   it("cada ruta tiene una imagen distinta tanto en Tecnología como en Excel", () => {
     for (const routes of [TECHNOLOGY_ROUTES, STUDY_ROUTES]) {
       expect(new Set(routes.map((route) => route.image)).size).toBe(routes.length);

@@ -9,7 +9,6 @@ import {
 } from "vue";
 import { useRoute } from "vue-router";
 import CategoryService from "../../services/CategorieService";
-import type { IPaginatedCourses } from "../../services/CategorieService";
 import ApiService from "../../services/ApiService";
 import type { ICategory, ICategoryCourseDetail } from "../../types/Categorie";
 import { emergentBuyStore } from "../../store/EmergentBuyStore";
@@ -20,13 +19,11 @@ import EmergentBuyComponent from "../emergent.buy.component.vue";
 import FooterComponent from "../../components/footer/footer.component.vue";
 import WhatsAppIcon from "./WhatsAppIcon.vue";
 import {
-  coursesForStudyRoute,
   groupStudyCourses,
-  loadStudyCatalog,
-  normalizeStudyText,
   studyCourseKey,
 } from "./studyRoutes";
 import type { StudyLevel } from "./studyRoutes";
+import { useLazyStudyCatalog } from "./useLazyStudyCatalog";
 import { TECHNOLOGY_CATEGORY_ID as STUDY_CATEGORY_ID, TECHNOLOGY_CAMPAIGN_ID as STUDY_CAMPAIGN_ID, TECHNOLOGY_ROUTES as STUDY_ROUTES } from "./technologyRoutes";
 
 defineOptions({ name: "TechnologyCampaignPage" });
@@ -43,16 +40,16 @@ const {
   trackViewContentCourse,
 } = useTracking();
 const category = ref<ICategory | null>(null);
-const courses = ref<ICategoryCourseDetail[]>([]);
 const categoryLoading = ref(true);
-const catalogLoading = ref(true);
 const categoryError = ref(false);
-const catalogError = ref(false);
 const selectedRouteId = ref("");
 const search = ref("");
-const catalogSearch = ref("");
-const catalogPage = ref(1);
-const catalogPageSize = 10;
+const {
+  stateFor, loadRoute, catalogItems, catalogTotal, catalogPage, catalogPages,
+  catalogSearch, catalogAuthor, catalogEnabled, catalogLoading, catalogError,
+  loadCatalog, changeCatalogPage: requestCatalogPage,
+  authors, authorsLoading, authorsError, loadAuthors,
+} = useLazyStudyCatalog(STUDY_CATEGORY_ID);
 const catalogHeading = ref<HTMLElement | null>(null);
 const selectedCourseRouteTitle = ref("");
 const expandedLevels = ref<StudyLevel[]>([]);
@@ -82,17 +79,15 @@ let routeTrigger: HTMLElement | null = null;
 let previousOverflow = "";
 let scrollLocked = false;
 
-const routesWithCourses = computed(() =>
-  STUDY_ROUTES.map((definition) => ({
-    ...definition,
-    courses: coursesForStudyRoute(courses.value, definition),
-  })),
-);
-const visibleRoutes = computed(() =>
-  routesWithCourses.value.filter(
-    (item) => item.courses.length,
-  ),
-);
+const routesWithCourses = computed(() => STUDY_ROUTES.map((definition) => ({
+  ...definition,
+  courses: stateFor(definition.id).items,
+  loaded: stateFor(definition.id).loaded,
+})));
+// Counts and availability are confirmed only when a route is opened.
+const visibleRoutes = routesWithCourses;
+const routeLoading = computed(() => stateFor(selectedRouteId.value).loading);
+const routeError = computed(() => stateFor(selectedRouteId.value).error);
 const selectedStudyRoute = computed(
   () =>
     routesWithCourses.value.find((item) => item.id === selectedRouteId.value) ??
@@ -104,22 +99,8 @@ const courseGroups = computed(() =>
 const searchTotal = computed(() =>
   courseGroups.value.reduce((sum, group) => sum + group.courses.length, 0),
 );
-const catalogTotal = computed(() => courses.value.length);
-const filteredCatalog = computed(() => {
-  const query = normalizeStudyText(catalogSearch.value);
-  return courses.value.filter((course) =>
-    normalizeStudyText(`${course.name_del_curso ?? ""} ${course.author ?? ""}`).includes(query),
-  );
-});
-const catalogPages = computed(() => Math.max(1, Math.ceil(filteredCatalog.value.length / catalogPageSize)));
-const paginatedCatalog = computed(() => filteredCatalog.value.slice(
-  (catalogPage.value - 1) * catalogPageSize,
-  catalogPage.value * catalogPageSize,
-));
-watch([catalogSearch, courses], () => { catalogPage.value = 1; });
 function changeCatalogPage(page: number) {
-  if (page < 1 || page > catalogPages.value) return;
-  catalogPage.value = page;
+  requestCatalogPage(page);
   nextTick(() => {
     catalogHeading.value?.focus({ preventScroll: true });
     catalogHeading.value?.scrollIntoView({ behavior: scrollBehavior(), block: "start" });
@@ -192,56 +173,34 @@ const faqs = computed(() => alreadyBought.value
 async function loadLanding() {
   const sequence = ++landingSequence;
   const isCurrent = () => componentActive && sequence === landingSequence;
-  catalogLoading.value = true;
   categoryLoading.value = true;
-  catalogError.value = false;
   categoryError.value = false;
-  courses.value = [];
-  category.value = null;
-  await Promise.allSettled([
-    (async () => {
-      try {
-        const result = await CategoryService.getCategoryById(STUDY_CATEGORY_ID);
-        if (!isCurrent()) return;
-        if (!result || result.id !== STUDY_CATEGORY_ID)
-          throw new Error("Pilar no disponible");
-        const price = result.precio ?? result.precio_desc ?? 0;
-        category.value = { ...result, precio: price, precio_desc: price };
-        if (!viewTracked) {
-          viewTracked = true;
-          trackViewItem(category.value);
-          trackCustom("CampaignView", {
-            content_id: STUDY_CATEGORY_ID,
-            content_name: "Rutas de tecnología e ingeniería",
-            content_category: "campaign",
-            value: price || undefined,
-            currency: price ? "COP" : undefined,
-            custom_data: { campaign_id: STUDY_CAMPAIGN_ID },
-          });
-        }
-      } catch {
-        if (isCurrent()) categoryError.value = true;
-      } finally {
-        if (isCurrent()) categoryLoading.value = false;
-      }
-    })(),
-    (async () => {
-      try {
-        // ApiService conserva los errores; getCourses devuelve una página vacía si falla.
-        const result = await loadStudyCatalog(async (offset, limit) => {
-          const response = await ApiService.get<IPaginatedCourses>(
-            `api/category/${STUDY_CATEGORY_ID}/courses?limit=${limit}&offset=${offset}`,
-          );
-          return response.data;
-        }, isCurrent);
-        if (result && isCurrent()) courses.value = result;
-      } catch {
-        if (isCurrent()) catalogError.value = true;
-      } finally {
-        if (isCurrent()) catalogLoading.value = false;
-      }
-    })(),
-  ]);
+  try {
+    const result = await CategoryService.getCategoryById(STUDY_CATEGORY_ID);
+    if (!isCurrent()) return;
+    if (!result || result.id !== STUDY_CATEGORY_ID) throw new Error("Categoría no disponible");
+    const price = result.precio ?? result.precio_desc ?? 0;
+    category.value = { ...result, precio: price, precio_desc: price };
+    if (!viewTracked) {
+      viewTracked = true;
+      trackViewItem(category.value);
+      trackCustom("CampaignView", {
+        content_id: STUDY_CATEGORY_ID,
+        content_name: "Rutas de tecnología e ingeniería",
+        content_category: "campaign",
+        value: price || undefined,
+        currency: price ? "COP" : undefined,
+        custom_data: { campaign_id: STUDY_CAMPAIGN_ID },
+      });
+    }
+  } catch {
+    if (isCurrent()) categoryError.value = true;
+  } finally {
+    if (isCurrent()) categoryLoading.value = false;
+  }
+}
+function loadSelectedStudyRoute(retry = false) {
+  return loadRoute(selectedStudyRoute.value, retry);
 }
 
 async function selectStudyRoute(id: string, event: Event) {
@@ -250,13 +209,14 @@ async function selectStudyRoute(id: string, event: Event) {
   selectedRouteId.value = id;
   search.value = "";
   expandedLevels.value = [];
+  void loadSelectedStudyRoute();
   trackCustom("StudyRouteOpen", {
     content_id: STUDY_CATEGORY_ID,
     content_name: selectedStudyRoute.value.title,
     custom_data: {
       campaign_id: STUDY_CAMPAIGN_ID,
       study_route: id,
-      courses_total: selectedStudyRoute.value.courses.length,
+      courses_total: selectedStudyRoute.value.loaded ? selectedStudyRoute.value.courses.length : undefined,
     },
   });
   await nextTick();
@@ -678,34 +638,11 @@ onBeforeUnmount(() => {
           </p>
         </div>
         <span
-          v-if="!catalogLoading && !catalogError && catalogTotal"
+          v-if="category?.cantidad_cursos"
           class="count-pill"
-          >{{ catalogTotal }} cursos en el catálogo</span
+          >{{ category?.cantidad_cursos }} cursos en el catálogo</span
         >
       </div>
-      <div
-        v-if="catalogLoading"
-        class="route-grid"
-        aria-live="polite"
-        aria-busy="true"
-      >
-        <div v-for="n in 5" :key="n" class="route-skeleton skeleton"></div>
-        <p class="loading-message">
-          Estamos preparando las rutas con el catálogo completo…
-        </p>
-      </div>
-      <div v-else-if="catalogError" class="error-panel" role="alert">
-        <h3>No pudimos cargar el catálogo completo</h3>
-        <p>Vuelve a intentar para explorar todas las rutas y sus cursos.</p>
-        <button
-          class="button button-primary"
-          type="button"
-          @click="loadLanding"
-        >
-          Volver a intentar
-        </button>
-      </div>
-      <template v-else>
         <div class="route-grid">
           <button
             v-for="studyRoute in visibleRoutes"
@@ -741,12 +678,9 @@ onBeforeUnmount(() => {
               <p>{{ studyRoute.summary }}</p>
               <span class="route-card-bottom"
                 ><span
-                  >{{ studyRoute.courses.length }}
-                  {{
-                    studyRoute.courses.length === 1
-                      ? "curso disponible"
-                      : "cursos disponibles"
-                  }}</span
+                  >{{ studyRoute.loaded
+                    ? `${studyRoute.courses.length} ${studyRoute.courses.length === 1 ? 'curso disponible' : 'cursos disponibles'}`
+                    : 'Explora los cursos de esta ruta' }}</span
                 ><strong>{{
                   routeDialogOpen && selectedRouteId === studyRoute.id
                     ? "Seleccionada"
@@ -767,7 +701,6 @@ onBeforeUnmount(() => {
           rel="noopener noreferrer"
           >Créditos de las imágenes ↗</a
         >
-      </template>
     </section>
 
     <dialog
@@ -806,7 +739,6 @@ onBeforeUnmount(() => {
       :to="routeDialogBody"
     >
       <section
-        v-if="!catalogLoading && !catalogError"
         id="ruta-detalle"
         class="section route-detail"
         :style="{ '--route-accent': selectedStudyRoute.accent }"
@@ -820,7 +752,7 @@ onBeforeUnmount(() => {
             </h2>
             <p>{{ selectedStudyRoute.goal }}</p>
             <span class="count-pill"
-              >{{ selectedStudyRoute.courses.length }} cursos en esta ruta</span
+              >{{ selectedStudyRoute.loaded ? `${selectedStudyRoute.courses.length} cursos en esta ruta` : 'Consulta los cursos disponibles' }}</span
             >
           </div>
           <ol
@@ -835,7 +767,16 @@ onBeforeUnmount(() => {
             </li>
           </ol>
         </div>
-        <div class="catalog-toolbar">
+        <div v-if="routeLoading" class="route-loading" role="status" aria-busy="true">
+          <div class="content-skeleton skeleton"></div>
+          <p>Cargando los cursos de esta ruta…</p>
+        </div>
+        <div v-else-if="routeError" class="error-panel route-error" role="alert">
+          <h3>No pudimos cargar esta ruta</h3>
+          <p>Vuelve a intentar para consultar sus cursos.</p>
+          <button class="button button-primary" type="button" @click="loadSelectedStudyRoute(true)">Volver a intentar</button>
+        </div>
+        <div v-if="!routeLoading && !routeError" class="catalog-toolbar">
           <div>
             <h3>Explora los cursos por nivel</h3>
             <p>
@@ -856,13 +797,13 @@ onBeforeUnmount(() => {
             </div>
           </div>
         </div>
-        <p v-if="search.trim()" class="search-results" role="status">
+        <p v-if="!routeLoading && !routeError && search.trim()" class="search-results" role="status">
           {{ searchTotal }}
           {{ searchTotal === 1 ? "resultado" : "resultados" }} para “{{
             search.trim()
           }}”
         </p>
-        <div v-if="!courseGroups.length" class="empty-panel">
+        <div v-if="!routeLoading && !routeError && !courseGroups.length" class="empty-panel">
           <h3>
             {{
               search.trim()
@@ -886,7 +827,7 @@ onBeforeUnmount(() => {
             Limpiar búsqueda
           </button>
         </div>
-        <div v-else class="level-groups">
+        <div v-else-if="!routeLoading && !routeError" class="level-groups">
           <section
             v-for="group in courseGroups"
             :key="group.id"
@@ -960,32 +901,44 @@ onBeforeUnmount(() => {
         <div>
           <span class="eyebrow">TODO EL CONTENIDO DEL BLOQUE</span>
           <h2 id="catalogo-titulo" ref="catalogHeading" tabindex="-1">Todos los cursos</h2>
-          <p>Explora el catálogo completo o busca por nombre del curso o autor.</p>
+          <p>Explora el catálogo por nombre del curso y filtra por autor.</p>
         </div>
         <div class="search-field">
           <label for="catalog-course-search">Buscar en todos los cursos</label>
           <div>
-            <input id="catalog-course-search" v-model="catalogSearch" type="search" placeholder="Nombre del curso o autor" autocomplete="off" />
+            <input id="catalog-course-search" v-model="catalogSearch" type="search" placeholder="Nombre del curso" autocomplete="off" />
             <span aria-hidden="true">⌕</span>
           </div>
         </div>
+        <div class="search-field">
+          <label for="catalog-author">Filtrar por autor</label>
+          <select id="catalog-author" v-model="catalogAuthor" @focus="loadAuthors" @click="loadAuthors">
+            <option value="">{{ authorsLoading ? 'Cargando autores…' : 'Todos los autores' }}</option>
+            <option v-for="author in authors" :key="author" :value="author">{{ author }}</option>
+          </select>
+          <button v-if="authorsError" class="text-button" type="button" @click="loadAuthors">Reintentar carga de autores</button>
+        </div>
       </div>
-      <div v-if="catalogLoading" aria-live="polite" aria-busy="true">
+      <div v-if="!catalogEnabled" class="empty-panel">
+        <p>Consulta el catálogo completo cuando lo necesites.</p>
+        <button class="button button-primary" type="button" @click="loadCatalog()">Ver catálogo completo</button>
+      </div>
+      <div v-else-if="catalogLoading" aria-live="polite" aria-busy="true">
         <div class="content-skeleton skeleton"></div>
-        <p>Cargando todos los cursos…</p>
+        <p>Cargando cursos…</p>
       </div>
       <div v-else-if="catalogError" class="error-panel" role="alert">
         <p>No pudimos cargar el catálogo completo.</p>
-        <button class="button button-primary" type="button" @click="loadLanding">Volver a intentar</button>
+        <button class="button button-primary" type="button" @click="loadCatalog(true)">Volver a intentar</button>
       </div>
       <template v-else>
-        <p class="search-results" role="status">{{ filteredCatalog.length }} {{ filteredCatalog.length === 1 ? "curso" : "cursos" }}{{ catalogSearch.trim() ? " encontrados" : " en el catálogo" }}</p>
-        <div v-if="!filteredCatalog.length" class="empty-panel">
+        <p class="search-results" role="status">{{ catalogTotal }} {{ catalogTotal === 1 ? "curso" : "cursos" }}{{ catalogSearch.trim() ? " encontrados" : " en el catálogo" }}</p>
+        <div v-if="!catalogTotal" class="empty-panel">
           <h3>{{ catalogSearch.trim() ? "No encontramos cursos con esa búsqueda" : "No hay cursos disponibles por ahora" }}</h3>
           <button v-if="catalogSearch.trim()" class="text-button" type="button" @click="catalogSearch = ''">Limpiar búsqueda</button>
         </div>
         <ul v-else class="course-list catalog-course-list">
-          <li v-for="course in paginatedCatalog" :key="studyCourseKey(course)">
+          <li v-for="course in catalogItems" :key="studyCourseKey(course)">
                 <button
                   type="button"
                   class="course-row"
@@ -1740,7 +1693,8 @@ onBeforeUnmount(() => {
   font-size: 0.76rem;
 }
 .search-field {
-  flex: 0 0 300px;
+  flex: 0 1 300px;
+  min-width: 0;
 }
 .search-field label {
   display: block;
@@ -1752,6 +1706,7 @@ onBeforeUnmount(() => {
   position: relative;
 }
 .search-field input,
+.search-field select,
 .free-dialog input {
   width: 100%;
   padding: 13px 38px 13px 14px;

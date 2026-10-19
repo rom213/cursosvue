@@ -2,18 +2,17 @@ import { defineConfig } from 'vitest/config'
 import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
 
+import { cloudflare } from "@cloudflare/vite-plugin";
+
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [
-    vue({
-      template: {
-        compilerOptions: {
-          isCustomElement: (tag) => tag === 'iconify-icon',
-        },
+  plugins: [vue({
+    template: {
+      compilerOptions: {
+        isCustomElement: (tag) => tag === 'iconify-icon',
       },
-    }),
-    tailwindcss(),
-  ],
+    },
+  }), tailwindcss(), cloudflare()],
   build: {
     cssCodeSplit: true,
     rollupOptions: {

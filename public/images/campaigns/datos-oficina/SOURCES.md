@@ -21,3 +21,7 @@ Imágenes descargadas el 4 de octubre de 2026. Las marcas identifican las herram
 La versión WebP de Tableau se distribuye bajo [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Las capturas de Microsoft Learn conservan su atribución; véase [licencia de documentación](https://learn.microsoft.com/en-us/legal/termsofuse).
 
 Los originales vectoriales conservan sus colores, proporciones y diseño. Los reportes completos se muestran sin recortar los gráficos.
+
+## Recursos específicos para las rutas
+
+- **automatizacion.webp** — KSanjay2240279. Licencia: [CC0](http://creativecommons.org/publicdomain/zero/1.0/deed.en). [Origen](https://commons.wikimedia.org/wiki/File:ExcelVBA.png); [archivo descargado](https://thumb.wikimedia.org/wikipedia/commons/thumb/9/97/ExcelVBA.png/1280px-ExcelVBA.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail). Redimensionada y convertida a WebP.

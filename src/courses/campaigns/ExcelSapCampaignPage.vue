@@ -2087,14 +2087,7 @@ onBeforeUnmount(() => {
   margin: 0;
   padding: 24px;
 }
-@media (max-width: 600px) {
-  .route-dialog .route-detail {
-    padding: 16px;
-  }
-  .route-dialog-header {
-    padding: 12px 16px;
-  }
-}
+
 .dialog-header {
   display: flex;
   justify-content: space-between;
@@ -2276,21 +2269,7 @@ onBeforeUnmount(() => {
   bottom: 20px;
   z-index: 1;
 }
-@media (max-width: 600px) {
-  .whatsapp-float {
-    font-size: 0.75rem;
-    padding: 12px 16px;
-    min-height: 52px;
-  }
-  .whatsapp-float-page {
-    right: 16px;
-    bottom: calc(86px + env(safe-area-inset-bottom));
-  }
-  .whatsapp-float-route {
-    right: 16px;
-    bottom: 16px;
-  }
-}
+
 .mobile-purchase {
   display: none;
 }
@@ -2396,281 +2375,7 @@ onBeforeUnmount(() => {
     gap: 22px;
   }
 }
-@media (max-width: 600px) {
-  .study-page {
-    --mobile-purchase-height: calc(70px + env(safe-area-inset-bottom));
-    padding-bottom: var(--mobile-purchase-height);
-  }
-  .section,
-  .hero-inner,
-  .pack-strip {
-    width: calc(100% - 32px);
-  }
-  .section {
-    padding-block: 34px;
-  }
-  .hero-visual {
-    display: none;
-  }
-  .hero-inner {
-    padding-block: 24px;
-    gap: 20px;
-  }
-  .hero-copy h1 {
-    font-size: clamp(1.85rem, 7.5vw, 2.25rem);
-    margin-block: 14px;
-  }
-  .hero-description {
-    font-size: 0.9rem;
-    line-height: 1.65;
-  }
-  .hero-actions {
-    display: grid;
-    grid-template-columns: 1fr;
-    margin-top: 20px;
-  }
-  .hero-facts {
-    display: grid;
-    margin-top: 18px;
-  }
-  .pack-strip {
-    flex-direction: column;
-    gap: 20px;
-    padding-block: 24px;
-  }
-  .pack-purchase {
-    width: 100%;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    gap: 15px;
-    flex-wrap: wrap;
-  }
-  .pack-purchase .price {
-    flex: 1 1 130px;
-  }
-  .pack-purchase .button {
-    font-size: 0.77rem;
-    padding-inline: 16px;
-    flex: 1 1 145px;
-  }
-  .price strong {
-    font-size: 1.45rem;
-  }
-  .section-heading {
-    flex-direction: column;
-    align-items: start;
-    gap: 15px;
-  }
-  .route-grid {
-    grid-template-columns: 1fr;
-    gap: 14px;
-  }
-  .route-card {
-    display: grid;
-    grid-template-columns: 88px minmax(0, 1fr);
-    align-items: start;
-    padding: 14px;
-    gap: 12px;
-  }
-  .route-card-image {
-    height: auto;
-    border-radius: 10px;
-  }
-  .route-card-image img {
-    height: 76px;
-    padding: 8px;
-  }
-  .route-card-tag {
-    position: static;
-    display: block;
-    margin: 0 4px 6px;
-    padding: 4px;
-    text-align: center;
-    overflow-wrap: anywhere;
-  }
-  .route-card-title {
-    gap: 8px;
-  }
-  .route-card-title h3 {
-    font-size: 1rem;
-    overflow-wrap: anywhere;
-  }
-  .route-card-copy p {
-    min-height: 0;
-  }
-  .route-card-copy {
-    padding: 0;
-    min-width: 0;
-  }
-  .route-card-bottom {
-    flex-wrap: wrap;
-    margin-top: 12px;
-    padding-top: 10px;
-    gap: 6px 10px;
-  }
-  .route-skeleton {
-    height: 180px;
-  }
-  .detail-intro {
-    grid-template-columns: 1fr;
-    padding: 16px;
-    gap: 16px;
-  }
-  .catalog-toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .search-field {
-    flex-basis: auto;
-  }
-  .level-heading {
-    padding: 16px;
-  }
-  .course-row {
-    display: grid;
-    grid-template-columns: 31px minmax(0, 1fr);
-    padding: 16px 12px;
-    gap: 8px 10px;
-  }
-  .course-icon {
-    width: 31px;
-    height: 36px;
-  }
-  .course-row-copy {
-    min-width: 0;
-  }
-  .course-open-label {
-    grid-column: 2;
-    margin-left: 0;
-  }
-  .free-badge {
-    grid-column: 2;
-    justify-self: start;
-  }
-  .course-row-copy strong {
-    font-size: 0.8rem;
-  }
-  .how-grid {
-    grid-template-columns: 1fr;
-    gap: 24px;
-  }
-  .how-grid article > span {
-    margin-bottom: 8px;
-  }
-  .final-section {
-    width: calc(100% - 32px);
-    grid-template-columns: 1fr;
-    padding: 30px 24px;
-    margin-bottom: 32px;
-  }
-  .final-actions {
-    margin-top: 8px;
-  }
-  .mobile-purchase {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 8px;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 30;
-    border-top: 1px solid var(--line);
-    background: #fffffff5;
-    padding: 10px 12px calc(12px + env(safe-area-inset-bottom));
-    backdrop-filter: blur(8px);
-    box-shadow: 0 -8px 30px #1528420a;
-  }
-  .mobile-purchase .button {
-    min-height: 48px;
-    padding: 11px 8px;
-    font-size: 0.75rem;
-  }
-  .dialog-header {
-    padding: 16px;
-    flex-shrink: 0;
-    max-height: 40dvh;
-    overflow-y: auto;
-  }
-  .dialog-header h2 {
-    font-size: 1.08rem;
-  }
-  .dialog-body,
-  .dialog-footer {
-    padding: 16px;
-  }
-  .dialog-body {
-    min-height: 0;
-    overscroll-behavior: contain;
-  }
-  .dialog-footer {
-    flex-shrink: 0;
-    max-height: 35dvh;
-    overflow-y: auto;
-    padding-bottom: max(16px, env(safe-area-inset-bottom));
-  }
-  .route-dialog,
-  .course-dialog {
-    width: 100%;
-    max-width: 100%;
-    height: 100dvh;
-    max-height: 100dvh;
-    border: 0;
-    border-radius: 0;
-    overflow: hidden;
-  }
-  .route-dialog-header,
-  .dialog-header {
-    padding-top: max(12px, env(safe-area-inset-top));
-  }
-  .route-dialog-body {
-    padding-bottom: calc(88px + env(safe-area-inset-bottom));
-    scroll-padding-bottom: 88px;
-  }
-  .dialog-close {
-    width: 44px;
-    height: 44px;
-  }
-  .search-field input,
-  .free-dialog input {
-    font-size: 16px;
-    min-height: 48px;
-  }
-  .free-dialog {
-    padding: 20px;
-    max-height: calc(100dvh - 24px);
-    overflow-y: auto;
-  }
-  .free-actions {
-    flex-wrap: wrap;
-  }
-  .free-actions .button {
-    flex: 1 1 140px;
-  }
-  .text-button,
-  .image-credits {
-    min-height: 44px;
-    display: inline-flex;
-    align-items: center;
-  }
-  .count-pill {
-    white-space: normal;
-  }
-  .whatsapp-float-page {
-    width: 52px;
-    height: 52px;
-    padding: 12px;
-    bottom: calc(var(--mobile-purchase-height) + 12px);
-  }
-  .whatsapp-float-page > span {
-    display: none;
-  }
-  .whatsapp-float-route {
-    bottom: calc(16px + env(safe-area-inset-bottom));
-    max-width: calc(100% - 32px);
-  }
-}
+
 .full-catalog {
   --route-accent: var(--blue);
 }
@@ -2695,15 +2400,7 @@ onBeforeUnmount(() => {
   font-size: 0.8rem;
   color: var(--muted);
 }
-@media (max-width: 600px) {
-  .catalog-pagination {
-    gap: 8px;
-  }
-  .catalog-pagination .button {
-    padding-inline: 12px;
-    font-size: 0.78rem;
-  }
-}
+
 @media (prefers-reduced-motion: reduce) {
   .study-page *,
   .study-page *::before,
@@ -2714,3 +2411,5 @@ onBeforeUnmount(() => {
   }
 }
 </style>
+
+<style scoped src="./campaignMobile.css"></style>

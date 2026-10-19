@@ -92,10 +92,9 @@ const images = {
     imageKind: "logo",
   },
   automatizacion: {
-    image: "/images/campaigns/datos-oficina/excel.svg",
-    imageAlt:
-      "Logotipo de Microsoft Excel, herramienta para las rutas de macros y VBA",
-    imageKind: "logo",
+    image: "/images/campaigns/datos-oficina/automatizacion.webp",
+    imageAlt: "Editor de Visual Basic para automatizar tareas con macros en Excel",
+    imageKind: "report",
   },
   "finanzas-contabilidad": {
     image: "/images/campaigns/datos-oficina/finanzas-contabilidad.webp",

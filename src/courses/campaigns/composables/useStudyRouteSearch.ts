@@ -2,7 +2,7 @@ import { computed, onBeforeUnmount, ref, watch } from "vue";
 import type { IPaginatedCourses } from "../../../services/CategorieService";
 import type { ICategoryCourseDetail } from "../../../types/Categorie";
 import type { StudyCampaignConfig } from "../config/studyCampaignConfig";
-import { coursesForStudyRoute, normalizeStudyText, uniqueStudyCourses } from "../routes/studyRoutes";
+import { coursesForStudyRoute, normalizeStudyText, studyCourseKey, uniqueStudyCourses } from "../routes/studyRoutes";
 import type { StudyRouteDefinition } from "../routes/studyRoutes";
 import { STUDY_ROUTE_QUERIES } from "../routes/studyRouteQueries";
 
@@ -17,6 +17,8 @@ interface SearchGroup {
   page: number;
   loading: boolean;
   error: boolean;
+  selectedItem: ICategoryCourseDetail | null;
+  selectionError: boolean;
 }
 const sourceTitles: Record<number, string> = {
   100: "Negocios y Éxito Profesional", 200: "Tecnología, Código e Ingeniería", 300: "Creatividad y Bienestar",
@@ -43,7 +45,7 @@ export function useStudyRouteSearch(config: StudyCampaignConfig, request: StudyC
   const sources = [...new Set(config.routes.map((route) => route.sourceCategoryId ?? config.categoryId))];
   const groups = ref<SearchGroup[]>(sources.map((categoryId) => ({
     categoryId, title: sources.length === 1 ? config.title : sourceTitles[categoryId] ?? `Pilar ${categoryId}`,
-    items: [], total: 0, page: 1, loading: false, error: false,
+    items: [], total: 0, page: 1, loading: false, error: false, selectedItem: null, selectionError: false,
   })));
   const cache = new Map<string, IPaginatedCourses>();
   const versions = new Map<number, number>();
@@ -55,11 +57,15 @@ export function useStudyRouteSearch(config: StudyCampaignConfig, request: StudyC
     return config.routes.filter((route) => (route.sourceCategoryId ?? config.categoryId) === categoryId
       && coursesForStudyRoute([course], route).length > 0);
   }
-  const resultGroups = computed(() => groups.value.map((group) => ({
-    ...group, pages: Math.max(1, Math.ceil(group.total / pageSize)),
-    results: group.items.map((course) => ({ course, routes: routesForCourse(course, group.categoryId) }))
-      .sort((a, b) => Number(matchesSelectedStudyCourse(b.course, selectedCourse(), group.items)) - Number(matchesSelectedStudyCourse(a.course, selectedCourse(), group.items))),
-  })));
+  const resultGroups = computed(() => groups.value.map((group) => {
+    const courses = uniqueStudyCourses([...(group.selectedItem ? [group.selectedItem] : []), ...group.items]);
+    return {
+      ...group, pages: Math.max(1, Math.ceil(group.total / pageSize)),
+      results: courses.map((course) => ({ course, routes: routesForCourse(course, group.categoryId),
+        selected: matchesSelectedStudyCourse(course, selectedCourse(), courses),
+      })).sort((a, b) => Number(b.selected) - Number(a.selected)),
+    };
+  }));
   const recommendations = computed(() => {
     const counts = new Map<string, number>();
     for (const group of resultGroups.value) for (const result of group.results) for (const route of result.routes)
@@ -67,7 +73,7 @@ export function useStudyRouteSearch(config: StudyCampaignConfig, request: StudyC
     return counts;
   });
   const selectedRouteIds = computed(() => new Set(resultGroups.value.flatMap((group) => group.results
-    .filter((result) => matchesSelectedStudyCourse(result.course, selectedCourse(), group.items))
+    .filter((result) => result.selected)
     .flatMap((result) => result.routes.map((route) => route.id)))));
   function directMatchRank(route: StudyRouteDefinition) {
     const q = normalizedQuery.value;
@@ -102,6 +108,8 @@ export function useStudyRouteSearch(config: StudyCampaignConfig, request: StudyC
     group.items = [];
     group.loading = true;
     group.error = false;
+    group.selectedItem = null;
+    group.selectionError = false;
     try {
       const response = (!retry && cache.get(key)) || await request(categoryId, search, offset, isCurrent);
       if (!isCurrent()) return;
@@ -111,17 +119,35 @@ export function useStudyRouteSearch(config: StudyCampaignConfig, request: StudyC
       cache.set(key, response);
       group.items = uniqueStudyCourses(response.items);
       group.total = response.total;
+      const selected = selectedCourse();
+      if (selected && !group.items.some((course) => matchesSelectedStudyCourse(course, selected, group.items))
+        && normalizeStudyText(search) !== normalizeStudyText(selected.title)) {
+        try {
+          const selectedKey = JSON.stringify([categoryId, selected.title, 0]);
+          const selectedPage = (!retry && cache.get(selectedKey)) || await request(categoryId, selected.title, 0, isCurrent);
+          if (!isCurrent()) return;
+          if (!Array.isArray(selectedPage.items) || !Number.isInteger(selectedPage.total) || selectedPage.total < 0
+            || selectedPage.offset !== 0 || selectedPage.items.length > pageSize || (selectedPage.total > 0 && !selectedPage.items.length))
+            throw new Error("Curso seleccionado no disponible");
+          cache.set(selectedKey, selectedPage);
+          const match = selectedPage.items.find((course) => matchesSelectedStudyCourse(course, selected, selectedPage.items));
+          if (match && !group.items.some((course) => studyCourseKey(course) === studyCourseKey(match))) group.selectedItem = match;
+        } catch {
+          if (isCurrent()) group.selectionError = true;
+        }
+      }
     } catch {
       if (isCurrent()) group.error = true;
     } finally {
       if (isCurrent()) group.loading = false;
     }
   }
-  watch(query, () => {
+  watch([query, selectedCourse], () => {
     generation++;
     clearTimeout(debounce);
     for (const group of groups.value) {
       group.items = []; group.total = 0; group.page = 1; group.error = false; group.loading = canSearchCourses.value;
+      group.selectedItem = null; group.selectionError = false;
     }
     if (canSearchCourses.value) debounce = setTimeout(() => {
       for (const categoryId of sources) void loadGroup(categoryId);

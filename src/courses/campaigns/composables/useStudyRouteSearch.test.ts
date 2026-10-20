@@ -25,6 +25,53 @@ beforeEach(() => { selected.value = null; vi.useFakeTimers(); request.mockReset(
 afterEach(() => { app?.unmount(); app = undefined; vi.useRealTimers(); });
 
 describe("buscador de rutas y cursos", () => {
+  it("conserva la palabra clave, fija el curso elegido fuera de la primera página y no oculta resultados", async () => {
+    const chosen = { id: 99, name_del_curso: "React avanzado", author: "Academia" };
+    request.mockImplementation(async (_id: number, q: string, offset: number) => q === chosen.name_del_curso
+      ? { ...empty(), total: 1, items: [chosen] }
+      : { ...empty(offset), total: 12, items: offset ? [chosen, { id: 101, name_del_curso: "React final" }]
+        : Array.from({ length: 10 }, (_, id) => ({ id, name_del_curso: `React inicial ${id}` })) });
+    mount(); selected.value = { title: chosen.name_del_curso, author: chosen.author }; search.query.value = "react";
+    await vi.advanceTimersByTimeAsync(300);
+    expect(search.query.value).toBe("react");
+    expect(request.mock.calls.map(([, q]) => q)).toEqual(["react", "React avanzado"]);
+    expect(search.resultGroups.value[0]!.results).toHaveLength(11);
+    expect(search.resultGroups.value[0]!.results[0]!.course.id).toBe(99);
+    expect(search.resultGroups.value[0]!.total).toBe(12);
+    expect(search.matchedRoutes.value).toHaveLength(41);
+    expect(search.matchedRoutes.value[0]!.id).toBe("react");
+    await search.loadGroup(200, 2);
+    expect(search.query.value).toBe("react");
+    expect(search.resultGroups.value[0]!.results.map((r) => r.course.id)).toEqual([99, 101]);
+    expect(request.mock.calls.map(([, q, offset]) => [q, offset])).toEqual([["react", 0], ["React avanzado", 0], ["react", 10]]);
+  });
+  it("mantiene los resultados de la palabra clave si falla el curso elegido y permite reintentarlo", async () => {
+    request.mockImplementation(async (_id: number, q: string) => {
+      if (q === "React avanzado") throw new Error("sin conexión");
+      return { ...empty(), total: 1, items: [{ id: 1, name_del_curso: "React inicial" }] };
+    });
+    mount(); selected.value = { title: "React avanzado", author: "" }; search.query.value = "react";
+    await vi.advanceTimersByTimeAsync(300);
+    expect(search.resultGroups.value[0]).toMatchObject({ error: false, selectionError: true, total: 1 });
+    expect(search.resultGroups.value[0]!.results[0]!.course.id).toBe(1);
+    request.mockImplementation(async (_id: number, q: string) => ({ ...empty(), total: 1,
+      items: [{ id: q === "react" ? 1 : 99, name_del_curso: q === "react" ? "React inicial" : "React avanzado" }] }));
+    await search.loadGroup(200, 1, true);
+    expect(search.resultGroups.value[0]!.selectionError).toBe(false);
+    expect(search.resultGroups.value[0]!.results.map((r) => r.course.id)).toEqual([99, 1]);
+  });
+  it("ignora el curso elegido de una búsqueda anterior mientras se resuelve su consulta", async () => {
+    const previous = deferred();
+    request.mockImplementation(async (_id: number, q: string) => q === "React avanzado" ? previous.promise
+      : { ...empty(), total: 1, items: [{ id: 1, name_del_curso: q === "python" ? "Python básico" : "React inicial" }] });
+    mount(); selected.value = { title: "React avanzado", author: "" }; search.query.value = "react";
+    await vi.advanceTimersByTimeAsync(300);
+    selected.value = null; search.query.value = "python";
+    await vi.advanceTimersByTimeAsync(300);
+    previous.resolve({ ...empty(), total: 1, items: [{ id: 99, name_del_curso: "React avanzado" }] }); await nextTick();
+    expect(search.resultGroups.value[0]!.selectedItem).toBeNull();
+    expect(search.resultGroups.value[0]!.results.map((r) => r.course.name_del_curso)).toEqual(["Python básico"]);
+  });
   it("conserva las 60 rutas y prioriza solo las del pilar de origen del curso seleccionado", async () => {
     request.mockImplementation(async (id: number) => id === 200
       ? { ...empty(), total: 2, items: [{ id: 1, name_del_curso: "Python y React avanzado", author: "Otro" }, { id: 2, name_del_curso: "Python y React avanzado", author: "Academia" }] }

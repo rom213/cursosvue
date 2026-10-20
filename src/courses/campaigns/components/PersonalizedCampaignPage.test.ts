@@ -200,7 +200,7 @@ describe("navegación del buscador entre bloques reales", () => {
       if (url.endsWith("/contenido")) return { data: { contenido: "<p>Temario de inglés</p>" } };
       const params = new URL(url, "https://example.test").searchParams;
       const pool = url.includes("/106/")
-        ? [{ id: 2224, name_del_curso: englishTitle, author: "CAT-IDIOMAS" }, { id: 2225, name_del_curso: "Inglés básico", author: "Academia" }]
+        ? [{ id: 2224, name_del_curso: englishTitle, author: "CAT-IDIOMAS" }, { id: 2225, name_del_curso: "Ingles conversacional", author: "Academia" }]
         : [{ id: 3780, name_del_curso: "React avanzado", author: "Academia" }];
       const items = pool.filter((course) => course.name_del_curso.toLowerCase().includes((params.get("q") ?? "").toLowerCase()));
       return { data: { items, total: items.length, limit: Number(params.get("limit")), offset: Number(params.get("offset")) } };
@@ -223,10 +223,14 @@ describe("navegación del buscador entre bloques reales", () => {
     host.querySelector<HTMLButtonElement>(".search-dropdown button")!.click(); await flush();
     await vi.waitFor(() => expect(host.querySelector('.study-page[data-campaign="106"] .route-match-label')?.textContent).toBe("Contiene el curso que buscaste"));
     expect(router.currentRoute.value.path).toBe("/courses/106");
+    expect(router.currentRoute.value.query.q_search).toBe("ingles");
+    expect(host.querySelector<HTMLInputElement>("#study-route-search")!.value).toBe("ingles");
+    expect(host.querySelectorAll(".finder-course-list .course-row")).toHaveLength(2);
     expect(host.querySelector('.study-page[data-campaign="201"]')).toBeNull();
     expect(host.querySelector(".route-card h3")?.textContent).toBe("Ruta Inglés");
     expect(host.querySelectorAll(".route-card")).toHaveLength(3);
     expect(mocks.get.mock.calls.slice(before).every(([url]) => String(url).startsWith("api/category/106/courses?"))).toBe(true);
+    expect(mocks.get.mock.calls.slice(before).every(([url]) => new URL(String(url), "https://example.test").searchParams.get("q") === "ingles")).toBe(true);
     await openRoute();
     expect(courseRows()[0]?.textContent).toContain(englishTitle);
     expect(courseRows()[0]?.classList.contains("course-row-highlighted")).toBe(true);
@@ -236,6 +240,7 @@ describe("navegación del buscador entre bloques reales", () => {
     await vi.waitFor(() => expect(host.querySelector('.study-page[data-campaign="201"] .route-card')).not.toBeNull());
     router.forward(); await flush();
     await vi.waitFor(() => expect(host.querySelector('.study-page[data-campaign="106"] .route-match-label')?.textContent).toBe("Contiene el curso que buscaste"));
+    expect(host.querySelector<HTMLInputElement>("#study-route-search")!.value).toBe("ingles");
   });
 });
 describe("curso seleccionado desde el buscador superior", () => {
@@ -252,6 +257,19 @@ describe("curso seleccionado desde el buscador superior", () => {
       const items = courses.filter((c) => c.name_del_curso.toLowerCase().includes((params.get("q") ?? "").toLowerCase()));
       return { data: { items, total: items.length, limit: Number(params.get("limit")), offset: Number(params.get("offset")) } };
     });
+  });
+  it("busca la palabra clave y conserva el curso seleccionado al mostrar el resto de coincidencias", async () => {
+    const router = await mount(technologyCampaign, false, { q_search: "React", q_course: title, q_author: "Academia" });
+    await waitForSearch();
+    expect(host.querySelector<HTMLInputElement>("#study-route-search")!.value).toBe("React");
+    expect(host.querySelectorAll(".finder-course-list .course-row")).toHaveLength(9);
+    expect(host.querySelector(".finder-course-list .course-row strong")?.textContent).toBe(title);
+    expect(host.querySelectorAll(".route-card")).toHaveLength(41);
+    expect(mocks.get.mock.calls.map(([url]) => new URL(String(url), "https://example.test").searchParams.get("q"))).toEqual(["React"]);
+    host.querySelector<HTMLButtonElement>(".route-finder button")!.click(); await flush();
+    expect(router.currentRoute.value.query.q_search).toBeUndefined();
+    expect(router.currentRoute.value.query.q_course).toBeUndefined();
+    expect(host.querySelectorAll(".route-card")).toHaveLength(41);
   });
   it("sube todas las rutas del curso sin ocultar las otras y coloca el curso antes de los niveles", async () => {
     await mount(technologyCampaign, false, { q_course: title, q_author: "Academia" });

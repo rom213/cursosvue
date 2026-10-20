@@ -43,12 +43,13 @@ const handleClickItem = (cat: ICategory) => {
         navigationError.value = 'No pudimos identificar la página de este curso. Prueba con otro resultado.'
         return
     }
+    const keyword = dataInput.value.trim()
     trackSelectItem(cat, 'search_results', `Resultados: ${dataInput.value}`)
     dataInput.value = ""
     dataReseived.value = []
     const dest = {
         path: hasStudyCampaign(categoryId) ? `/courses/${categoryId}` : `/courses/${categoryId}/${slugifyCourseName(cat.titulo)}`,
-        query: { q_course: cat.titulo, q_author: cat.autor || undefined, _t: Date.now().toString() }
+        query: { q_search: keyword, q_course: cat.titulo, q_author: cat.autor || undefined, _t: Date.now().toString() }
     }
     router.push(dest)
 }

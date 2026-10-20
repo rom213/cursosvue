@@ -38,6 +38,7 @@ describe("destinos del buscador superior", () => {
     await vi.advanceTimersByTimeAsync(0);
     expect(router.currentRoute.value.path).toBe("/courses/106");
     expect(router.currentRoute.value.query.q_course).toBe("Storyland - Amigos Ingleses - Cat-Idiomas");
+    expect(router.currentRoute.value.query.q_search).toBe("ingles");
   });
   it("no hereda el bloque actual cuando el resultado carece de ID", async () => {
     const router = await mount(201, "/courses/201");
@@ -54,7 +55,7 @@ describe("destinos del buscador superior", () => {
       host.querySelector<HTMLButtonElement>(".search-dropdown button")!.click();
       await vi.advanceTimersByTimeAsync(0); await nextTick();
       expect(router.currentRoute.value.path).toBe(`/courses/${id}`);
-      expect(router.currentRoute.value.query).toMatchObject({ q_course: "React avanzado", q_author: "Academia" });
+      expect(router.currentRoute.value.query).toMatchObject({ q_search: "react", q_course: "React avanzado", q_author: "Academia" });
       expect(mocks.select).toHaveBeenCalledTimes(1);
       expect(host.querySelector(".search-dropdown")).toBeNull();
     },

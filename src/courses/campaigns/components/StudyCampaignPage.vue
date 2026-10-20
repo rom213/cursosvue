@@ -105,7 +105,8 @@ const {
   matchedRoutes, resultGroups: routeSearchGroups, loadGroup: loadSearchGroup, clearSearch,
 } = useStudyRouteSearch(config, searchCourses, () => selectedHeaderCourse.value);
 watch(routeSearch, (value) => {
-  if (selectedHeaderCourse.value && value !== selectedHeaderCourse.value.title) selectedHeaderCourse.value = null;
+  const keyword = typeof route.query.q_search === "string" ? route.query.q_search.trim() : selectedHeaderCourse.value?.title;
+  if (selectedHeaderCourse.value && value !== keyword) selectedHeaderCourse.value = null;
 }, { flush: "sync" });
 const routeSearchPlaceholder = config.productKind === "bloque"
   ? config.routes.slice(0, 2).map((route) => route.title.replace(/^Ruta /, "")).join(", ") + "…"
@@ -121,8 +122,8 @@ const visibleRoutes = computed(() => matchedRoutes.value.map((match) => ({
 function clearRouteSearch() {
   selectedHeaderCourse.value = null;
   clearSearch();
-  if (route.query.q_course) {
-    const { q_course, q_author, _t, ...query } = route.query;
+  if (route.query.q_course || route.query.q_search) {
+    const { q_search, q_course, q_author, _t, ...query } = route.query;
     void router.replace({ query, hash: route.hash });
   }
   nextTick(() => routeSearchInput.value?.focus());
@@ -545,16 +546,17 @@ onMounted(() => {
   void loadLanding();
 });
 watch(
-  () => [route.name, route.params.id, route.params.courseSlug, route.query.q_course, route.query.q_author, route.query._t],
+  () => [route.name, route.params.id, route.params.courseSlug, route.query.q_search, route.query.q_course, route.query.q_author, route.query._t],
   async () => {
     if (!componentActive || route.name !== "courses-description" || String(route.params.id) !== String(STUDY_CATEGORY_ID) || route.params.courseSlug) return;
     const title = typeof route.query.q_course === "string" ? route.query.q_course.trim() : "";
     const author = typeof route.query.q_author === "string" ? route.query.q_author.trim() : "";
+    const keyword = typeof route.query.q_search === "string" ? route.query.q_search.trim() : title;
     closeCourseDescription(false);
     closeStudyRoute(false);
-    routeSearch.value = title;
+    routeSearch.value = keyword;
     selectedHeaderCourse.value = title ? { title, author } : null;
-    if (!title) return;
+    if (!keyword) return;
     await nextTick();
     if (!componentActive || selectedHeaderCourse.value?.title !== title) return;
     routesHeading.value?.focus({ preventScroll: true });
@@ -731,7 +733,7 @@ onBeforeUnmount(() => {
       </div>
       <div v-if="routeSearchActive" class="finder-summary">
         <p class="search-results" role="status">
-          <template v-if="selectedHeaderCourse">Buscaste «{{ selectedHeaderCourse.title }}». Las rutas que contienen este curso aparecen primero; las demás siguen disponibles.</template>
+          <template v-if="selectedHeaderCourse">Buscaste «{{ routeSearch }}». Las rutas del curso seleccionado aparecen primero; las demás siguen disponibles.</template>
           <template v-else>{{ visibleRoutes.length }} {{ visibleRoutes.length === 1 ? 'ruta relacionada' : 'rutas relacionadas' }}.</template>
           {{ canSearchCourses ? 'Consulta también los cursos encontrados debajo de las rutas.' : 'Escribe al menos dos caracteres para buscar cursos.' }}
         </p>
@@ -792,7 +794,7 @@ onBeforeUnmount(() => {
         </div>
       <section v-if="canSearchCourses" class="finder-courses" aria-labelledby="finder-courses-title">
         <h3 id="finder-courses-title" ref="routeSearchHeading" tabindex="-1">Cursos encontrados</h3>
-        <p>Hasta 10 cursos por {{ config.productKind === "bloque" ? "bloque" : "pilar" }} y página. Un curso puede estar relacionado con varias rutas.</p>
+        <p>Hasta 10 cursos por {{ config.productKind === "bloque" ? "bloque" : "pilar" }} y página.<template v-if="selectedHeaderCourse"> El curso seleccionado se muestra primero, además de los resultados cuando no está en esta página.</template> Un curso puede estar relacionado con varias rutas.</p>
         <section v-for="group in routeSearchGroups" :key="group.categoryId" class="finder-group" :aria-labelledby="`finder-pillar-${group.categoryId}`">
           <h4 :id="`finder-pillar-${group.categoryId}`">{{ group.title }}</h4>
           <p v-if="group.loading" role="status" aria-busy="true">Buscando cursos…</p>
@@ -801,11 +803,15 @@ onBeforeUnmount(() => {
             <button class="button button-light" type="button" @click="loadSearchGroup(group.categoryId, group.page, true)">Volver a intentar</button>
           </div>
           <template v-else>
+            <div v-if="group.selectionError" class="error-panel" role="alert">
+              <p>No pudimos localizar el curso seleccionado. Puedes explorar los resultados de tu búsqueda.</p>
+              <button class="button button-light" type="button" @click="loadSearchGroup(group.categoryId, group.page, true)">Reintentar curso seleccionado</button>
+            </div>
             <p class="search-results" role="status">{{ group.total }} {{ group.total === 1 ? 'curso encontrado' : 'cursos encontrados' }}</p>
-            <p v-if="!group.total" class="empty-panel">No encontramos cursos con ese título en esta sección. Prueba con otra palabra.</p>
+            <p v-if="!group.results.length" class="empty-panel">No encontramos cursos con esa búsqueda en esta sección. Prueba con otra palabra.</p>
             <ul v-else class="course-list finder-course-list">
               <li v-for="result in group.results" :key="studyCourseKey(result.course)">
-                <button class="course-row" :class="{ 'course-row-highlighted': matchesSelectedStudyCourse(result.course, selectedHeaderCourse, group.items) }" type="button" @click="openCourseDescription(result.course, $event)">
+                <button class="course-row" :class="{ 'course-row-highlighted': result.selected }" type="button" @click="openCourseDescription(result.course, $event)">
                   <span class="course-icon" aria-hidden="true">▤</span>
                   <span class="course-row-copy"><strong>{{ result.course.name_del_curso || 'Curso sin título' }}</strong>
                     <span v-if="result.course.author && result.course.author !== 'DESCONOCIDO'">{{ result.course.author }}</span>

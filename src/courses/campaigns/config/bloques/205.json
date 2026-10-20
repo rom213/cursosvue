@@ -1,0 +1,41 @@
+{
+  "categoryId": 205,
+  "title": "Ciberseguridad y Hacking",
+  "shortTitle": "Ciberseguridad",
+  "headline": "Desarrolla tu criterio de seguridad",
+  "highlight": "explora sistemas, redes y auditoría",
+  "description": "Conoce conceptos y herramientas de seguridad digital, hacking ético y redes. Refuerza tus bases con Linux y programación.",
+  "topics": "SEGURIDAD · AUDITORÍA · REDES",
+  "hero": {
+    "image": "/images/campaigns/tecnologia/hero.webp",
+    "imageAlt": "Portátil con código de programación en pantalla"
+  },
+  "routes": [
+    {
+      "ref": "technology:ciberseguridad"
+    },
+    {
+      "ref": "technology:hacking"
+    },
+    {
+      "ref": "technology:redes"
+    },
+    {
+      "ref": "technology:linux"
+    },
+    {
+      "ref": "technology:python"
+    }
+  ],
+  "snapshot": {
+    "updatedAt": "2026-10-19",
+    "catalogTotal": 354,
+    "counts": {
+      "205-ciberseguridad": 125,
+      "205-hacking": 115,
+      "205-redes": 11,
+      "205-linux": 25,
+      "205-python": 3
+    }
+  }
+}

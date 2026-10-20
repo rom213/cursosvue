@@ -1,0 +1,91 @@
+{
+  "categoryId": 103,
+  "title": "Business Intelligence, Datos y Oficina",
+  "shortTitle": "Datos y oficina",
+  "headline": "Convierte datos en decisiones",
+  "highlight": "con Excel, Power BI y herramientas de oficina",
+  "description": "Organiza información, crea reportes y mejora tus tareas con hojas de cálculo, visualización, aplicaciones de oficina y herramientas empresariales.",
+  "topics": "EXCEL · POWER BI · OFFICE · SAP",
+  "hero": {
+    "image": "/images/campaigns/datos-oficina/hero-rutas-estudio.webp",
+    "imageAlt": "Herramientas de hojas de cálculo, datos y oficina"
+  },
+  "routes": [
+    {
+      "ref": "office:excel"
+    },
+    {
+      "ref": "office:power-bi"
+    },
+    {
+      "ref": "office:analisis-datos",
+      "queryTerms": [
+        "datos",
+        "data",
+        "analista",
+        "analitica",
+        "analítica",
+        "analytics",
+        "power",
+        "tabla",
+        "bigquery",
+        "estadistica",
+        "estadística",
+        "dax"
+      ]
+    },
+    {
+      "ref": "office:office"
+    },
+    {
+      "ref": "office:business-intelligence"
+    },
+    {
+      "ref": "office:sap"
+    },
+    {
+      "ref": "office:tableau"
+    },
+    {
+      "ref": "office:looker-studio"
+    },
+    {
+      "ref": "office:google-workspace"
+    },
+    {
+      "ref": "office:access"
+    },
+    {
+      "ref": "office:productividad"
+    },
+    {
+      "ref": "office:gestion-proyectos"
+    },
+    {
+      "ref": "office:automatizacion"
+    },
+    {
+      "ref": "office:finanzas-contabilidad"
+    }
+  ],
+  "snapshot": {
+    "updatedAt": "2026-10-19",
+    "catalogTotal": 225,
+    "counts": {
+      "103-excel": 90,
+      "103-power-bi": 23,
+      "103-analisis-datos": 27,
+      "103-office": 133,
+      "103-business-intelligence": 40,
+      "103-sap": 11,
+      "103-tableau": 4,
+      "103-looker-studio": 6,
+      "103-google-workspace": 16,
+      "103-access": 4,
+      "103-productividad": 36,
+      "103-gestion-proyectos": 10,
+      "103-automatizacion": 14,
+      "103-finanzas-contabilidad": 22
+    }
+  }
+}

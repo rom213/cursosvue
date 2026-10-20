@@ -1,0 +1,66 @@
+{
+  "categoryId": 304,
+  "title": "Fitness, Salud y Defensa Personal",
+  "shortTitle": "Fitness y bienestar",
+  "headline": "Encuentra tu forma de moverte",
+  "highlight": "y construye una práctica constante",
+  "description": "Explora entrenamiento, yoga, alimentación y defensa personal. Elige cursos según tus intereses y revisa su descripción antes de empezar.",
+  "topics": "MOVIMIENTO · YOGA · ALIMENTACIÓN",
+  "hero": {
+    "image": "/images/campaigns/bloques/gym.webp",
+    "imageAlt": "Personas entrenando con cuerdas en un gimnasio"
+  },
+  "routes": [
+    {
+      "ref": "creative:300-fitness"
+    },
+    {
+      "ref": "creative:300-yoga"
+    },
+    {
+      "id": "nutricion",
+      "title": "Nutrición y alimentación",
+      "summary": "Explora conceptos y hábitos relacionados con la alimentación.",
+      "queries": [
+        "nutric",
+        "dieta",
+        "alimenta",
+        "salud",
+        "ayuno"
+      ],
+      "image": "/images/campaigns/bloques/nutricion.webp",
+      "imageAlt": "Ensalada de verduras para ilustrar alimentación y nutrición",
+      "imageKind": "report"
+    },
+    {
+      "id": "defensa",
+      "title": "Defensa personal y deportes",
+      "summary": "Explora técnicas y prácticas de defensa y disciplinas deportivas.",
+      "queries": [
+        "defensa",
+        "boxeo",
+        "boxing",
+        "jiu",
+        "karate",
+        "muay",
+        "krav",
+        "artes marciales",
+        "tenis",
+        "agassi"
+      ],
+      "image": "/images/campaigns/bloques/defensa.webp",
+      "imageAlt": "Mujer practicando boxeo en un gimnasio",
+      "imageKind": "report"
+    }
+  ],
+  "snapshot": {
+    "updatedAt": "2026-10-19",
+    "catalogTotal": 206,
+    "counts": {
+      "304-300-fitness": 24,
+      "304-300-yoga": 83,
+      "304-nutricion": 34,
+      "304-defensa": 13
+    }
+  }
+}

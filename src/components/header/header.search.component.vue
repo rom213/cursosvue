@@ -1,42 +1,54 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { onBeforeUnmount, ref, watch } from 'vue';
 import CategoryService from '../../services/CategorieService';
 import type { ICategory } from '../../types/Categorie';
 import { useRouter } from 'vue-router';
 import { slugifyCourseName } from '../../utils/courseSlug';
 import { useTracking } from '../../composables/useTracking';
+import { hasStudyCampaign, searchResultCategoryId } from '../../courses/campaigns/config/campaignLocation';
 
 const { trackSearch, trackSelectItem } = useTracking()
 
 const dataReseived = ref<ICategory[] | []>([])
 const dataInput = ref('')
+const navigationError = ref('')
 const router = useRouter();
 
 let searchTimer: ReturnType<typeof setTimeout> | null = null
+let searchVersion = 0
 watch(() => dataInput.value, (val) => {
+  searchVersion++
+  dataReseived.value = []
+  navigationError.value = ''
   if (searchTimer) clearTimeout(searchTimer)
   if (!val || val.trim().length < 2) return
   searchTimer = setTimeout(() => {
     getDataSearch()
   }, 350)
-})
+}, { flush: 'sync' })
 
 const getDataSearch = () => {
     const term = dataInput.value
+    const version = ++searchVersion
     CategoryService.searchCategories(term, 8).then((res) => {
+        if (version !== searchVersion) return
         dataReseived.value = res
         trackSearch(term, res.length)
-    }).catch(() => dataReseived.value = [])
+    }).catch(() => { if (version === searchVersion) dataReseived.value = [] })
 }
 
 const handleClickItem = (cat: ICategory) => {
+    const categoryId = searchResultCategoryId(cat)
+    if (categoryId === null) {
+        navigationError.value = 'No pudimos identificar la página de este curso. Prueba con otro resultado.'
+        return
+    }
     trackSelectItem(cat, 'search_results', `Resultados: ${dataInput.value}`)
     dataInput.value = ""
     dataReseived.value = []
     const dest = {
-        name: 'courses-description',
-        params: { id: cat.id, courseSlug: slugifyCourseName(cat.titulo) },
-        query: { q_course: cat.titulo, _t: Date.now().toString() }
+        path: hasStudyCampaign(categoryId) ? `/courses/${categoryId}` : `/courses/${categoryId}/${slugifyCourseName(cat.titulo)}`,
+        query: { q_course: cat.titulo, q_author: cat.autor || undefined, _t: Date.now().toString() }
     }
     router.push(dest)
 }
@@ -49,8 +61,11 @@ const handleSearch = () => {
 }
 
 const handleClickOutside = () => {
+    searchVersion++;
+    if (searchTimer) clearTimeout(searchTimer);
     dataReseived.value = [];
 };
+onBeforeUnmount(handleClickOutside);
 </script>
 
 <template>
@@ -85,10 +100,11 @@ const handleClickOutside = () => {
             class="search-dropdown">
             <div class="max-h-[300px] overflow-y-auto py-2">
                 <div class="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">Resultados</div>
-                <div v-for="(cat, index) in dataReseived" :key="index"
+                <p v-if="navigationError" role="alert" class="px-4 py-2 text-sm text-red-700">{{ navigationError }}</p>
+                <button type="button" v-for="(cat, index) in dataReseived" :key="index"
                      @click="handleClickItem(cat)"
                      data-track="header-resultado-busqueda"
-                    class="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 cursor-pointer transition-colors border-b border-gray-100 last:border-0">
+                    class="flex w-full text-left items-center gap-3 px-4 py-2.5 hover:bg-slate-50 cursor-pointer transition-colors border-b border-gray-100 last:border-0">
                     <img class="w-10 h-10 rounded-lg object-cover shadow-sm bg-gray-100" :src="cat.imagen_url" alt="" loading="lazy" decoding="async" width="40" height="40">
                     <div class="flex flex-col overflow-hidden">
                         <span class="text-sm font-medium text-gray-700 truncate">{{ cat.titulo }}</span>
@@ -97,7 +113,7 @@ const handleClickOutside = () => {
                             <span v-if="cat.autor" class="text-xs text-gray-500 truncate">{{ cat.autor }}</span>
                         </div>
                     </div>
-                </div>
+                </button>
             </div>
         </div>
 

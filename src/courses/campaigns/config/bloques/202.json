@@ -1,0 +1,73 @@
+{
+  "categoryId": 202,
+  "title": "Software Pro: Cloud, DevOps y Lenguajes",
+  "shortTitle": "Software y lenguajes",
+  "headline": "Fortalece tus bases de software",
+  "highlight": "y desarrolla soluciones con código",
+  "description": "Explora lenguajes, algoritmos, sistemas, pruebas y bases de datos. Las rutas muestran las tecnologías que tienen cursos disponibles en este bloque.",
+  "topics": "PYTHON · LENGUAJES · SISTEMAS",
+  "hero": {
+    "image": "/images/campaigns/bloques/servidores.webp",
+    "imageAlt": "Servidores y equipos en un centro de datos"
+  },
+  "routes": [
+    {
+      "ref": "technology:python"
+    },
+    {
+      "ref": "technology:java"
+    },
+    {
+      "ref": "technology:dotnet"
+    },
+    {
+      "ref": "technology:cpp"
+    },
+    {
+      "ref": "technology:fundamentos"
+    },
+    {
+      "ref": "technology:linux"
+    },
+    {
+      "ref": "technology:bases-datos"
+    },
+    {
+      "ref": "technology:testing"
+    },
+    {
+      "ref": "technology:movil"
+    },
+    {
+      "ref": "technology:matematicas"
+    },
+    {
+      "ref": "technology:git"
+    },
+    {
+      "ref": "technology:cloud"
+    },
+    {
+      "ref": "technology:devops"
+    }
+  ],
+  "snapshot": {
+    "updatedAt": "2026-10-19",
+    "catalogTotal": 362,
+    "counts": {
+      "202-python": 51,
+      "202-java": 20,
+      "202-dotnet": 18,
+      "202-cpp": 9,
+      "202-fundamentos": 21,
+      "202-linux": 22,
+      "202-bases-datos": 40,
+      "202-testing": 22,
+      "202-movil": 14,
+      "202-matematicas": 14,
+      "202-git": 8,
+      "202-cloud": 7,
+      "202-devops": 2
+    }
+  }
+}

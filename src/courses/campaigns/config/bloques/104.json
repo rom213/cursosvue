@@ -1,0 +1,93 @@
+{
+  "categoryId": 104,
+  "title": "Marketing Digital, Ventas y Tráfico",
+  "shortTitle": "Marketing y ventas",
+  "headline": "Conecta con tu audiencia",
+  "highlight": "y construye tu estrategia digital",
+  "description": "Explora contenido, redes sociales, publicidad, posicionamiento y ventas. Combina las habilidades que necesita tu proyecto o tu negocio.",
+  "topics": "MARKETING · CONTENIDO · VENTAS",
+  "hero": {
+    "image": "/images/campaigns/categoria-100/100-marketing.webp",
+    "imageAlt": "Gráficos y métricas para analizar una estrategia de marketing"
+  },
+  "routes": [
+    {
+      "id": "publicidad",
+      "title": "Publicidad digital",
+      "summary": "Explora campañas, anuncios y embudos para tus proyectos.",
+      "queries": [
+        "publicidad",
+        "ads",
+        "anuncio",
+        "embudo",
+        "funnel",
+        "trafico",
+        "tráfico"
+      ],
+      "image": "/images/campaigns/bloques/googleads.svg",
+      "imageAlt": "Logotipo de Google Ads",
+      "imageKind": "logo"
+    },
+    {
+      "id": "sociales",
+      "title": "Redes sociales",
+      "summary": "Organiza contenido y conoce herramientas para tus canales sociales.",
+      "queries": [
+        "instagram",
+        "facebook",
+        "tiktok",
+        "tik tok",
+        "redes",
+        "social",
+        "community"
+      ],
+      "image": "/images/campaigns/bloques/instagram.svg",
+      "imageAlt": "Logotipo de Instagram",
+      "imageKind": "logo"
+    },
+    {
+      "id": "seo",
+      "title": "SEO y posicionamiento",
+      "summary": "Aprende fundamentos de búsqueda y posicionamiento de sitios.",
+      "queries": [
+        "seo",
+        "posicionamiento",
+        "google search",
+        "semrush"
+      ],
+      "image": "/images/campaigns/bloques/semrush.svg",
+      "imageAlt": "Logotipo de Semrush",
+      "imageKind": "logo"
+    },
+    {
+      "id": "contenido",
+      "title": "Contenido y copywriting",
+      "summary": "Da forma a mensajes, historias y publicaciones para tu audiencia.",
+      "queries": [
+        "contenido",
+        "content",
+        "copywriting",
+        "redacci",
+        "storytelling",
+        "youtube"
+      ],
+      "image": "/images/campaigns/bloques/youtube.svg",
+      "imageAlt": "Logotipo de YouTube",
+      "imageKind": "logo"
+    },
+    {
+      "ref": "business:100-ventas"
+    }
+  ],
+  "snapshot": {
+    "updatedAt": "2026-10-19",
+    "catalogTotal": 1111,
+    "counts": {
+      "104-publicidad": 186,
+      "104-sociales": 297,
+      "104-seo": 71,
+      "104-contenido": 138,
+      "104-100-ventas": 140
+    }
+  }
+}

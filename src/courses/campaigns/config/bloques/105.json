@@ -1,0 +1,83 @@
+{
+  "categoryId": 105,
+  "title": "E-Commerce, Importaciones y Tiendas Online",
+  "shortTitle": "Comercio electrónico",
+  "headline": "Construye tu tienda online",
+  "highlight": "y explora nuevas formas de vender",
+  "description": "Encuentra formación en comercio electrónico, plataformas de venta, importaciones y modelos de negocio digital. Empieza por el canal que quieras desarrollar.",
+  "topics": "E-COMMERCE · MARKETPLACES · IMPORTACIONES",
+  "hero": {
+    "image": "/images/campaigns/categoria-100/100-comercio.webp",
+    "imageAlt": "Personas comprando productos en una tienda por internet"
+  },
+  "routes": [
+    {
+      "id": "shopify",
+      "title": "Shopify y dropshipping",
+      "summary": "Explora la creación y operación de tiendas con Shopify y dropshipping.",
+      "queries": [
+        "shopify",
+        "dropship"
+      ],
+      "image": "/images/campaigns/bloques/shopify.svg",
+      "imageAlt": "Logotipo de Shopify",
+      "imageKind": "logo"
+    },
+    {
+      "id": "amazon",
+      "title": "Amazon y marketplaces",
+      "summary": "Conoce plataformas de venta y conceptos de operación en marketplaces.",
+      "queries": [
+        "amazon",
+        "fba",
+        "mercado",
+        "marketplace"
+      ],
+      "image": "/images/campaigns/bloques/amazon.svg",
+      "imageAlt": "Logotipo de Amazon",
+      "imageKind": "logo"
+    },
+    {
+      "id": "importaciones",
+      "title": "Importaciones y comercio internacional",
+      "summary": "Comprende procesos y herramientas del comercio internacional.",
+      "queries": [
+        "importa",
+        "china",
+        "aliex",
+        "comercio internacional",
+        "logistic",
+        "logístic",
+        "alibaba"
+      ],
+      "image": "/images/campaigns/bloques/aliexpress.svg",
+      "imageAlt": "Logotipo de AliExpress",
+      "imageKind": "logo"
+    },
+    {
+      "id": "ecommerce",
+      "title": "E-commerce y negocio digital",
+      "summary": "Trabaja los fundamentos y la gestión de un negocio de comercio electrónico.",
+      "queries": [
+        "ecommerce",
+        "e-commerce",
+        "tienda",
+        "negocio",
+        "commerce"
+      ],
+      "image": "/images/campaigns/categoria-100/100-emprender.webp",
+      "imageAlt": "Profesionales planificando un negocio en una mesa de trabajo",
+      "imageKind": "report"
+    }
+  ],
+  "snapshot": {
+    "updatedAt": "2026-10-19",
+    "catalogTotal": 281,
+    "counts": {
+      "105-shopify": 32,
+      "105-amazon": 47,
+      "105-importaciones": 25,
+      "105-ecommerce": 171
+    }
+  }
+}

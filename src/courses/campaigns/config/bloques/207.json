@@ -1,0 +1,52 @@
+{
+  "categoryId": 207,
+  "title": "Ingeniería Civil, Arquitectura y Construcción",
+  "shortTitle": "Arquitectura e ingeniería",
+  "headline": "Da forma a tus proyectos",
+  "highlight": "del plano al modelo y la obra",
+  "description": "Explora dibujo técnico, modelado, BIM, estructuras e instalaciones. Encuentra las herramientas y bases que necesitas para tus proyectos de arquitectura e ingeniería.",
+  "topics": "PLANOS · BIM · MODELADO · CONSTRUCCIÓN",
+  "hero": {
+    "image": "/images/campaigns/tecnologia/construccion.webp",
+    "imageAlt": "Grúas torre en una obra en construcción"
+  },
+  "routes": [
+    {
+      "ref": "technology:construccion",
+      "image": "/images/campaigns/bloques/arquitectura.webp",
+      "imageAlt": "Vivienda con jardín y diseño arquitectónico residencial",
+      "imageKind": "report"
+    },
+    {
+      "ref": "technology:autocad"
+    },
+    {
+      "ref": "technology:revit"
+    },
+    {
+      "ref": "technology:modelado-3d"
+    },
+    {
+      "ref": "technology:electricidad"
+    },
+    {
+      "ref": "technology:matematicas"
+    },
+    {
+      "ref": "technology:plc"
+    }
+  ],
+  "snapshot": {
+    "updatedAt": "2026-10-19",
+    "catalogTotal": 368,
+    "counts": {
+      "207-construccion": 96,
+      "207-autocad": 24,
+      "207-revit": 40,
+      "207-modelado-3d": 49,
+      "207-electricidad": 12,
+      "207-matematicas": 8,
+      "207-plc": 3
+    }
+  }
+}

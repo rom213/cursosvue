@@ -1,0 +1,85 @@
+{
+  "categoryId": 201,
+  "title": "Desarrollo Web y UX/UI",
+  "shortTitle": "Desarrollo web",
+  "headline": "Crea experiencias para la web",
+  "highlight": "de tu primera interfaz a una aplicación",
+  "description": "Empieza con HTML, CSS y JavaScript. Después explora frameworks, backend, bases de datos, interfaces y proyectos web según tu objetivo.",
+  "topics": "FRONTEND · BACKEND · EXPERIENCIA DE USUARIO",
+  "hero": {
+    "image": "/images/campaigns/tecnologia/hero.webp",
+    "imageAlt": "Portátil con código de programación en pantalla"
+  },
+  "routes": [
+    {
+      "ref": "technology:frontend"
+    },
+    {
+      "ref": "technology:javascript"
+    },
+    {
+      "ref": "technology:react"
+    },
+    {
+      "ref": "technology:vue"
+    },
+    {
+      "ref": "technology:angular"
+    },
+    {
+      "ref": "technology:node"
+    },
+    {
+      "ref": "technology:php"
+    },
+    {
+      "ref": "technology:wordpress"
+    },
+    {
+      "ref": "technology:ux-ui"
+    },
+    {
+      "ref": "technology:movil"
+    },
+    {
+      "ref": "technology:python"
+    },
+    {
+      "ref": "technology:bases-datos"
+    },
+    {
+      "ref": "technology:git"
+    },
+    {
+      "ref": "technology:testing"
+    },
+    {
+      "ref": "technology:videojuegos"
+    },
+    {
+      "ref": "technology:dotnet"
+    }
+  ],
+  "snapshot": {
+    "updatedAt": "2026-10-19",
+    "catalogTotal": 1010,
+    "counts": {
+      "201-frontend": 208,
+      "201-javascript": 120,
+      "201-react": 63,
+      "201-vue": 29,
+      "201-angular": 68,
+      "201-node": 118,
+      "201-php": 46,
+      "201-wordpress": 69,
+      "201-ux-ui": 24,
+      "201-movil": 67,
+      "201-python": 15,
+      "201-bases-datos": 40,
+      "201-git": 17,
+      "201-testing": 32,
+      "201-videojuegos": 40,
+      "201-dotnet": 7
+    }
+  }
+}

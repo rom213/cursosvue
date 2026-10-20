@@ -1,0 +1,45 @@
+{
+  "categoryId": 301,
+  "title": "Identidad Visual, Dibujo y Diseño Gráfico",
+  "shortTitle": "Diseño e ilustración",
+  "headline": "Dale forma a tu lenguaje visual",
+  "highlight": "dibuja, diseña y comunica ideas",
+  "description": "Trabaja composición, dibujo e identidad visual. Explora herramientas digitales y experiencias de usuario para desarrollar tus proyectos creativos.",
+  "topics": "DISEÑO · ILUSTRACIÓN · UX/UI",
+  "hero": {
+    "image": "/images/campaigns/categoria-300/hero.webp",
+    "imageAlt": "Artista en su taller de pintura"
+  },
+  "routes": [
+    {
+      "ref": "creative:300-diseno"
+    },
+    {
+      "ref": "creative:300-ilustracion"
+    },
+    {
+      "ref": "technology:ux-ui"
+    },
+    {
+      "id": "canva",
+      "title": "Canva y diseño de contenido",
+      "summary": "Explora herramientas para preparar piezas visuales y publicaciones.",
+      "queries": [
+        "canva"
+      ],
+      "image": "/images/campaigns/bloques/canva.svg",
+      "imageAlt": "Logotipo de Canva",
+      "imageKind": "logo"
+    }
+  ],
+  "snapshot": {
+    "updatedAt": "2026-10-19",
+    "catalogTotal": 756,
+    "counts": {
+      "301-300-diseno": 296,
+      "301-300-ilustracion": 388,
+      "301-ux-ui": 33,
+      "301-canva": 3
+    }
+  }
+}

@@ -1,0 +1,99 @@
+{
+  "categoryId": 306,
+  "title": "Taller Maestro: Manualidades, Oficios y DIY",
+  "shortTitle": "Manualidades y oficios",
+  "headline": "Crea algo con tus propias manos",
+  "highlight": "una técnica, muchas posibilidades",
+  "description": "Explora costura, tejido, joyería y trabajo artesanal. Encuentra cursos para practicar una nueva técnica o dar forma a un proyecto propio.",
+  "topics": "COSTURA · TEJIDO · JOYERÍA · OFICIOS",
+  "hero": {
+    "image": "/images/campaigns/bloques/artesania.webp",
+    "imageAlt": "Manos modelando una pieza de cerámica en un torno"
+  },
+  "routes": [
+    {
+      "id": "costura",
+      "title": "Costura y confección",
+      "summary": "Explora técnicas de costura, patrones y prendas.",
+      "queries": [
+        "costura",
+        "confecci",
+        "sastrer",
+        "moda",
+        "patron",
+        "patrón",
+        "remalladora"
+      ],
+      "image": "/images/campaigns/categoria-300/300-manualidades.webp",
+      "imageAlt": "Manos trabajando con telas e hilos en una labor artesanal",
+      "imageKind": "report"
+    },
+    {
+      "id": "tejido",
+      "title": "Tejido, crochet y bordado",
+      "summary": "Practica puntos, texturas y proyectos con hilos y fibras.",
+      "queries": [
+        "tejido",
+        "tejer",
+        "crochet",
+        "amigurumi",
+        "macrame",
+        "macramé",
+        "bordado",
+        "lana"
+      ],
+      "image": "/images/campaigns/bloques/tejido.webp",
+      "imageAlt": "Manos tejiendo con lana y agujas",
+      "imageKind": "report"
+    },
+    {
+      "id": "joyeria",
+      "title": "Bisutería y joyería",
+      "summary": "Explora materiales y técnicas para crear accesorios y piezas de joyería.",
+      "queries": [
+        "bisuter",
+        "joyer",
+        "joya",
+        "anillo",
+        "arete",
+        "pendiente",
+        "collar",
+        "alambr",
+        "accesorio"
+      ],
+      "image": "/images/campaigns/bloques/joyeria.webp",
+      "imageAlt": "Manos creando una pieza de joyería con cuentas y cadenas",
+      "imageKind": "report"
+    },
+    {
+      "id": "oficios",
+      "title": "Artesanía y oficios creativos",
+      "summary": "Explora materiales y procesos para crear objetos y piezas decorativas.",
+      "queries": [
+        "ceramic",
+        "cerámic",
+        "cuero",
+        "vitra",
+        "madera",
+        "resina",
+        "manualidad",
+        "artesania",
+        "artesanía",
+        "decor"
+      ],
+      "image": "/images/campaigns/bloques/manualidades.webp",
+      "imageAlt": "Trabajo artesanal en cuero con herramientas de costura",
+      "imageKind": "report"
+    }
+  ],
+  "snapshot": {
+    "updatedAt": "2026-10-19",
+    "catalogTotal": 232,
+    "counts": {
+      "306-costura": 68,
+      "306-tejido": 58,
+      "306-joyeria": 16,
+      "306-oficios": 59
+    }
+  }
+}

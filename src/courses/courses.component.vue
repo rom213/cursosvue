@@ -368,11 +368,11 @@ onMounted(async () => {
             <!-- Titulo con barra de acento -->
             <div class="flex items-center gap-3 mb-2">
               <div class="w-1 h-8 rounded-full shrink-0" :class="section.accentColor" />
-              <h2 class="font-[Poppins] text-2xl md:text-3xl font-bold text-[#0d1b2a] tracking-tight">
+              <h2 class="font-[Poppins] text-xl md:text-2xl font-bold text-[#0d1b2a] tracking-tight">
                 {{ section.title }}
               </h2>
             </div>
-            <p class="text-sm text-slate-500 mt-1.5 max-w-2xl ml-4">
+            <p class="text-xs text-slate-500 mt-1.5 max-w-2xl ml-4">
               {{ section.description }}
             </p>
           </div>
@@ -414,7 +414,7 @@ onMounted(async () => {
             <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
         </div>
-        <p class="font-[Poppins] text-xl font-semibold text-[#0d1b2a]">
+        <p class="font-[Poppins] text-lg font-semibold text-[#0d1b2a]">
           {{ searchTerm.trim() ? 'Sin resultados para "' + searchTerm + '"' : 'No se pudo mostrar el catalogo' }}
         </p>
         <p class="text-sm text-slate-400 mt-1">
@@ -436,7 +436,7 @@ onMounted(async () => {
             <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
         </div>
-        <p class="font-[Poppins] text-xl font-semibold text-[#0d1b2a]">
+        <p class="font-[Poppins] text-lg font-semibold text-[#0d1b2a]">
           No hay cursos disponibles
         </p>
         <p class="text-sm text-slate-400 mt-1">

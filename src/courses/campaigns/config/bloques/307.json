@@ -1,0 +1,88 @@
+{
+  "categoryId": 307,
+  "title": "Mística, Mentalidad y Psicología",
+  "shortTitle": "Mentalidad y autoconocimiento",
+  "headline": "Reserva un espacio para conocerte",
+  "highlight": "explora ideas, hábitos y emociones",
+  "description": "Encuentra cursos de crecimiento personal, psicología, meditación y espiritualidad. Elige la temática que te interese y revisa el enfoque de cada curso.",
+  "topics": "MENTALIDAD · EMOCIONES · MEDITACIÓN",
+  "hero": {
+    "image": "/images/campaigns/categoria-300/300-bienestar.webp",
+    "imageAlt": "Mujer sentada en una postura tranquila sobre una colchoneta"
+  },
+  "routes": [
+    {
+      "id": "mentalidad",
+      "title": "Mentalidad y crecimiento personal",
+      "summary": "Explora hábitos, lectura y herramientas de desarrollo personal.",
+      "queries": [
+        "mentalidad",
+        "mental",
+        "desarrollo",
+        "habito",
+        "hábito",
+        "lectura",
+        "autoestima",
+        "crecimiento"
+      ],
+      "image": "/images/campaigns/categoria-100200300/hero.webp",
+      "imageAlt": "Persona estudiando con un portátil y libros",
+      "imageKind": "report"
+    },
+    {
+      "id": "psicologia",
+      "title": "Psicología y emociones",
+      "summary": "Explora conceptos de emociones, relaciones y autoconocimiento.",
+      "queries": [
+        "psic",
+        "emoci",
+        "familia",
+        "relacion",
+        "pareja",
+        "ansiedad",
+        "pnl",
+        "hipnosis",
+        "hipnós",
+        "hipnós"
+      ],
+      "image": "/images/campaigns/bloques/psicologia.webp",
+      "imageAlt": "Personas conversando en una sesión de acompañamiento",
+      "imageKind": "report"
+    },
+    {
+      "ref": "creative:300-yoga"
+    },
+    {
+      "id": "espiritualidad",
+      "title": "Espiritualidad y meditación",
+      "summary": "Explora prácticas y contenidos de meditación y espiritualidad.",
+      "queries": [
+        "espirit",
+        "medita",
+        "gaia",
+        "mist",
+        "míst",
+        "kundalini",
+        "mindvalley",
+        "energia",
+        "energía",
+        "atracci",
+        "espírit",
+        "espírit"
+      ],
+      "image": "/images/campaigns/bloques/espiritualidad.webp",
+      "imageAlt": "Mujer meditando junto al mar",
+      "imageKind": "report"
+    }
+  ],
+  "snapshot": {
+    "updatedAt": "2026-10-19",
+    "catalogTotal": 379,
+    "counts": {
+      "307-mentalidad": 40,
+      "307-psicologia": 84,
+      "307-300-yoga": 60,
+      "307-espiritualidad": 79
+    }
+  }
+}

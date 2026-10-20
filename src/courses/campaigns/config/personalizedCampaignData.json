@@ -1,0 +1,405 @@
+{
+  "100": {
+    "title": "Negocios Digitales y Éxito Profesional",
+    "shortTitle": "Negocios",
+    "eyebrow": "EMPRENDE · CONECTA · CRECE",
+    "headline": "Haz crecer tus ideas",
+    "highlight": "conviértelas en tu próximo proyecto",
+    "description": "Elige por dónde empezar: un negocio digital, tu estrategia de marketing, tus finanzas o tu desarrollo profesional. Encuentra cursos para avanzar con un objetivo claro.",
+    "paidHeadline": "Tu próximo proyecto empieza aquí",
+    "paidHighlight": "tus rutas de negocios ya están disponibles",
+    "paidDescription": "Tu acceso está activo. Elige una habilidad, explora sus niveles y abre el material del curso desde esta página.",
+    "fact": "Ideas, estrategia y habilidades para el trabajo",
+    "imageLabel": "De una idea a un proyecto con dirección",
+    "imageTopics": "Negocios · Marketing · Finanzas · Liderazgo",
+    "hero": 6340631,
+    "heroAlt": "Equipo compartiendo ideas durante una presentación de negocios",
+    "accent": "#1d4ed8",
+    "hover": "#1e40af",
+    "tint": "#dbeafe",
+    "background": "#eff6ff",
+    "routes": [
+      {
+        "id": "100-emprender",
+        "title": "Ruta Emprendimiento y negocios",
+        "summary": "Dale estructura a tu idea y aprende a gestionar un negocio.",
+        "queries": [
+          "emprend",
+          "negocio",
+          "startup",
+          "empresa"
+        ],
+        "photo": 7433859,
+        "imageAlt": "Profesionales planificando un negocio en una mesa de trabajo"
+      },
+      {
+        "id": "100-marketing",
+        "title": "Ruta Marketing y redes sociales",
+        "summary": "Conecta con tu audiencia con contenido, publicidad y posicionamiento.",
+        "queries": [
+          "marketing",
+          "redes",
+          "seo",
+          "publicidad",
+          "facebook",
+          "instagram",
+          "copywriting",
+          "youtube"
+        ],
+        "photo": 590016,
+        "imageAlt": "Gráficos y métricas para analizar una estrategia de marketing"
+      },
+      {
+        "id": "100-comercio",
+        "title": "Ruta E-commerce y tiendas online",
+        "summary": "Explora ventas por internet, tiendas y plataformas de comercio.",
+        "queries": [
+          "ecommerce",
+          "e-commerce",
+          "shopify",
+          "dropship",
+          "amazon",
+          "mercado libre",
+          "tienda online"
+        ],
+        "photo": 6612284,
+        "imageAlt": "Personas comprando productos en una tienda por internet"
+      },
+      {
+        "id": "100-finanzas",
+        "title": "Ruta Finanzas e inversión",
+        "summary": "Aprende a organizar tus finanzas y comprender las inversiones.",
+        "queries": [
+          "finanz",
+          "contabil",
+          "trading",
+          "forex",
+          "inversi",
+          "cripto",
+          "bitcoin"
+        ],
+        "photo": 7433832,
+        "imageAlt": "Documentos financieros y una calculadora sobre una mesa"
+      },
+      {
+        "id": "100-ventas",
+        "title": "Ruta Ventas y atención al cliente",
+        "summary": "Practica comunicación comercial, negociación y servicio.",
+        "queries": [
+          "venta",
+          "persuasi",
+          "negocia",
+          "cliente",
+          "customer"
+        ],
+        "photo": 7710178,
+        "imageAlt": "Equipo conversando sobre una propuesta comercial"
+      },
+      {
+        "id": "100-liderazgo",
+        "title": "Ruta Liderazgo y equipos",
+        "summary": "Desarrolla habilidades para coordinar personas y proyectos.",
+        "queries": [
+          "lider",
+          "equipo",
+          "talento",
+          "rrhh",
+          "recursos humanos",
+          "scrum",
+          "agil",
+          "ágil",
+          "ágil",
+          "Líder!",
+          "líderes",
+          "Líderes"
+        ],
+        "photo": 7652046,
+        "imageAlt": "Equipo de profesionales colaborando en una reunión"
+      },
+      {
+        "id": "100-idiomas",
+        "title": "Ruta Inglés e idiomas",
+        "summary": "Construye las bases de un idioma y practica a tu ritmo.",
+        "queries": [
+          "ingles",
+          "inglés",
+          "inglés",
+          "english",
+          "idioma",
+          "frances",
+          "francés",
+          "francés",
+          "portugues",
+          "portugués",
+          "portugués",
+          "aleman",
+          "alemán",
+          "alemán"
+        ],
+        "photo": 6929167,
+        "imageAlt": "Libros de inglés y un cuaderno de estudio abierto"
+      },
+      {
+        "id": "100-oficina",
+        "title": "Ruta Datos y productividad",
+        "summary": "Organiza información, trabaja con datos y mejora tus tareas diarias.",
+        "queries": [
+          "excel",
+          "power bi",
+          "office",
+          "tableau",
+          "productividad",
+          "notion",
+          "powerpoint",
+          "word",
+          "sap"
+        ],
+        "photo": 6801682,
+        "imageAlt": "Informes con gráficos para analizar datos de trabajo"
+      },
+      {
+        "id": "100-inmobiliaria",
+        "title": "Ruta Bienes raíces",
+        "summary": "Explora el sector inmobiliario y la gestión de propiedades.",
+        "queries": [
+          "inmobili",
+          "bienes ra",
+          "bienes_ra",
+          "real estate"
+        ],
+        "photo": 31221014,
+        "imageAlt": "Una mano sostiene las llaves de una vivienda junto a monedas"
+      }
+    ],
+    "categoryId": 100,
+    "campaignId": "rutas_100",
+    "assetDirectory": "/images/campaigns/categoria-100",
+    "productKind": "pilar"
+  },
+  "300": {
+    "title": "Academia Creativa y Bienestar",
+    "shortTitle": "Creatividad y Bienestar",
+    "eyebrow": "CREA · EXPRÉSATE · CUÍDATE",
+    "headline": "Dale espacio a tu creatividad",
+    "highlight": "y a lo que te hace sentir bien",
+    "description": "Dibuja, captura historias, haz música o crea con tus manos. Combina tu lado creativo con yoga, movimiento y hábitos para tu vida diaria. Tú eliges el punto de partida.",
+    "paidHeadline": "Este es tu espacio para crear",
+    "paidHighlight": "y seguir explorando a tu ritmo",
+    "paidDescription": "Ya tienes acceso a la academia. Encuentra tu próxima técnica, una nueva afición o una práctica para tu bienestar y abre tus cursos aquí.",
+    "fact": "Arte, proyectos personales y bienestar",
+    "imageLabel": "Aprende algo que quieras hacer tuyo",
+    "imageTopics": "Diseño · Arte · Música · Bienestar",
+    "hero": 3880775,
+    "heroAlt": "Artista junto a su caballete en un taller de pintura",
+    "accent": "#a21caf",
+    "hover": "#86198f",
+    "tint": "#fae8ff",
+    "background": "#fdf4ff",
+    "routes": [
+      {
+        "id": "300-diseno",
+        "title": "Ruta Diseño gráfico y UX/UI",
+        "summary": "Crea identidades visuales e interfaces con intención.",
+        "queries": [
+          "dise",
+          "disen",
+          "branding",
+          "photoshop",
+          "illustrator",
+          "figma",
+          "ux",
+          " ui"
+        ],
+        "photo": 12903003,
+        "imageAlt": "Persona trabajando con una tableta gráfica y un portátil"
+      },
+      {
+        "id": "300-ilustracion",
+        "title": "Ruta Dibujo e ilustración",
+        "summary": "Desarrolla tu mirada con lápices, color y técnicas digitales.",
+        "queries": [
+          "ilustr",
+          "dibujo",
+          "dibujar",
+          "acuarela",
+          "pintura",
+          "lettering",
+          "caligraf"
+        ],
+        "photo": 5393824,
+        "imageAlt": "Artista dibujando sobre un lienzo"
+      },
+      {
+        "id": "300-fotografia",
+        "title": "Ruta Fotografía",
+        "summary": "Explora iluminación, composición y retoque de imágenes.",
+        "queries": [
+          "fotogr",
+          "lightroom",
+          "retrato",
+          "retoque",
+          "Fotógrafos"
+        ],
+        "photo": 7355128,
+        "imageAlt": "Fotógrafo capturando una imagen con una cámara bajo luz roja"
+      },
+      {
+        "id": "300-audiovisual",
+        "title": "Ruta Video y animación",
+        "summary": "Transforma ideas en historias con edición y movimiento.",
+        "queries": [
+          "video",
+          "vídeo",
+          "vídeo",
+          "cine",
+          "premiere",
+          "davinci",
+          "after effects",
+          "animaci",
+          "animació",
+          "animació"
+        ],
+        "photo": 8102676,
+        "imageAlt": "Editor trabajando con video en dos monitores"
+      },
+      {
+        "id": "300-musica",
+        "title": "Ruta Música y producción",
+        "summary": "Practica un instrumento y explora grabación y producción musical.",
+        "queries": [
+          "music",
+          "músic",
+          "músic",
+          "guitarra",
+          "piano",
+          "bajo",
+          "canto",
+          "violin",
+          "violín",
+          "violín",
+          "audio",
+          "bateria",
+          "batería",
+          "batería"
+        ],
+        "photo": 7120841,
+        "imageAlt": "Mujer grabando una interpretación de guitarra"
+      },
+      {
+        "id": "300-manualidades",
+        "title": "Ruta Costura y manualidades",
+        "summary": "Crea piezas propias con tejidos, costura y trabajo artesanal.",
+        "queries": [
+          "costura",
+          "confecci",
+          "tejido",
+          "crochet",
+          "macram",
+          "bordado",
+          "manualidad",
+          "bisuter",
+          "joyer",
+          "ceramic",
+          "cerámic",
+          "cerámic"
+        ],
+        "photo": 6634561,
+        "imageAlt": "Manos trabajando con telas e hilos en una labor artesanal"
+      },
+      {
+        "id": "300-cocina",
+        "title": "Ruta Cocina y repostería",
+        "summary": "Explora recetas, técnicas y proyectos para tu cocina.",
+        "queries": [
+          "cocina",
+          "gastron",
+          "reposter",
+          "pasteler",
+          "panader",
+          "panific",
+          "parrilla"
+        ],
+        "photo": 8357263,
+        "imageAlt": "Mujer preparando comida en una cocina mientras graba la receta"
+      },
+      {
+        "id": "300-yoga",
+        "title": "Ruta Yoga y meditación",
+        "summary": "Reserva un espacio para el movimiento consciente y la calma.",
+        "queries": [
+          "yoga",
+          "medita",
+          "mindfulness",
+          "respira",
+          "kundalini"
+        ],
+        "photo": 8436733,
+        "imageAlt": "Dos mujeres practicando meditación sobre sus colchonetas"
+      },
+      {
+        "id": "300-fitness",
+        "title": "Ruta Fitness y movimiento",
+        "summary": "Encuentra rutinas y técnicas de entrenamiento para tus objetivos.",
+        "queries": [
+          "fitness",
+          "entrenamiento",
+          "ejercicio",
+          "body beast",
+          "muscula",
+          "pilates"
+        ],
+        "photo": 414029,
+        "imageAlt": "Personas practicando una rutina de entrenamiento en un gimnasio"
+      },
+      {
+        "id": "300-bienestar",
+        "title": "Ruta Bienestar y desarrollo personal",
+        "summary": "Explora hábitos, emociones y herramientas de crecimiento personal.",
+        "queries": [
+          "bienestar",
+          "emoci",
+          "psic",
+          "mentalidad",
+          "desarrollo",
+          " habilidades personales",
+          "autoestima",
+          "habito",
+          "hábito",
+          "hábito",
+          "nutrici"
+        ],
+        "photo": 7900272,
+        "imageAlt": "Mujer sentada en una postura tranquila sobre una colchoneta"
+      }
+    ],
+    "categoryId": 300,
+    "campaignId": "rutas_300",
+    "assetDirectory": "/images/campaigns/categoria-300",
+    "productKind": "pilar"
+  },
+  "100200300": {
+    "title": "Toda la Tienda · Acceso Total",
+    "shortTitle": "Acceso Total",
+    "eyebrow": "NEGOCIOS · TECNOLOGÍA · CREATIVIDAD",
+    "headline": "Todas tus ideas tienen un lugar",
+    "highlight": "conecta habilidades y crea tu camino",
+    "description": "Explora los tres pilares desde un mismo lugar: negocios, tecnología y creatividad con bienestar. Combina lo que necesitas para tu trabajo, tus proyectos y tu vida personal.",
+    "paidHeadline": "Todo el catálogo está a tu alcance",
+    "paidHighlight": "elige qué quieres aprender hoy",
+    "paidDescription": "Tu acceso total está activo. Combina rutas de los tres pilares y abre tus cursos directamente desde aquí, sin comprar cada área por separado.",
+    "fact": "Tres pilares para combinar tus habilidades",
+    "imageLabel": "Un acceso, muchas formas de aprender",
+    "imageTopics": "Negocios · Tecnología · Creatividad y bienestar",
+    "hero": 6549856,
+    "heroAlt": "Persona estudiando con un portátil y libros en su mesa",
+    "accent": "#6d28d9",
+    "hover": "#5b21b6",
+    "tint": "#ede9fe",
+    "background": "#f5f3ff",
+    "routes": [],
+    "categoryId": 100200300,
+    "campaignId": "rutas_100200300",
+    "assetDirectory": "/images/campaigns/categoria-100200300",
+    "productKind": "paquete"
+  }
+}

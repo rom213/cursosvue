@@ -1,0 +1,71 @@
+{
+  "categoryId": 308,
+  "title": "Belleza, Estética y Moda",
+  "shortTitle": "Belleza y cuidado personal",
+  "headline": "Explora tu lado creativo",
+  "highlight": "con técnicas de belleza y cuidado",
+  "description": "Encuentra cursos de maquillaje, cuidado de la piel y cosmética. Elige el área que quieras conocer y revisa las técnicas de cada propuesta.",
+  "topics": "MAQUILLAJE · PIEL · COSMÉTICA",
+  "hero": {
+    "image": "/images/campaigns/bloques/belleza.webp",
+    "imageAlt": "Brochas de maquillaje junto a productos cosméticos"
+  },
+  "routes": [
+    {
+      "id": "maquillaje",
+      "title": "Maquillaje",
+      "summary": "Explora técnicas de maquillaje para diferentes estilos y ocasiones.",
+      "queries": [
+        "maquill",
+        "belleza",
+        "visagismo"
+      ],
+      "image": "/images/campaigns/bloques/maquillaje.webp",
+      "imageAlt": "Mujer sosteniendo brochas de maquillaje",
+      "imageKind": "report"
+    },
+    {
+      "id": "piel",
+      "title": "Cuidado de la piel",
+      "summary": "Conoce contenidos y prácticas de cuidado de la piel.",
+      "queries": [
+        "piel",
+        "facial",
+        "dermat",
+        "skincare",
+        "skin care"
+      ],
+      "image": "/images/campaigns/bloques/piel.webp",
+      "imageAlt": "Aplicación de un producto de cuidado facial",
+      "imageKind": "report"
+    },
+    {
+      "id": "cosmetica",
+      "title": "Cosmética y estética",
+      "summary": "Explora productos y técnicas de cosmética y estética.",
+      "queries": [
+        "cosmet",
+        "cosmét",
+        "estetic",
+        "estét",
+        "aloe",
+        "natural",
+        "uñas",
+        "unas",
+        "manicur"
+      ],
+      "image": "/images/campaigns/bloques/cosmetica.webp",
+      "imageAlt": "Manos sosteniendo un recipiente de crema cosmética",
+      "imageKind": "report"
+    }
+  ],
+  "snapshot": {
+    "updatedAt": "2026-10-19",
+    "catalogTotal": 42,
+    "counts": {
+      "308-maquillaje": 17,
+      "308-piel": 5,
+      "308-cosmetica": 2
+    }
+  }
+}

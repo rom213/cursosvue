@@ -1,0 +1,53 @@
+{
+  "categoryId": 102,
+  "title": "Apuestas, Estrategia y Juegos de Azar",
+  "shortTitle": "Ajedrez y estrategia",
+  "headline": "Piensa tu siguiente movimiento",
+  "highlight": "explora estrategia y análisis",
+  "description": "Encuentra cursos de ajedrez, juegos de estrategia y análisis de apuestas. Las rutas separan cada temática para que puedas elegir qué estudiar.",
+  "topics": "AJEDREZ · ESTRATEGIA · ANÁLISIS",
+  "hero": {
+    "image": "/images/campaigns/bloques/ajedrez-portada.webp",
+    "imageAlt": "Tablero de ajedrez con piezas de madera"
+  },
+  "routes": [
+    {
+      "id": "ajedrez",
+      "title": "Ajedrez",
+      "summary": "Practica aperturas, táctica y análisis de partidas.",
+      "queries": [
+        "ajedrez",
+        "chess",
+        "gambito",
+        "fischer",
+        "apertura",
+        "smirnov"
+      ],
+      "image": "/images/campaigns/bloques/ajedrez.webp",
+      "imageAlt": "Persona realizando una jugada de ajedrez",
+      "imageKind": "report"
+    },
+    {
+      "id": "apuestas",
+      "title": "Análisis de apuestas deportivas",
+      "summary": "Explora métodos y conceptos presentes en los cursos de apuestas deportivas.",
+      "queries": [
+        "apuesta",
+        "deportiv",
+        "betting",
+        "tipster"
+      ],
+      "image": "/images/campaigns/bloques/deportes.webp",
+      "imageAlt": "Balón de fútbol sobre un campo deportivo",
+      "imageKind": "report"
+    }
+  ],
+  "snapshot": {
+    "updatedAt": "2026-10-19",
+    "catalogTotal": 76,
+    "counts": {
+      "102-ajedrez": 58,
+      "102-apuestas": 6
+    }
+  }
+}

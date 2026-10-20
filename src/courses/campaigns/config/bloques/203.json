@@ -1,0 +1,41 @@
+{
+  "categoryId": 203,
+  "title": "Hardware, Reparación y Redes",
+  "shortTitle": "Hardware y reparación",
+  "headline": "Comprende lo que hay dentro",
+  "highlight": "diagnostica, conecta y repara",
+  "description": "Explora componentes, reparación de equipos, electrónica y conectividad. Elige el área técnica que quieras conocer o practicar.",
+  "topics": "HARDWARE · ELECTRÓNICA · MANTENIMIENTO",
+  "hero": {
+    "image": "/images/campaigns/bloques/hardware.webp",
+    "imageAlt": "Primer plano de los componentes de una placa base"
+  },
+  "routes": [
+    {
+      "ref": "technology:hardware"
+    },
+    {
+      "ref": "technology:electricidad"
+    },
+    {
+      "ref": "technology:robotica"
+    },
+    {
+      "ref": "technology:redes"
+    },
+    {
+      "ref": "technology:linux"
+    }
+  ],
+  "snapshot": {
+    "updatedAt": "2026-10-19",
+    "catalogTotal": 114,
+    "counts": {
+      "203-hardware": 48,
+      "203-electricidad": 17,
+      "203-robotica": 7,
+      "203-redes": 1,
+      "203-linux": 2
+    }
+  }
+}

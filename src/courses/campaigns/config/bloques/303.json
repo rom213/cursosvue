@@ -1,0 +1,75 @@
+{
+  "categoryId": 303,
+  "title": "Música y Producción de Audio",
+  "shortTitle": "Música y audio",
+  "headline": "Encuentra tu propio sonido",
+  "highlight": "practica, interpreta y produce",
+  "description": "Elige un instrumento, refuerza tus bases musicales o explora grabación y producción. Encuentra cursos para tu siguiente práctica o proyecto sonoro.",
+  "topics": "INSTRUMENTOS · COMPOSICIÓN · PRODUCCIÓN",
+  "hero": {
+    "image": "/images/campaigns/bloques/musica.webp",
+    "imageAlt": "Estudio de grabación y producción de audio"
+  },
+  "routes": [
+    {
+      "id": "guitarra",
+      "title": "Guitarra y bajo",
+      "summary": "Explora técnica, acordes y repertorio para instrumentos de cuerda.",
+      "queries": [
+        "guitarra",
+        "bajo",
+        "bajista",
+        "blues",
+        "ukelele"
+      ],
+      "image": "/images/campaigns/categoria-300/300-musica.webp",
+      "imageAlt": "Mujer grabando una interpretación de guitarra",
+      "imageKind": "report"
+    },
+    {
+      "id": "piano",
+      "title": "Piano y teoría musical",
+      "summary": "Practica teclado y comprende fundamentos de armonía y composición.",
+      "queries": [
+        "piano",
+        "teclado",
+        "armonia",
+        "armonía",
+        "teoria musical",
+        "teoría musical",
+        "composici"
+      ],
+      "image": "/images/campaigns/bloques/piano.webp",
+      "imageAlt": "Manos tocando las teclas de un piano",
+      "imageKind": "report"
+    },
+    {
+      "id": "audio",
+      "title": "Audio, canto y producción",
+      "summary": "Explora grabación, voz y herramientas para producir música.",
+      "queries": [
+        "audio",
+        "producci",
+        "canto",
+        "voz",
+        "voces",
+        "ableton",
+        "fl studio",
+        "mezcla",
+        "masteriz"
+      ],
+      "image": "/images/campaigns/bloques/audio.webp",
+      "imageAlt": "Micrófono para canto y grabación de audio",
+      "imageKind": "report"
+    }
+  ],
+  "snapshot": {
+    "updatedAt": "2026-10-19",
+    "catalogTotal": 279,
+    "counts": {
+      "303-guitarra": 134,
+      "303-piano": 36,
+      "303-audio": 74
+    }
+  }
+}

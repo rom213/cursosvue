@@ -1,0 +1,78 @@
+{
+  "categoryId": 101,
+  "title": "Inversiones y Finanzas",
+  "shortTitle": "Finanzas e inversión",
+  "headline": "Comprende tus números",
+  "highlight": "y toma decisiones con más criterio",
+  "description": "Explora finanzas personales, contabilidad, trading, activos digitales y bienes raíces. Elige un área y empieza por sus fundamentos.",
+  "topics": "FINANZAS · INVERSIÓN · CONTABILIDAD",
+  "hero": {
+    "image": "/images/campaigns/categoria-100/100-oficina.webp",
+    "imageAlt": "Informes con gráficos para analizar datos de trabajo"
+  },
+  "routes": [
+    {
+      "id": "finanzas",
+      "title": "Finanzas y contabilidad",
+      "summary": "Organiza presupuestos y comprende los registros y cifras de un negocio.",
+      "queries": [
+        "finanz",
+        "contabil",
+        "financ",
+        "presupuest",
+        "niif",
+        "impuest"
+      ],
+      "image": "/images/campaigns/categoria-100/100-finanzas.webp",
+      "imageAlt": "Documentos financieros y una calculadora sobre una mesa",
+      "imageKind": "report"
+    },
+    {
+      "id": "trading",
+      "title": "Trading y mercados",
+      "summary": "Estudia conceptos, análisis y herramientas de los mercados financieros.",
+      "queries": [
+        "trading",
+        "forex",
+        "trader",
+        "bolsa",
+        "inversi",
+        "inversió",
+        "acciones",
+        "stock"
+      ],
+      "image": "/images/campaigns/bloques/trading.webp",
+      "imageAlt": "Persona analizando gráficos financieros en varios monitores",
+      "imageKind": "report"
+    },
+    {
+      "id": "cripto",
+      "title": "Criptomonedas y blockchain",
+      "summary": "Explora activos digitales, redes blockchain y sus conceptos.",
+      "queries": [
+        "cripto",
+        "crypto",
+        "bitcoin",
+        "blockchain",
+        "ethereum",
+        "nft"
+      ],
+      "image": "/images/campaigns/bloques/bitcoin.svg",
+      "imageAlt": "Logotipo de Bitcoin",
+      "imageKind": "logo"
+    },
+    {
+      "ref": "business:100-inmobiliaria"
+    }
+  ],
+  "snapshot": {
+    "updatedAt": "2026-10-19",
+    "catalogTotal": 483,
+    "counts": {
+      "101-finanzas": 144,
+      "101-trading": 112,
+      "101-cripto": 100,
+      "101-100-inmobiliaria": 40
+    }
+  }
+}

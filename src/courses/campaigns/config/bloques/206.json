@@ -1,0 +1,71 @@
+{
+  "categoryId": 206,
+  "title": "Automatización Industrial, PLC y Robótica",
+  "shortTitle": "Automatización y operaciones",
+  "headline": "Conecta procesos y herramientas",
+  "highlight": "explora automatización y operaciones digitales",
+  "description": "Explora los contenidos disponibles de automatización, servicios cloud, despliegue y administración de sistemas. Las rutas corresponden al catálogo real de este bloque.",
+  "topics": "AUTOMATIZACIÓN · CLOUD · OPERACIONES",
+  "hero": {
+    "image": "/images/campaigns/bloques/servidores.webp",
+    "imageAlt": "Servidores y equipos en un centro de datos"
+  },
+  "routes": [
+    {
+      "ref": "technology:cloud"
+    },
+    {
+      "ref": "technology:azure"
+    },
+    {
+      "ref": "technology:aws"
+    },
+    {
+      "ref": "technology:devops"
+    },
+    {
+      "ref": "technology:contenedores"
+    },
+    {
+      "ref": "technology:linux"
+    },
+    {
+      "ref": "technology:git"
+    },
+    {
+      "ref": "technology:robotica"
+    },
+    {
+      "id": "automatizacion",
+      "title": "Automatización y bots",
+      "summary": "Explora herramientas para conectar procesos y automatizar tareas.",
+      "queries": [
+        "automat",
+        "bot",
+        "workflow",
+        "integracion",
+        "integración",
+        "automát",
+        "automát"
+      ],
+      "image": "/images/campaigns/bloques/ia.webp",
+      "imageAlt": "Ilustración digital de una figura robótica sobre un fondo azul",
+      "imageKind": "report"
+    }
+  ],
+  "snapshot": {
+    "updatedAt": "2026-10-19",
+    "catalogTotal": 173,
+    "counts": {
+      "206-cloud": 58,
+      "206-azure": 25,
+      "206-aws": 8,
+      "206-devops": 27,
+      "206-contenedores": 16,
+      "206-linux": 9,
+      "206-git": 6,
+      "206-robotica": 2,
+      "206-automatizacion": 24
+    }
+  }
+}

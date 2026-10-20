@@ -1,0 +1,374 @@
+/* Shared phone layout for the campaign study pages. */
+@media (max-width: 600px) {
+  .study-page {
+    --mobile-purchase-height: calc(70px + env(safe-area-inset-bottom));
+    font-size: 0.8125rem;
+    padding-bottom: var(--mobile-purchase-height);
+  }
+  .section,
+  .hero-inner,
+  .pack-strip {
+    width: calc(100% - 32px);
+  }
+  .section {
+    padding-block: 34px;
+  }
+  .section h2 {
+    font-size: 1.375rem;
+  }
+  .section-heading p,
+  .section p,
+  .pack-strip p {
+    font-size: 0.8125rem;
+  }
+  .button {
+    font-size: 0.8125rem;
+  }
+  .hero-facts,
+  .eyebrow,
+  .count-pill {
+    font-size: 0.625rem;
+  }
+  .pack-strip h2 {
+    font-size: 1.0625rem;
+  }
+  .route-dialog .detail-intro h2 {
+    font-size: 1.1875rem;
+  }
+  .catalog-toolbar h3 {
+    font-size: 0.9375rem;
+  }
+  .hero-visual {
+    display: none;
+  }
+  .hero-inner {
+    padding-block: 32px;
+    gap: 28px;
+  }
+  .hero-copy h1 {
+    font-size: clamp(1.45rem, 6vw, 1.75rem);
+    margin-block: 14px;
+  }
+  .hero-description {
+    font-size: 0.8125rem;
+    line-height: 1.7;
+  }
+  .hero-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    margin-top: 20px;
+  }
+  .hero-facts {
+    display: grid;
+    margin-top: 18px;
+  }
+  .pack-strip {
+    flex-direction: column;
+    gap: 20px;
+    padding-block: 24px;
+  }
+  .pack-purchase {
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+  .pack-purchase .price {
+    flex: 1 1 130px;
+  }
+  .pack-purchase .button {
+    font-size: 0.8125rem;
+    padding-inline: 16px;
+    flex: 1 1 145px;
+  }
+  .price strong {
+    font-size: 1.45rem;
+  }
+  .section-heading {
+    flex-direction: column;
+    align-items: start;
+    gap: 15px;
+  }
+  .route-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .route-card {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    min-width: 0;
+    padding: 0;
+    align-content: start;
+  }
+  .route-card-image {
+    height: clamp(140px, 39vw, 195px);
+    border-radius: 0;
+  }
+  .route-card-image img {
+    height: 100%;
+    padding: 16px 12px 44px;
+  }
+  .route-card-tag {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    width: fit-content;
+    max-width: calc(100% - 16px);
+    padding: 5px 6px;
+    font-size: 0.625rem;
+    line-height: 1.35;
+  }
+  .route-card-title {
+    gap: 8px;
+  }
+  .route-card-title h3 {
+    font-size: 0.875rem;
+    overflow-wrap: anywhere;
+  }
+  .route-card-copy p {
+    min-height: 0;
+    font-size: 0.75rem;
+    line-height: 1.6;
+  }
+  .route-card-copy {
+    display: flex;
+    flex-direction: column;
+    padding: 12px 10px;
+    min-width: 0;
+    gap: 8px;
+  }
+  .route-card-bottom {
+    flex-wrap: wrap;
+    margin-top: auto;
+    padding-top: 12px;
+    gap: 8px;
+    font-size: 0.75rem;
+  }
+  .route-skeleton {
+    height: 180px;
+  }
+  .detail-intro {
+    grid-template-columns: 1fr;
+    padding: 16px;
+    gap: 16px;
+  }
+  .catalog-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .search-field {
+    flex-basis: auto;
+  }
+  .level-heading {
+    padding: 16px;
+  }
+  .course-row {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    padding: 14px 12px;
+    gap: 8px 10px;
+  }
+  .course-icon {
+    width: 36px;
+    height: 40px;
+  }
+  .course-row-copy {
+    min-width: 0;
+  }
+  .course-open-label {
+    grid-column: 2;
+    margin-left: 0;
+  }
+  .free-badge {
+    grid-column: 2;
+    justify-self: start;
+  }
+  .course-row-copy strong {
+    font-size: 0.8125rem;
+    line-height: 1.55;
+  }
+  .course-row-copy > span,
+  .course-open-label,
+  .level-heading p,
+  .catalog-toolbar p,
+  .learning-steps li,
+  .detail-intro p,
+  .dialog-header p,
+  .dialog-footer p,
+  .search-field label,
+  .free-dialog label,
+  .free-dialog p {
+    font-size: 0.75rem;
+  }
+  .course-content :deep(h2),
+  .course-content :deep(h3) {
+    font-size: 1rem;
+  }
+  .course-content,
+  .empty-description {
+    font-size: 0.8125rem;
+    line-height: 1.75;
+  }
+  .level-heading h3 {
+    font-size: 0.9375rem;
+  }
+  .free-badge {
+    font-size: 0.75rem;
+  }
+  .dialog-footer .button,
+  .free-actions .button,
+  .expand-button {
+    min-height: 48px;
+    font-size: 0.8125rem;
+  }
+  .how-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .how-grid article > span {
+    margin-bottom: 8px;
+  }
+  .final-section {
+    width: calc(100% - 32px);
+    grid-template-columns: 1fr;
+    padding: 30px 24px;
+    margin-bottom: 32px;
+  }
+  .final-actions {
+    margin-top: 8px;
+  }
+  .mobile-purchase {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 30;
+    border-top: 1px solid var(--line);
+    background: #fffffff5;
+    padding: 10px 12px calc(12px + env(safe-area-inset-bottom));
+    backdrop-filter: blur(8px);
+    box-shadow: 0 -8px 30px #1528420a;
+  }
+  .mobile-purchase .button {
+    min-height: 48px;
+    padding: 11px 8px;
+    font-size: 0.8125rem;
+  }
+  .dialog-header {
+    padding: 16px;
+    flex-shrink: 0;
+    max-height: 32dvh;
+    overflow-y: auto;
+  }
+  .dialog-header h2 {
+    font-size: 1.0625rem;
+  }
+  .dialog-body,
+  .dialog-footer {
+    padding: 16px;
+  }
+  .dialog-body {
+    min-height: 0;
+    overscroll-behavior: contain;
+  }
+  .dialog-footer {
+    flex-shrink: 0;
+    max-height: 30dvh;
+    overflow-y: auto;
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+  .route-dialog,
+  .course-dialog {
+    width: calc(100% - 16px);
+    max-width: calc(100% - 16px);
+    height: 94dvh;
+    max-height: 94dvh;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    overflow: hidden;
+  }
+  .route-dialog .route-detail {
+    padding: 16px;
+  }
+  .route-dialog-header {
+    padding: 16px;
+  }
+  .route-dialog-header,
+  .dialog-header {
+    padding-top: max(12px, env(safe-area-inset-top));
+  }
+  .route-dialog-body {
+    padding-bottom: calc(88px + env(safe-area-inset-bottom));
+    scroll-padding-bottom: 88px;
+  }
+  .dialog-close {
+    width: 44px;
+    height: 44px;
+  }
+  .search-field input,
+  .search-field select,
+  .free-dialog input {
+    font-size: 16px;
+    min-height: 48px;
+  }
+  .free-dialog {
+    padding: 20px;
+    max-height: calc(100dvh - 24px);
+    overflow-y: auto;
+  }
+  .free-actions {
+    flex-wrap: wrap;
+  }
+  .free-actions .button {
+    flex: 1 1 140px;
+  }
+  .text-button,
+  .image-credits {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+  .count-pill {
+    white-space: normal;
+  }
+  .whatsapp-float-page {
+    width: 52px;
+    height: 52px;
+    padding: 12px;
+    bottom: calc(var(--mobile-purchase-height) + 12px);
+  }
+  .whatsapp-float-page > span {
+    display: none;
+  }
+  .whatsapp-float-route {
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    max-width: calc(100% - 32px);
+  }
+  .whatsapp-float {
+    font-size: 0.75rem;
+    min-height: 52px;
+  }
+  .whatsapp-float-page,
+  .whatsapp-float-route {
+    right: 16px;
+  }
+  .catalog-pagination {
+    gap: 8px;
+  }
+  .catalog-pagination .button {
+    padding-inline: 12px;
+    font-size: 0.75rem;
+  }
+  .hero-copy,
+  .route-card-title,
+  .learning-steps li > span:last-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}

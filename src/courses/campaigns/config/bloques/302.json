@@ -1,0 +1,61 @@
+{
+  "categoryId": 302,
+  "title": "Narrativa Visual: Video, Fotografía y Redes",
+  "shortTitle": "Fotografía y video",
+  "headline": "Cuenta historias con imágenes",
+  "highlight": "de la captura a la edición",
+  "description": "Explora fotografía, iluminación, edición audiovisual y narrativa. Encuentra cursos para desarrollar tu forma de mirar y presentar historias.",
+  "topics": "FOTOGRAFÍA · VIDEO · NARRATIVA",
+  "hero": {
+    "image": "/images/campaigns/bloques/video.webp",
+    "imageAlt": "Estación de trabajo para edición audiovisual"
+  },
+  "routes": [
+    {
+      "ref": "creative:300-fotografia"
+    },
+    {
+      "ref": "creative:300-audiovisual"
+    },
+    {
+      "id": "narrativa",
+      "title": "Guion y narrativa",
+      "summary": "Explora escritura y estructuras para contar historias.",
+      "queries": [
+        "guion",
+        "guión",
+        "narrativ",
+        "escritura",
+        "storytelling",
+        "ficcion",
+        "ficción"
+      ],
+      "image": "/images/campaigns/categoria-100200300/hero.webp",
+      "imageAlt": "Persona estudiando con un portátil y libros",
+      "imageKind": "report"
+    },
+    {
+      "id": "animacion",
+      "title": "Animación y motion graphics",
+      "summary": "Explora movimiento, animación y composición visual digital.",
+      "queries": [
+        "after effects",
+        "animaci",
+        "motion"
+      ],
+      "image": "/images/campaigns/categoria-300/300-diseno.webp",
+      "imageAlt": "Persona trabajando con una tableta gráfica y un portátil",
+      "imageKind": "report"
+    }
+  ],
+  "snapshot": {
+    "updatedAt": "2026-10-19",
+    "catalogTotal": 308,
+    "counts": {
+      "302-300-fotografia": 158,
+      "302-300-audiovisual": 83,
+      "302-narrativa": 14,
+      "302-animacion": 9
+    }
+  }
+}

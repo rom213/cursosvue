@@ -1,0 +1,41 @@
+{
+  "100": {
+    "categoryId": 100,
+    "updatedAt": "2026-10-19",
+    "catalogTotal": 3312,
+    "counts": {
+      "100-emprender": 379,
+      "100-marketing": 632,
+      "100-comercio": 192,
+      "100-finanzas": 287,
+      "100-ventas": 287,
+      "100-liderazgo": 251,
+      "100-idiomas": 225,
+      "100-oficina": 220,
+      "100-inmobiliaria": 51
+    }
+  },
+  "300": {
+    "categoryId": 300,
+    "updatedAt": "2026-10-19",
+    "catalogTotal": 2305,
+    "counts": {
+      "300-diseno": 360,
+      "300-ilustracion": 407,
+      "300-fotografia": 207,
+      "300-audiovisual": 169,
+      "300-musica": 254,
+      "300-manualidades": 160,
+      "300-cocina": 87,
+      "300-yoga": 144,
+      "300-fitness": 29,
+      "300-bienestar": 107
+    }
+  },
+  "100200300": {
+    "categoryId": 100200300,
+    "updatedAt": "2026-10-19",
+    "catalogTotal": 8355,
+    "counts": {}
+  }
+}

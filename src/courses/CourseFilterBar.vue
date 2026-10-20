@@ -104,13 +104,13 @@ const allThemesTotal = computed(() =>
         <!-- TODA LA TIENDA 2026 (Botón premium con shimmer) -->
         <button
           type="button"
-          class="toda-tienda-btn relative px-4 py-2 rounded-xl border-2 transition-all overflow-hidden"
+          class="toda-tienda-btn relative px-4 py-2 rounded-lg border transition-all overflow-hidden"
           :class="activeFilter === 'toda-la-tienda'
-            ? 'border-amber-400 ring-2 ring-amber-200 bg-amber-50'
+            ? 'border-amber-400 ring-1 ring-amber-200 bg-amber-50'
             : 'border-amber-300 hover:border-amber-400 hover:bg-amber-50'"
           @click="handleTodaTiendaClick"
         >
-          <span class="toda-tienda-text relative z-10 text-sm font-bold text-amber-600">
+          <span class="toda-tienda-text relative z-10 text-xs font-bold text-amber-600">
             Toda la Tienda 2026
           </span>
           <div class="shimmer-overlay absolute inset-0 z-0" />
@@ -118,13 +118,13 @@ const allThemesTotal = computed(() =>
 
         <!-- BLOQUES INDIVIDUALES (Split Button) -->
         <div ref="bloquesBtnRef" class="relative">
-          <div class="flex items-center rounded-xl border overflow-hidden transition-all"
+          <div class="flex items-center rounded-lg border overflow-hidden transition-all"
                :class="activeFilter === 'bloques'
-                 ? 'ring-2 ring-gray-300 border-gray-400 bg-gray-50'
+                 ? 'ring-1 ring-gray-200 border-gray-400 bg-gray-50'
                  : 'border-gray-200 hover:border-gray-300'">
             <button
               type="button"
-              class="px-3.5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+              class="px-3.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
               @click="handleTextClick('bloques')"
             >
               Bloques Individuales
@@ -144,13 +144,13 @@ const allThemesTotal = computed(() =>
 
         <!-- PILARES PRINCIPALES (Split Button) -->
         <div ref="pilaresBtnRef" class="relative">
-          <div class="flex items-center rounded-xl border overflow-hidden transition-all"
+          <div class="flex items-center rounded-lg border overflow-hidden transition-all"
                :class="activeFilter === 'pilares'
-                 ? 'ring-2 ring-gray-300 border-gray-400 bg-gray-50'
+                 ? 'ring-1 ring-gray-200 border-gray-400 bg-gray-50'
                  : 'border-gray-200 hover:border-gray-300'">
             <button
               type="button"
-              class="px-3.5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+              class="px-3.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
               @click="handleTextClick('pilares')"
             >
               Pilares Principales
@@ -187,10 +187,10 @@ const allThemesTotal = computed(() =>
       >
         <div
           v-if="openDropdown === 'bloques'"
-          class="fixed w-80 bg-white rounded-xl shadow-2xl border border-gray-100 max-h-[24rem] overflow-y-auto z-[9999] dropdown-scroll"
+          class="fixed w-80 bg-white rounded-lg shadow-2xl border border-gray-100 max-h-[24rem] overflow-y-auto z-[9999] dropdown-scroll"
           :style="{ top: dropdownPos.top, left: dropdownPos.left }"
         >
-          <div class="px-3.5 py-2 border-b border-gray-100 bg-gray-50/80 rounded-t-xl">
+          <div class="px-3.5 py-2 border-b border-gray-100 bg-gray-50/80 rounded-t-lg">
             <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">23 Bloques</span>
             <span class="text-[10px] text-gray-400 ml-2">{{ allThemesTotal.toLocaleString() }} cursos en total</span>
           </div>
@@ -216,7 +216,7 @@ const allThemesTotal = computed(() =>
               @click="handleItemClick(theme.id)"
             >
               <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" :class="pilar.dotColor" />
-              <span class="text-sm truncate flex-1 font-medium" :class="pilar.textColor">
+              <span class="text-xs truncate flex-1 font-medium" :class="pilar.textColor">
                 {{ theme.name }}
               </span>
               <span class="text-xs text-gray-400 flex-shrink-0 tabular-nums">
@@ -241,10 +241,10 @@ const allThemesTotal = computed(() =>
       >
         <div
           v-if="openDropdown === 'pilares'"
-          class="fixed w-80 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-[9999]"
+          class="fixed w-80 bg-white rounded-lg shadow-2xl border border-gray-100 overflow-hidden z-[9999]"
           :style="{ top: dropdownPos.top, left: dropdownPos.left }"
         >
-          <div class="px-3.5 py-2 border-b border-gray-100 bg-gray-50/80 rounded-t-xl">
+          <div class="px-3.5 py-2 border-b border-gray-100 bg-gray-50/80 rounded-t-lg">
             <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Los 3 Gigantes</span>
           </div>
           <div class="py-1">
@@ -257,7 +257,7 @@ const allThemesTotal = computed(() =>
             >
               <span class="w-3.5 h-3.5 rounded-full flex-shrink-0" :class="pilar.dotColor" />
               <div class="flex-1 min-w-0">
-                <span class="text-sm font-semibold block" :class="pilar.textColor">
+                <span class="text-xs font-semibold block" :class="pilar.textColor">
                   {{ pilar.label }}
                 </span>
                 <span class="text-xs text-gray-400">
@@ -281,10 +281,10 @@ const allThemesTotal = computed(() =>
       >
         <div
           v-if="openDropdown === 'combos'"
-          class="fixed w-80 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-[9999]"
+          class="fixed w-80 bg-white rounded-lg shadow-2xl border border-gray-100 overflow-hidden z-[9999]"
           :style="{ top: dropdownPos.top, left: dropdownPos.left }"
         >
-          <div class="px-3.5 py-2 border-b border-gray-100 bg-gray-50/80 rounded-t-xl">
+          <div class="px-3.5 py-2 border-b border-gray-100 bg-gray-50/80 rounded-t-lg">
             <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Combinación de 2 Gigantes</span>
           </div>
           <div class="py-1">
@@ -306,7 +306,7 @@ const allThemesTotal = computed(() =>
                 />
               </div>
               <div class="flex-1 min-w-0">
-                <span class="text-sm font-semibold block bg-gradient-to-r from-blue-600 to-emerald-500 text-transparent bg-clip-text">
+                <span class="text-xs font-semibold block bg-gradient-to-r from-blue-600 to-emerald-500 text-transparent bg-clip-text">
                   {{ combo.name }}
                 </span>
                 <span class="text-xs text-gray-400">{{ combo.shortName }}</span>

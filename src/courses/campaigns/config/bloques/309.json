@@ -1,0 +1,71 @@
+{
+  "categoryId": 309,
+  "title": "Mascotas y Animales",
+  "shortTitle": "Cuidado de mascotas",
+  "headline": "Conoce mejor a tu compañero",
+  "highlight": "aprende sobre su cuidado y convivencia",
+  "description": "Explora educación canina, cuidados y peluquería. Encuentra cursos para comprender mejor las necesidades y el comportamiento de tu mascota.",
+  "topics": "EDUCACIÓN CANINA · CUIDADOS · CONVIVENCIA",
+  "hero": {
+    "image": "/images/campaigns/bloques/mascotas.webp",
+    "imageAlt": "Dos cachorros de perro al aire libre"
+  },
+  "routes": [
+    {
+      "id": "educacion",
+      "title": "Educación y comportamiento canino",
+      "summary": "Explora comunicación, entrenamiento y convivencia con perros.",
+      "queries": [
+        "adiestra",
+        "entrena",
+        "educa",
+        "comporta",
+        "conviv",
+        "perrito"
+      ],
+      "image": "/images/campaigns/bloques/canino.webp",
+      "imageAlt": "Perro de compañía en un espacio doméstico",
+      "imageKind": "report"
+    },
+    {
+      "id": "salud",
+      "title": "Cuidados y primeros auxilios",
+      "summary": "Explora contenidos de cuidados y primeros auxilios para mascotas.",
+      "queries": [
+        "auxilio",
+        "salud",
+        "cuidado",
+        "veterin",
+        "alimenta",
+        "nutric"
+      ],
+      "image": "/images/campaigns/bloques/veterinaria.webp",
+      "imageAlt": "Revisión de un perro en una consulta veterinaria",
+      "imageKind": "report"
+    },
+    {
+      "id": "peluqueria",
+      "title": "Peluquería y estética canina",
+      "summary": "Conoce técnicas de higiene y cuidado del pelo de los perros.",
+      "queries": [
+        "peluquer",
+        "estetic",
+        "estét",
+        "groom",
+        "higiene"
+      ],
+      "image": "/images/campaigns/bloques/peluqueria-canina.webp",
+      "imageAlt": "Perro durante una sesión de peluquería canina",
+      "imageKind": "report"
+    }
+  ],
+  "snapshot": {
+    "updatedAt": "2026-10-19",
+    "catalogTotal": 22,
+    "counts": {
+      "309-educacion": 4,
+      "309-salud": 6,
+      "309-peluqueria": 4
+    }
+  }
+}

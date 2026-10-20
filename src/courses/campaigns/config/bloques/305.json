@@ -1,0 +1,91 @@
+{
+  "categoryId": 305,
+  "title": "Gastronomía, Cocina y Bebidas",
+  "shortTitle": "Cocina y bebidas",
+  "headline": "Aprende nuevas técnicas en tu cocina",
+  "highlight": "y prepara tu próximo proyecto",
+  "description": "Explora cocina, repostería, panadería y bebidas. Encuentra cursos para practicar recetas y conocer diferentes técnicas de preparación.",
+  "topics": "COCINA · REPOSTERÍA · PANADERÍA · CAFÉ",
+  "hero": {
+    "image": "/images/campaigns/bloques/cocina.webp",
+    "imageAlt": "Chef preparando una receta en una cocina profesional"
+  },
+  "routes": [
+    {
+      "id": "cocina",
+      "title": "Cocina y gastronomía",
+      "summary": "Explora recetas y técnicas para tus preparaciones de cada día.",
+      "queries": [
+        "cocina",
+        "gastron",
+        "parrilla",
+        "asado",
+        "hamburguesa",
+        "queso",
+        "pizza"
+      ],
+      "image": "/images/campaigns/categoria-300/300-cocina.webp",
+      "imageAlt": "Mujer preparando comida en una cocina mientras graba la receta",
+      "imageKind": "report"
+    },
+    {
+      "id": "reposteria",
+      "title": "Repostería y pastelería",
+      "summary": "Practica preparaciones dulces y técnicas de decoración.",
+      "queries": [
+        "reposter",
+        "pasteler",
+        "torta",
+        "pastel",
+        "chocolate",
+        "galleta"
+      ],
+      "image": "/images/campaigns/bloques/reposteria.webp",
+      "imageAlt": "Bizcocho cortado junto a una taza de café",
+      "imageKind": "report"
+    },
+    {
+      "id": "panaderia",
+      "title": "Panadería",
+      "summary": "Explora masas, panes y procesos de panificación.",
+      "queries": [
+        "panader",
+        "panific",
+        "pan artesanal",
+        "pan masa",
+        "panes"
+      ],
+      "image": "/images/campaigns/bloques/pan.webp",
+      "imageAlt": "Piezas de pan para ilustrar técnicas de panadería",
+      "imageKind": "report"
+    },
+    {
+      "id": "bebidas",
+      "title": "Café y bebidas",
+      "summary": "Conoce técnicas de preparación y servicio de bebidas.",
+      "queries": [
+        "cafe",
+        "café",
+        "barismo",
+        "bebida",
+        "coctel",
+        "cóctel",
+        "vino",
+        "cerveza"
+      ],
+      "image": "/images/campaigns/bloques/cafe.webp",
+      "imageAlt": "Preparación de una bebida de café con arte latte",
+      "imageKind": "report"
+    }
+  ],
+  "snapshot": {
+    "updatedAt": "2026-10-19",
+    "catalogTotal": 81,
+    "counts": {
+      "305-cocina": 36,
+      "305-reposteria": 24,
+      "305-panaderia": 14,
+      "305-bebidas": 6
+    }
+  }
+}

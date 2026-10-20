@@ -11,13 +11,13 @@ export default [
     },
     {
       path: '/courses/306/tematica',
-      component: () => import('../courses/campaigns/BisuteriaCampaignPage.vue'),
+      component: () => import('../courses/campaigns/pages/pilares/BisuteriaCampaignPage306.vue'),
       name: 'bisuteria-campaign',
       meta: { showHeader: true, noindex: true, deferPageView: true }
     },
     {
       path: '/courses/103/tematica/ex',
-      component: () => import('../courses/campaigns/ExcelSapCampaignPage.vue'),
+      component: () => import('../courses/campaigns/pages/pilares/ExcelSapCampaignPage103.vue'),
       name: 'excel-campaign',
       meta: { showHeader: true, noindex: true, deferPageView: true }
     },

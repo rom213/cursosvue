@@ -1,0 +1,76 @@
+{
+  "categoryId": 106,
+  "title": "Idiomas y Comunicación",
+  "shortTitle": "Idiomas",
+  "headline": "Abre nuevas conversaciones",
+  "highlight": "aprende un idioma a tu ritmo",
+  "description": "Elige cursos de inglés, explora otros idiomas y practica habilidades de comunicación según tus objetivos de estudio o de trabajo.",
+  "topics": "INGLÉS · IDIOMAS · COMUNICACIÓN",
+  "hero": {
+    "image": "/images/campaigns/categoria-100200300/hero.webp",
+    "imageAlt": "Persona estudiando con un portátil y libros"
+  },
+  "routes": [
+    {
+      "id": "ingles",
+      "title": "Inglés",
+      "summary": "Construye tus bases y explora inglés para distintas situaciones.",
+      "queries": [
+        "ingles",
+        "inglés",
+        "english",
+        "a1",
+        "a2",
+        "b1",
+        "b2",
+        "c1"
+      ],
+      "image": "/images/campaigns/categoria-100/100-idiomas.webp",
+      "imageAlt": "Libros de inglés y un cuaderno de estudio abierto",
+      "imageKind": "report"
+    },
+    {
+      "id": "idiomas",
+      "title": "Otros idiomas",
+      "summary": "Explora el aprendizaje de francés y otros idiomas del catálogo.",
+      "queries": [
+        "franc",
+        "portug",
+        "italian",
+        "aleman",
+        "alemán",
+        "chino",
+        "japon",
+        "japón"
+      ],
+      "image": "/images/campaigns/bloques/duolingo.svg",
+      "imageAlt": "Logotipo de Duolingo",
+      "imageKind": "logo"
+    },
+    {
+      "id": "comunicacion",
+      "title": "Comunicación y expresión",
+      "summary": "Practica cómo expresar ideas y comunicarte con otras personas.",
+      "queries": [
+        "comunica",
+        "oratoria",
+        "expresion",
+        "expresión",
+        "hablar en publico",
+        "hablar en público"
+      ],
+      "image": "/images/campaigns/categoria-100/hero.webp",
+      "imageAlt": "Equipo compartiendo ideas durante una presentación de negocios",
+      "imageKind": "report"
+    }
+  ],
+  "snapshot": {
+    "updatedAt": "2026-10-19",
+    "catalogTotal": 237,
+    "counts": {
+      "106-ingles": 168,
+      "106-idiomas": 41,
+      "106-comunicacion": 9
+    }
+  }
+}

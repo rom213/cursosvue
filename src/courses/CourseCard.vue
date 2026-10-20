@@ -74,12 +74,12 @@ const colors = computed(() => COLOR_MAP[props.pillarColor]);
 const cardWrapperClasses = computed(() => {
   const base = 'group overflow-hidden flex flex-col h-full transition-all duration-300'
   if (tierLevel.value === 'premium') {
-    return `${base} bg-gradient-to-b from-amber-50/40 to-white rounded-2xl shadow-xl border-2 border-amber-200/60 toda-tienda-card hover:-translate-y-3 hover:shadow-2xl`
+    return `${base} bg-gradient-to-b from-amber-50/40 to-white rounded-xl shadow-md border border-amber-200/50 toda-tienda-card hover:-translate-y-3 hover:shadow-2xl`
   }
   if (tierLevel.value === 'advanced') {
-    return `${base} bg-white rounded-2xl shadow-lg shadow-slate-200/60 border-t-4 ${colors.value.borderTop} ring-1 ring-inset ${colors.value.cardRing} hover:-translate-y-2 hover:shadow-xl`
+    return `${base} bg-white rounded-xl shadow-sm shadow-slate-200/40 border-t-2 ${colors.value.borderTop} ring-1 ring-inset ${colors.value.cardRing} hover:-translate-y-2 hover:shadow-xl`
   }
-  return `${base} bg-white rounded-2xl shadow-md shadow-slate-200/40 border border-slate-100/80 hover:-translate-y-1 hover:shadow-lg`
+  return `${base} bg-white rounded-xl shadow-sm shadow-slate-200/30 border border-slate-100/80 hover:-translate-y-1 hover:shadow-lg`
 });
 
 // ── Metricas ──
@@ -189,7 +189,7 @@ const whatsappUrl = computed(() => {
       <!-- ══ 2. IMAGEN 16:9 ══ -->
       <div class="px-5 pt-4">
         <div
-          class="relative aspect-video rounded-xl overflow-hidden bg-slate-100 cursor-pointer transition-all"
+          class="relative aspect-video rounded-lg overflow-hidden bg-slate-100 cursor-pointer transition-all"
           :class="tierLevel !== 'basic' ? 'group-hover:ring-2 ring-offset-2 ring-slate-300/50' : ''"
           @click="emit('click', category.id)"
         >
@@ -234,9 +234,9 @@ const whatsappUrl = computed(() => {
         <h3
           class="text-[#0d1b2a] line-clamp-2 cursor-pointer hover:text-blue-600 transition-colors"
           :class="{
-            'text-base font-semibold': tierLevel === 'basic',
-            'text-lg font-bold': tierLevel === 'advanced',
-            'text-xl font-extrabold': tierLevel === 'premium',
+            'text-sm font-semibold': tierLevel === 'basic',
+            'text-base font-bold': tierLevel === 'advanced',
+            'text-lg font-bold': tierLevel === 'premium',
           }"
           :title="category.titulo"
           @click="emit('click', category.id)"
@@ -246,7 +246,7 @@ const whatsappUrl = computed(() => {
         <p
           v-if="category.frase_1"
           class="text-slate-500 mt-1"
-          :class="tierLevel === 'basic' ? 'text-xs' : 'text-sm'"
+          :class="tierLevel === 'basic' ? 'text-[0.6875rem]' : 'text-xs'"
         >
           {{ category.frase_1 }}
         </p>
@@ -258,9 +258,9 @@ const whatsappUrl = computed(() => {
         v-if="category.frase_2"
         class="mx-5 text-slate-700 italic mt-2 mb-1"
         :class="{
-          'text-xs': tierLevel === 'basic',
-          'text-sm border-l-2 pl-3': tierLevel === 'advanced',
-          'text-sm border-l-2 border-amber-300 pl-3': tierLevel === 'premium',
+          'text-[0.6875rem]': tierLevel === 'basic',
+          'text-xs border-l pl-3': tierLevel === 'advanced',
+          'text-xs border-l border-amber-300 pl-3': tierLevel === 'premium',
         }"
         :style="tierLevel === 'advanced' ? `border-color: var(--accent-border)` : ''"
       >
@@ -275,7 +275,7 @@ const whatsappUrl = computed(() => {
           <div class="p-1.5 rounded-lg shrink-0" :class="[colors.iconBg, colors.iconText]">
             <div class="w-5 h-5" v-html="courseIcons.cursos" />
           </div>
-          <span class="text-sm text-slate-700">
+          <span class="text-xs text-slate-700">
             <template v-if="bloquesCount !== null">
               <strong class="text-slate-900">{{ bloquesCount }}</strong> Bloque{{ bloquesCount > 1 ? 's' : '' }}
               <span class="text-slate-400 mx-0.5">&middot;</span>
@@ -289,7 +289,7 @@ const whatsappUrl = computed(() => {
           <div class="p-1.5 rounded-lg shrink-0" :class="[colors.iconBg, colors.iconText]">
             <div class="w-5 h-5" v-html="courseIcons.comments" />
           </div>
-          <span class="text-sm text-slate-700">
+          <span class="text-xs text-slate-700">
             <strong class="text-slate-900">{{ commentsCount }}</strong> Comentarios
           </span>
         </div>
@@ -299,7 +299,7 @@ const whatsappUrl = computed(() => {
           <div class="p-1.5 rounded-lg shrink-0" :class="[colors.iconBg, colors.iconText]">
             <div class="w-5 h-5" v-html="courseIcons.download" />
           </div>
-          <span class="text-sm font-medium text-slate-600">Todos los cursos se pueden descargar</span>
+          <span class="text-xs font-medium text-slate-600">Todos los cursos se pueden descargar</span>
         </div>
 
 
@@ -309,7 +309,7 @@ const whatsappUrl = computed(() => {
           class="flex items-center gap-2.5 bg-amber-50/80 rounded-lg p-2.5 ring-1 ring-inset ring-amber-200/50"
         >
           <span class="text-base">⭐</span>
-          <span class="text-sm font-semibold text-amber-800">Acceso a los 3 pilares completos</span>
+          <span class="text-xs font-semibold text-amber-800">Acceso a los 3 pilares completos</span>
         </div>
       </div>
 
@@ -329,9 +329,9 @@ const whatsappUrl = computed(() => {
 
         <!-- ── Opcion actual (siempre) ── -->
         <label
-          class="card-option flex items-center gap-2.5 rounded-xl px-3 py-2 cursor-pointer border-2 transition-all"
+          class="card-option flex items-center gap-2.5 rounded-lg px-3 py-2 cursor-pointer border transition-all"
           :class="selectedOption === 'current'
-            ? 'border-gray-700 bg-white'
+            ? 'border-slate-300 bg-white'
             : 'border-slate-200 bg-white hover:border-slate-300'"
         >
           <input type="radio" v-model="selectedOption" value="current" class="sr-only" />
@@ -342,7 +342,7 @@ const whatsappUrl = computed(() => {
             <div v-if="selectedOption === 'current'" class="w-1.5 h-1.5 rounded-full bg-white" />
           </div>
           <span class="flex-1 text-xs font-semibold truncate" :class="selectedOption === 'current' ? 'text-gray-700' : 'text-[#0d1b2a]'">Este paquete tiene valor de</span>
-          <span class="text-sm font-extrabold whitespace-nowrap" :class="selectedOption === 'current' ? 'text-gray-700' : 'text-[#0d1b2a]'">
+          <span class="text-xs font-bold whitespace-nowrap" :class="selectedOption === 'current' ? 'text-gray-700' : 'text-[#0d1b2a]'">
             ${{ formatPrice(category.precio) }}
           </span>
         </label>
@@ -362,7 +362,7 @@ const whatsappUrl = computed(() => {
               :href="whatsappUrl"
               target="_blank"
               rel="noopener noreferrer"
-              class="w-[50%] rounded-xl font-bold flex  justify-center items-center gap-0.5 transition-all duration-200 no-underline bg-white border-2 border-green-600 text-green-600 hover:bg-green-50 shadow-md hover:-translate-y-0.5"
+              class="w-[50%] rounded-lg font-bold flex  justify-center items-center gap-0.5 transition-all duration-200 no-underline bg-white border border-green-600/60 text-green-600 hover:bg-green-50 shadow-sm hover:-translate-y-0.5"
               @click="trackWhatsAppIntent(category, { source: 'catalog', contentCategory: 'product' })"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 shrink-0">
@@ -375,7 +375,7 @@ const whatsappUrl = computed(() => {
             <!-- Botón Acceso web (70%) -->
             <button
               type="button"
-              class="w-[50%] h-11 rounded-xl font-bold flex  justify-center items-center gap-2 transition-all duration-200 text-white shadow-md hover:-translate-y-0.5"
+              class="w-[50%] h-11 rounded-lg font-bold flex  justify-center items-center gap-2 transition-all duration-200 text-white shadow-sm hover:-translate-y-0.5"
               style="background-color: #5d48f7;"
               @click="emit('buy', category)"
             >
@@ -391,7 +391,7 @@ const whatsappUrl = computed(() => {
         <button
           v-else
           type="button"
-          class="w-full rounded-xl font-bold flex justify-center items-center gap-2 transition-all duration-200"
+          class="w-full rounded-lg font-bold flex justify-center items-center gap-2 transition-all duration-200"
           :class="ctaBuyClasses"
           @click="upsellCategory ? emit('upsell-buy', upsellCategory) : emit('add-to-cart', category)"
         >

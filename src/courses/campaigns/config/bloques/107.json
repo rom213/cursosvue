@@ -1,0 +1,97 @@
+{
+  "categoryId": 107,
+  "title": "Dirección Ejecutiva y Gestión Humana",
+  "shortTitle": "Liderazgo y gestión",
+  "headline": "Lidera con una visión más clara",
+  "highlight": "de las ideas al trabajo en equipo",
+  "description": "Explora liderazgo, gestión de proyectos, recursos humanos, atención al cliente y emprendimiento. Desarrolla habilidades para trabajar con personas y organizar proyectos.",
+  "topics": "LIDERAZGO · PERSONAS · PROYECTOS",
+  "hero": {
+    "image": "/images/campaigns/categoria-100/hero.webp",
+    "imageAlt": "Equipo compartiendo ideas durante una presentación de negocios"
+  },
+  "routes": [
+    {
+      "ref": "business:100-liderazgo"
+    },
+    {
+      "ref": "business:100-emprender"
+    },
+    {
+      "id": "personas",
+      "title": "Gestión de personas y recursos humanos",
+      "summary": "Explora selección, talento y experiencias de trabajo en los equipos.",
+      "queries": [
+        "rrhh",
+        "recursos humanos",
+        "talento",
+        "selecci",
+        "contrata",
+        "diversidad",
+        "inclusi"
+      ],
+      "image": "/images/campaigns/bloques/linkedin.svg",
+      "imageAlt": "Logotipo de LinkedIn",
+      "imageKind": "logo"
+    },
+    {
+      "id": "proyectos",
+      "title": "Gestión de proyectos",
+      "summary": "Organiza prioridades, métodos y tareas para avanzar con tu equipo.",
+      "queries": [
+        "proyecto",
+        "project",
+        "scrum",
+        "agil",
+        "ágil",
+        "product owner",
+        "kanban"
+      ],
+      "image": "/images/campaigns/datos-oficina/gestion-proyectos.svg",
+      "imageAlt": "Logotipo de Microsoft Project",
+      "imageKind": "logo"
+    },
+    {
+      "id": "cliente",
+      "title": "Atención al cliente",
+      "summary": "Comprende experiencias de servicio y comunicación con clientes.",
+      "queries": [
+        "cliente",
+        "customer",
+        "atenci",
+        "servicio"
+      ],
+      "image": "/images/campaigns/categoria-100/100-ventas.webp",
+      "imageAlt": "Equipo conversando sobre una propuesta comercial",
+      "imageKind": "report"
+    },
+    {
+      "id": "productividad",
+      "title": "Productividad y hábitos de trabajo",
+      "summary": "Encuentra herramientas para organizar tu tiempo y tus tareas.",
+      "queries": [
+        "productividad",
+        "tiempo",
+        "notion",
+        "habito",
+        "hábito",
+        "organiza"
+      ],
+      "image": "/images/campaigns/datos-oficina/productividad.webp",
+      "imageAlt": "Logotipo de Notion para organización y productividad",
+      "imageKind": "logo"
+    }
+  ],
+  "snapshot": {
+    "updatedAt": "2026-10-19",
+    "catalogTotal": 899,
+    "counts": {
+      "107-100-liderazgo": 243,
+      "107-100-emprender": 132,
+      "107-personas": 87,
+      "107-proyectos": 44,
+      "107-cliente": 43,
+      "107-productividad": 73
+    }
+  }
+}

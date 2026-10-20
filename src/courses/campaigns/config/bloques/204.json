@@ -1,0 +1,45 @@
+{
+  "categoryId": 204,
+  "title": "Inteligencia Artificial y Data Science",
+  "shortTitle": "Inteligencia artificial",
+  "headline": "Explora lo que puedes crear con IA",
+  "highlight": "y aprende a trabajar con datos",
+  "description": "Encuentra herramientas de IA generativa, análisis de datos y aprendizaje automático. Complementa tus proyectos con Python, bases de datos y fundamentos matemáticos.",
+  "topics": "IA GENERATIVA · DATOS · MACHINE LEARNING",
+  "hero": {
+    "image": "/images/campaigns/bloques/ia.webp",
+    "imageAlt": "Ilustración digital de una figura robótica sobre un fondo azul"
+  },
+  "routes": [
+    {
+      "ref": "technology:ia"
+    },
+    {
+      "ref": "technology:machine-learning"
+    },
+    {
+      "ref": "technology:python"
+    },
+    {
+      "ref": "technology:big-data"
+    },
+    {
+      "ref": "technology:bases-datos"
+    },
+    {
+      "ref": "technology:matematicas"
+    }
+  ],
+  "snapshot": {
+    "updatedAt": "2026-10-19",
+    "catalogTotal": 357,
+    "counts": {
+      "204-ia": 218,
+      "204-machine-learning": 38,
+      "204-python": 24,
+      "204-big-data": 44,
+      "204-bases-datos": 12,
+      "204-matematicas": 8
+    }
+  }
+}

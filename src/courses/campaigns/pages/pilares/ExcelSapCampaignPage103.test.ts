@@ -123,10 +123,13 @@ async function mountPage() {
   await flush();
   return router;
 }
-async function selectRoute(title: string) {
+async function selectRoute(title: string, purpose = "Para estudiar o uso personal") {
   buttons(".route-card")
     .find((button) => button.querySelector("h3")?.textContent === `Ruta ${title}`)!
     .click();
+  await flush();
+  // La Ruta Excel pide elegir un objetivo antes de mostrar los niveles.
+  buttons(".purpose-option").find((button) => button.textContent?.includes(purpose))?.click();
   await flush();
 }
 async function openFirstCourse() {
@@ -217,6 +220,28 @@ describe("carga de cursos bajo demanda: Excel", () => {
     expect(buttons(".course-row")).toHaveLength(4);
   });
 
+  it("pide el objetivo de la Ruta Excel en orden antes de mostrar los niveles", async () => {
+    await mountPage();
+    buttons(".route-card").find((button) => button.querySelector("h3")?.textContent === "Ruta Excel")!.click();
+    await flush();
+    expect(buttons(".purpose-option").map((button) => button.querySelector("strong")?.textContent)).toEqual([
+      "Para mi trabajo actual", "Para conseguir empleo", "Para mi negocio o emprendimiento", "Para estudiar o uso personal",
+    ]);
+    expect(host.querySelector(".level-groups")).toBeNull();
+    expect(host.querySelector("#route-course-search")).toBeNull();
+    buttons(".purpose-option")[3]!.click(); await flush();
+    expect(host.querySelector(".purpose-current")?.textContent).toContain("Para estudiar o uso personal");
+    expect(host.querySelector(".level-groups")).not.toBeNull();
+    host.querySelector<HTMLButtonElement>(".purpose-current button")!.click(); await flush();
+    expect(buttons(".purpose-option")).toHaveLength(4);
+    expect(host.querySelector(".level-groups")).toBeNull();
+  });
+
+  it("muestra los niveles directamente en rutas sin objetivos", async () => {
+    await mountPage(); await selectRoute("Power BI");
+    expect(buttons(".purpose-option")).toHaveLength(0);
+  });
+
   it("mantiene las tarjetas y permite reintentar una ruta sin exponer resultados parciales", async () => {
     mocks.get.mockRejectedValue(new Error("Sin conexión"));
     await mountPage(); await selectRoute("Excel");
@@ -226,6 +251,7 @@ describe("carga de cursos bajo demanda: Excel", () => {
     mocks.get.mockImplementation(async (url: string) => apiResponse(url));
     host.querySelector<HTMLButtonElement>(".route-error button")!.click(); await flush();
     expect(host.querySelector(".route-error")).toBeNull();
+    buttons(".purpose-option")[3]!.click(); await flush();
     expect(buttons(".course-row")).toHaveLength(4);
   });
 

@@ -26,6 +26,7 @@ Las pruebas permanecen junto al componente o módulo que verifican y usan el mis
 
 - Para ajustar la presentación común de los pilares, Toda la Tienda y los bloques: `components/StudyCampaignPage.vue`.
 - Para cambiar textos o rutas de Negocios y Creatividad: `config/personalizedCampaignData.json` y `config/personalizedCampaigns.ts`.
+- La Ruta Excel pide primero el objetivo (trabajo actual, conseguir empleo, negocio o emprendimiento, estudio o uso personal) y después muestra los niveles. Los objetivos y sus palabras clave están en `routes/studyPurposes.ts`; los cursos que no encajan en ningún objetivo aparecen en todos. Se aplica en `/courses/103` y en `/courses/103/tematica/ex`.
 - Para cambiar rutas de Tecnología: `routes/technologyRoutes.ts`; su portada y configuración están en `config/technologyCampaign.ts`.
 - Toda la Tienda combina las rutas de los tres pilares en `config/personalizedCampaigns.ts`. Cada ruta consulta su catálogo de origen; la compra y los permisos corresponden al producto 100200300.
 - Las cantidades iniciales están en `config/personalizedRouteCounts.json` y `config/technologyRouteCounts.json`. Se actualizan con la respuesta real al abrir cada ruta.

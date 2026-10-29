@@ -18,7 +18,10 @@ import { useCampaignReturn } from "../../../composables/useCampaignReturn";
 import EmergentBuyComponent from "../../emergent.buy.component.vue";
 import FooterComponent from "../../../components/footer/footer.component.vue";
 import WhatsAppIcon from "./WhatsAppIcon.vue";
+import StudyPurposeIcon from "./StudyPurposeIcon.vue";
+import { CursorArrowRaysIcon } from "@heroicons/vue/24/outline";
 import {
+  coursesForStudyPurpose,
   groupStudyCourses,
   studyCourseKey,
 } from "../routes/studyRoutes";
@@ -53,6 +56,7 @@ const category = ref<ICategory | null>(null);
 const categoryLoading = ref(true);
 const categoryError = ref(false);
 const selectedRouteId = ref("");
+const selectedPurposeId = ref("");
 const search = ref("");
 const {
   stateFor, loadRoute, searchCourses, catalogItems, catalogTotal, catalogPage, catalogPages,
@@ -145,8 +149,19 @@ const selectedStudyRoute = computed(
     routesWithCourses.value.find((item) => item.id === selectedRouteId.value) ??
     routesWithCourses.value[0]!,
 );
+const routePurposes = computed(() => selectedStudyRoute.value.purposes ?? []);
+const purposeOptions = computed(() => selectedStudyRoute.value.courses.length === 0 ? [] : routePurposes.value.map((purpose) => ({
+  ...purpose,
+  courseCount: coursesForStudyPurpose(selectedStudyRoute.value.courses, routePurposes.value, purpose.id).length,
+})));
+const selectedPurpose = computed(() => routePurposes.value.find((purpose) => purpose.id === selectedPurposeId.value));
+const choosingPurpose = computed(() => purposeOptions.value.length > 0 && !selectedPurpose.value);
+const showLevels = computed(() => !routeLoading.value && !routeError.value && !choosingPurpose.value);
+const purposeCourses = computed(() => routePurposes.value.length
+  ? coursesForStudyPurpose(selectedStudyRoute.value.courses, routePurposes.value, selectedPurposeId.value)
+  : selectedStudyRoute.value.courses);
 const courseGroups = computed(() => {
-  const groups = groupStudyCourses(selectedStudyRoute.value.courses, search.value);
+  const groups = groupStudyCourses(purposeCourses.value, search.value);
   const selected = groups.flatMap((group) => group.courses).filter(isSelectedHeaderCourse);
   if (!selected.length) return groups;
   return [{ id: "selected" as const, title: "Curso que buscaste", description: "El curso que seleccionaste en el buscador.", courses: selected },
@@ -267,9 +282,10 @@ async function selectStudyRoute(id: string, event: Event) {
   routeTrigger = event.currentTarget as HTMLElement;
   routeDialogOpen.value = true;
   selectedRouteId.value = id;
+  selectedPurposeId.value = "";
   search.value = "";
   expandedLevels.value = [];
-  void loadSelectedStudyRoute();
+  void loadSelectedStudyRoute().then(preselectHeaderCoursePurpose);
   trackCustom("StudyRouteOpen", {
     content_id: STUDY_CATEGORY_ID,
     content_name: selectedStudyRoute.value.title,
@@ -284,6 +300,31 @@ async function selectStudyRoute(id: string, event: Event) {
   routeDialog.value?.showModal();
   lockScroll();
   routeHeading.value?.focus({ preventScroll: true });
+}
+
+function selectStudyPurpose(id: string) {
+  selectedPurposeId.value = id;
+  search.value = "";
+  expandedLevels.value = [];
+  trackCustom("StudyPurposeSelect", {
+    content_id: STUDY_CATEGORY_ID,
+    content_name: selectedStudyRoute.value.title,
+    custom_data: { campaign_id: STUDY_CAMPAIGN_ID, study_route: selectedRouteId.value, study_purpose: id },
+  });
+}
+function changeStudyPurpose() {
+  selectedPurposeId.value = "";
+  search.value = "";
+  nextTick(() => routeHeading.value?.focus({ preventScroll: true }));
+}
+// Quien llega desde el buscador superior ve su curso sin tener que elegir objetivo.
+function preselectHeaderCoursePurpose() {
+  if (!componentActive || !selectedHeaderCourse.value || selectedPurposeId.value) return;
+  const courses = selectedStudyRoute.value.courses;
+  const purpose = routePurposes.value.find((item) =>
+    coursesForStudyPurpose(courses, routePurposes.value, item.id)
+      .some((course) => matchesSelectedStudyCourse(course, selectedHeaderCourse.value, courses)));
+  if (purpose) selectedPurposeId.value = purpose.id;
 }
 
 function closeStudyRoute(restoreFocus = true) {
@@ -919,7 +960,42 @@ onBeforeUnmount(() => {
           <p>Vuelve a intentar para consultar sus cursos.</p>
           <button class="button button-primary" type="button" @click="loadSelectedStudyRoute(true)">Volver a intentar</button>
         </div>
-        <div v-if="!routeLoading && !routeError" class="catalog-toolbar">
+        <section
+          v-if="!routeLoading && !routeError && purposeOptions.length"
+          class="purpose-picker"
+          aria-labelledby="purpose-title"
+        >
+          <template v-if="selectedPurpose">
+            <p class="purpose-current">
+              <span class="purpose-icon" aria-hidden="true"><StudyPurposeIcon :id="selectedPurpose.id" /></span>
+              <strong id="purpose-title">{{ selectedPurpose.title }}</strong>
+              <button class="text-button" type="button" @click="changeStudyPurpose">Cambiar objetivo</button>
+            </p>
+          </template>
+          <template v-else>
+            <h3 id="purpose-title">¿Para qué quieres aprender Excel?</h3>
+            <p>Haz clic en tu objetivo y te mostraremos sus cursos ordenados por nivel.</p>
+            <div class="purpose-options">
+              <button
+                v-for="purpose in purposeOptions"
+                :key="purpose.id"
+                type="button"
+                class="purpose-option"
+                @click="selectStudyPurpose(purpose.id)"
+              >
+                <span class="purpose-icon" aria-hidden="true"><StudyPurposeIcon :id="purpose.id" /></span
+                ><span class="purpose-copy"
+                  ><strong>{{ purpose.title }}</strong
+                  ><span>{{ purpose.description }}</span></span
+                ><span class="purpose-action"
+                  ><span class="purpose-count">{{ purpose.courseCount }} cursos</span
+                  ><span class="purpose-cta"><CursorArrowRaysIcon aria-hidden="true" />Ver cursos</span></span
+                >
+              </button>
+            </div>
+          </template>
+        </section>
+        <div v-if="showLevels" class="catalog-toolbar">
           <div>
             <h3>Explora los cursos por nivel</h3>
             <p>
@@ -940,13 +1016,13 @@ onBeforeUnmount(() => {
             </div>
           </div>
         </div>
-        <p v-if="!routeLoading && !routeError && search.trim()" class="search-results" role="status">
+        <p v-if="showLevels && search.trim()" class="search-results" role="status">
           {{ searchTotal }}
           {{ searchTotal === 1 ? "resultado" : "resultados" }} para “{{
             search.trim()
           }}”
         </p>
-        <div v-if="!routeLoading && !routeError && !courseGroups.length" class="empty-panel">
+        <div v-if="showLevels && !courseGroups.length" class="empty-panel">
           <h3>
             {{
               search.trim()
@@ -970,7 +1046,7 @@ onBeforeUnmount(() => {
             Limpiar búsqueda
           </button>
         </div>
-        <div v-else-if="!routeLoading && !routeError" class="level-groups">
+        <div v-else-if="showLevels" class="level-groups">
           <section
             v-for="group in courseGroups"
             :key="group.id"
@@ -1907,6 +1983,120 @@ onBeforeUnmount(() => {
   font-size: 0.8rem;
   margin-bottom: 18px !important;
 }
+.purpose-picker {
+  margin-top: 32px;
+}
+.purpose-picker h3 {
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+.purpose-picker > p {
+  margin-top: 8px;
+  font-size: 0.76rem;
+}
+.purpose-options {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.purpose-option {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 18px;
+  text-align: left;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  color: var(--ink);
+  cursor: pointer;
+}
+.purpose-option {
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+.purpose-option:hover,
+.purpose-option:focus-visible {
+  border-color: var(--route-accent);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--route-accent) 18%, transparent);
+  transform: translateY(-2px);
+}
+.purpose-icon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--route-accent) 10%, white);
+  color: var(--route-accent);
+}
+.purpose-icon svg {
+  width: 24px;
+  height: 24px;
+}
+.purpose-current .purpose-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+}
+.purpose-current .purpose-icon svg {
+  width: 20px;
+  height: 20px;
+}
+.purpose-action {
+  flex-shrink: 0;
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+}
+.purpose-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  background: var(--route-accent);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.purpose-cta svg {
+  width: 15px;
+  height: 15px;
+}
+.purpose-copy {
+  display: grid;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+.purpose-copy strong {
+  font-size: 0.92rem;
+}
+.purpose-copy span {
+  font-size: 0.74rem;
+  color: var(--muted);
+}
+.purpose-count {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--route-accent);
+}
+.purpose-current {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  font-size: 0.9rem;
+}
+@media (max-width: 600px) {
+  .purpose-options {
+    grid-template-columns: 1fr;
+  }
+}
 .level-groups {
   display: grid;
   gap: 22px;
@@ -2536,6 +2726,11 @@ onBeforeUnmount(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .purpose-option,
+  .purpose-option:hover {
+    transition: none;
+    transform: none;
+  }
   .study-page *,
   .study-page *::before,
   .study-page *::after {

@@ -1,5 +1,7 @@
 import type { ICategoryCourseDetail } from "../../../types/Categorie";
 import type { IPaginatedCourses } from "../../../services/CategorieService";
+import { EXCEL_PURPOSES } from "./studyPurposes";
+import type { StudyPurpose } from "./studyPurposes";
 
 export const STUDY_CATEGORY_ID = 103;
 export const STUDY_CAMPAIGN_ID = "datos_oficina_103";
@@ -25,6 +27,8 @@ export interface StudyRouteDefinition {
   queryTerms?: readonly string[];
   /** Catalog source; the campaign category remains the product used for purchase. */
   sourceCategoryId?: number;
+  /** Objetivos que se eligen antes de los niveles al abrir la ruta. */
+  purposes?: readonly StudyPurpose[];
   steps: [string, string, string];
 }
 
@@ -121,6 +125,7 @@ export const STUDY_ROUTES: StudyRouteDefinition[] = [
     goal: "Organiza información, resuelve cálculos y construye reportes útiles para tu trabajo.",
     terms: /\bexcel\b|\bvba\b/,
     subcategoryTerms: /excel.*microsoft|microsoft.*excel/,
+    purposes: EXCEL_PURPOSES,
     steps: [
       "Comprende hojas, formatos y fórmulas.",
       "Trabaja con funciones, tablas y gráficos.",
@@ -428,6 +433,20 @@ export function coursesForStudyRoute(
       );
     }),
   );
+}
+
+/** Cursos del objetivo más los generales, que no encajan en ningún objetivo. */
+export function coursesForStudyPurpose(
+  courses: ICategoryCourseDetail[],
+  purposes: readonly StudyPurpose[],
+  purposeId: string,
+) {
+  const purpose = purposes.find((item) => item.id === purposeId);
+  if (!purpose) return [];
+  return courses.filter((course) => {
+    const title = normalizeStudyText(course.name_del_curso ?? "");
+    return purpose.terms.test(title) || !purposes.some((item) => item.terms.test(title));
+  });
 }
 
 export function groupStudyCourses(

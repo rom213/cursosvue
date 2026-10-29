@@ -72,7 +72,11 @@ async function mount(definition: BlockCampaignDefinition, paid = false) {
   host = document.createElement("div"); document.body.appendChild(host);
   app = createApp(modules[`./BlockCampaignPage${config.categoryId}.vue`]!.default).use(router); app.mount(host); await flush();
 }
-async function openRoute() { host.querySelector<HTMLButtonElement>(".route-card")!.click(); await flush(); }
+async function openRoute() {
+  host.querySelector<HTMLButtonElement>(".route-card")!.click(); await flush();
+  // Rutas con objetivos (Excel): «uso personal» incluye los cursos básicos.
+  host.querySelector<HTMLButtonElement>(".route-dialog .purpose-option:last-child")?.click(); await flush();
+}
 async function openCourse() { host.querySelector<HTMLButtonElement>(".route-dialog .course-row")!.click(); await flush(); }
 beforeEach(() => {
   vi.clearAllMocks();

@@ -30,6 +30,7 @@ import {
   studyCourseKey,
 } from "../../routes/studyRoutes";
 import type { StudyLevel } from "../../routes/studyRoutes";
+import { EXCEL_PURPOSES } from "../../routes/studyPurposes";
 import { useLazyStudyCatalog } from "../../composables/useLazyStudyCatalog";
 
 defineOptions({ name: "ExcelSapCampaignPage" });
@@ -93,6 +94,44 @@ const routesWithCourses = computed(() => STUDY_ROUTES.map((definition) => ({
 })));
 // Counts and availability are confirmed only when a route is opened.
 const visibleRoutes = routesWithCourses;
+// Excel es el producto que se vende; las demás rutas del bloque se presentan como regalo.
+const excelRoute = computed(() => visibleRoutes.value.find((item) => item.id === "excel")!);
+const bonusRoutes = computed(() => visibleRoutes.value.filter((item) => item.id !== "excel"));
+const bonusPreview = computed(() =>
+  bonusRoutes.value.slice(0, 4).map((item) => item.title.replace(/^Ruta /, "")).join(", "),
+);
+// Logotipos que se leen bien a 28 px.
+const bonusLogos = computed(() =>
+  ["power-bi", "sap", "access", "gestion-proyectos", "looker-studio"]
+    .map((id) => bonusRoutes.value.find((item) => item.id === id))
+    .filter((item) => item !== undefined),
+);
+function isRouteSelected(id: string) {
+  return routeDialogOpen.value && selectedRouteId.value === id;
+}
+function routeCountLabel(studyRoute: { loaded: boolean; courses: ICategoryCourseDetail[] }) {
+  if (!studyRoute.loaded) return "Explora los cursos de esta ruta";
+  const total = studyRoute.courses.length;
+  return `${total} ${total === 1 ? "curso disponible" : "cursos disponibles"}`;
+}
+
+const excelSheetRows = [
+  { level: "Inicial", learn: "Formatos, referencias y tus primeras fórmulas", formula: "=SUMA(B2:B13)" },
+  { level: "Intermedio", learn: "Funciones lógicas, búsquedas y gráficos", formula: "=BUSCARX(A2; Clientes; Ventas)" },
+  { level: "Avanzado", learn: "Tablas dinámicas, Power Query y dashboards", formula: '=SUMAR.SI.CONJUNTO(Ventas; Región; "Norte")' },
+  { level: "Automatización", learn: "Macros y VBA para tareas repetitivas", formula: "Sub GenerarReporte()" },
+];
+const activeSheetRow = ref(1);
+const excelTopics = [
+  "Fórmulas y funciones",
+  "BUSCARX y BUSCARV",
+  "Tablas dinámicas",
+  "Formato condicional",
+  "Gráficos y dashboards",
+  "Power Query",
+  "Validación de datos",
+  "Macros y VBA",
+].map((label, index) => ({ label, ref: `${"AB"[index % 2]}${Math.floor(index / 2) + 1}` }));
 const routeLoading = computed(() => stateFor(selectedRouteId.value).loading);
 const routeError = computed(() => stateFor(selectedRouteId.value).error);
 const selectedStudyRoute = computed(
@@ -137,19 +176,17 @@ const packTotal = computed(
   () => category.value?.cantidad_cursos ?? catalogTotal.value,
 );
 function whatsappLink(message: string) {
-  const product =
-    category.value?.titulo ?? "Business Intelligence, Datos y Oficina";
   const price = category.value ? ` por $${formattedPrice.value} COP` : "";
-  return `https://wa.me/573209971514?text=${encodeURIComponent(`${message} Quiero consultar cómo obtener acceso al bloque 103 completo: ${product}${price}. ¿Me ayudan?`)}`;
+  return `https://wa.me/573209971514?text=${encodeURIComponent(`${message} Quiero consultar cómo obtener el paquete Excel con las rutas de regalo (bloque 103)${price}. ¿Me ayudan?`)}`;
 }
 const whatsappUrl = computed(() =>
-  whatsappLink(
-    "Hola, me gustó todo el contenido de las rutas de estudio de datos y oficina.",
-  ),
+  whatsappLink("Hola, me interesa el paquete Excel."),
 );
 const routeWhatsappUrl = computed(() =>
   whatsappLink(
-    `Hola, me gustó la ruta de ${selectedStudyRoute.value.title} y quiero estudiar sus cursos.`,
+    selectedRouteId.value === "excel"
+      ? "Hola, me gustó la Ruta Excel y quiero estudiar sus cursos."
+      : `Hola, vi que la ${selectedStudyRoute.value.title} viene de regalo con el paquete Excel.`,
   ),
 );
 
@@ -157,12 +194,12 @@ const purchaseFaqs = [
   {
     question: "¿Qué incluye mi compra?",
     answer:
-      "La compra da acceso al bloque 103 completo: Business Intelligence, Datos y Oficina. Las rutas organizan sus cursos para ayudarte a elegir qué estudiar; no se compran por separado.",
+      "Incluye el paquete Excel completo, de nivel inicial a avanzado, y de regalo las demás rutas del bloque 103: Power BI, Análisis de datos, Office, Business Intelligence, SAP y más. Todo con un solo pago; las rutas no se compran por separado.",
   },
   {
     question: "¿En qué orden estudio los cursos?",
     answer:
-      "Comienza por el nivel inicial, continúa con el intermedio y explora el avanzado cuando tengas las bases. Los cursos completos pueden abarcar varios niveles. Puedes escoger entre distintos cursos según tus objetivos; no es necesario cursarlos todos.",
+      "Empieza por Excel en el nivel inicial, continúa con el intermedio y explora el avanzado cuando tengas las bases. Después aprovecha las rutas de regalo, como Power BI o Análisis de datos, para dar el siguiente paso. No es necesario cursarlos todos.",
   },
   {
     question: "¿Cómo se determina el nivel?",
@@ -177,14 +214,14 @@ const purchaseFaqs = [
   {
     question: "¿El pago es una suscripción?",
     answer:
-      "El precio mostrado corresponde a un pago único por el bloque completo. Puedes estudiar a tu ritmo, según tu disponibilidad.",
+      "El precio mostrado corresponde a un pago único por el paquete Excel, con las rutas de regalo incluidas. Puedes estudiar a tu ritmo, según tu disponibilidad.",
   },
 ];
 
 const faqs = computed(() => alreadyBought.value
   ? purchaseFaqs.filter((_, index) => index !== 0 && index !== 4).map((faq) =>
       faq.question === "¿Cómo accedo al material?"
-        ? { ...faq, answer: "Elige una ruta, abre el temario de un curso y pulsa «Abrir curso en Google Drive». Tu acceso al bloque completo ya está activo." }
+        ? { ...faq, answer: "Elige una ruta, abre el temario de un curso y pulsa «Abrir curso en Google Drive». Tu acceso al paquete Excel y a las rutas de regalo ya está activo." }
         : faq)
   : purchaseFaqs);
 
@@ -204,7 +241,7 @@ async function loadLanding() {
       trackViewItem(category.value);
       trackCustom("CampaignView", {
         content_id: STUDY_CATEGORY_ID,
-        content_name: "Rutas de datos y oficina",
+        content_name: "Paquete Excel",
         content_category: "campaign",
         value: price || undefined,
         currency: price ? "COP" : undefined,
@@ -221,11 +258,11 @@ function loadSelectedStudyRoute(retry = false) {
   return loadRoute(selectedStudyRoute.value, retry);
 }
 
-async function selectStudyRoute(id: string, event: Event) {
+async function selectStudyRoute(id: string, event: Event, purposeId = "") {
   routeTrigger = event.currentTarget as HTMLElement;
   routeDialogOpen.value = true;
   selectedRouteId.value = id;
-  selectedPurposeId.value = "";
+  selectedPurposeId.value = purposeId;
   search.value = "";
   expandedLevels.value = [];
   void loadSelectedStudyRoute();
@@ -238,6 +275,7 @@ async function selectStudyRoute(id: string, event: Event) {
       courses_total: selectedStudyRoute.value.loaded ? selectedStudyRoute.value.courses.length : undefined,
     },
   });
+  if (purposeId) trackStudyPurpose(purposeId);
   await nextTick();
   if (!componentActive || !routeDialogOpen.value) return;
   routeDialog.value?.showModal();
@@ -249,6 +287,9 @@ function selectStudyPurpose(id: string) {
   selectedPurposeId.value = id;
   search.value = "";
   expandedLevels.value = [];
+  trackStudyPurpose(id);
+}
+function trackStudyPurpose(id: string) {
   trackCustom("StudyPurposeSelect", {
     content_id: STUDY_CATEGORY_ID,
     content_name: selectedStudyRoute.value.title,
@@ -469,6 +510,11 @@ function scrollToRoutes() {
     .getElementById("rutas-estudio")
     ?.scrollIntoView({ behavior: scrollBehavior() });
 }
+function scrollToCatalog() {
+  document
+    .getElementById("catalogo-completo")
+    ?.scrollIntoView({ behavior: scrollBehavior() });
+}
 function scrollBehavior(): ScrollBehavior {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches
     ? "auto"
@@ -482,9 +528,9 @@ const previousMeta = new Map<
 >();
 function setupMetadata() {
   previousTitle = document.title;
-  const title = "Rutas de Excel, Power BI y datos | Cursos Estudia y Trabaja";
+  const title = "Paquete Excel de básico a avanzado + rutas de regalo | Cursos Estudia y Trabaja";
   const description =
-    "Elige tu ruta de Excel, Power BI, análisis de datos, Office o Business Intelligence. Explora los cursos por nivel y accede al bloque 103 completo.";
+    "Domina Excel: fórmulas, tablas dinámicas, dashboards y macros. Con tu paquete Excel recibes de regalo las rutas de Power BI, análisis de datos, Office, SAP y más.";
   document.title = title;
   for (const [attribute, key, value] of [
     ["name", "description", description],
@@ -493,7 +539,7 @@ function setupMetadata() {
     [
       "property",
       "og:image",
-      `${window.location.origin}/images/campaigns/datos-oficina/social.webp`,
+      `${window.location.origin}/images/campaigns/excel/excel-social.webp`,
     ],
   ] as const) {
     const selector = `meta[${attribute}="${key}"]`;
@@ -517,7 +563,7 @@ onMounted(() => {
   setupMetadata();
   activateCampaign({
     id: STUDY_CAMPAIGN_ID,
-    title: "tus rutas de Datos y Oficina",
+    title: "tu paquete Excel",
     path: route.fullPath,
     categoryId: STUDY_CATEGORY_ID,
   });
@@ -530,7 +576,7 @@ watch(
     if (!componentActive || route.name !== "excel-campaign") return;
     activateCampaign({
       id: STUDY_CAMPAIGN_ID,
-      title: "tus rutas de Datos y Oficina",
+      title: "tu paquete Excel",
       path: route.fullPath,
       categoryId: STUDY_CATEGORY_ID,
     });
@@ -559,42 +605,64 @@ onBeforeUnmount(() => {
 
 <template>
   <main class="study-page">
-    <section class="study-hero">
+    <section class="xl-hero">
+      <picture class="xl-hero-art">
+        <source
+          media="(max-width: 700px)"
+          srcset="/images/campaigns/excel/excel-hero-mobile.webp"
+          width="900"
+          height="606"
+        />
+        <img
+          src="/images/campaigns/excel/excel-hero.webp"
+          alt="Ícono 3D de Microsoft Excel sobre fondo verde"
+          width="2000"
+          height="1347"
+          fetchpriority="high"
+        />
+      </picture>
       <div class="hero-inner">
         <div class="hero-copy">
-          <span class="eyebrow"
-            ><span aria-hidden="true">✦</span> EXCEL · POWER BI · ANÁLISIS DE
-            DATOS</span
+          <span class="hero-badge"
+            ><span class="hero-badge-dot" aria-hidden="true"></span>
+            {{ alreadyBought ? "TU PAQUETE EXCEL ESTÁ ACTIVO" : "PAQUETE EXCEL · DE BÁSICO A AVANZADO" }}</span
           >
           <h1 v-if="alreadyBought">
-            Tus rutas de Excel, Power BI, Office y SAP
-            <span>elige qué estudiar hoy</span>
+            Tus cursos de Excel
+            <span>están listos para ti</span>
           </h1>
           <h1 v-else>
-            Aprende Excel, Power BI, Office y SAP
-            <span>y transforma datos en decisiones</span>
+            Domina Excel
+            <span>y convierte datos en oportunidades</span>
           </h1>
+          <div class="formula-bar" aria-hidden="true">
+            <span class="formula-cell">B7</span><span class="formula-fx">fx</span
+            ><span class="formula-text"
+              ><span>=SI(dominas_Excel; "más oportunidades"; "empieza hoy")</span></span
+            >
+          </div>
           <p v-if="alreadyBought" class="hero-description">
-            Tu acceso ya está activo. Explora tus rutas, elige un curso según tu nivel
-            y abre su material en Google Drive desde esta misma página.
+            Tu acceso al paquete Excel y a las {{ bonusRoutes.length }} rutas de regalo
+            ya está activo. Elige un curso según tu nivel y ábrelo en Google Drive
+            desde esta misma página.
           </p>
           <p v-else class="hero-description">
-            Elige una ruta de Excel, Power BI, análisis de datos, Office o
-            Business Intelligence. Aprende a organizar información, crear
-            dashboards y mejorar tus tareas de oficina, desde las bases hasta
-            los temas avanzados.
+            Fórmulas, tablas dinámicas, dashboards y macros: aprende Excel desde
+            cero hasta nivel avanzado. Y con tu paquete recibes de regalo
+            {{ bonusRoutes.length }} rutas más, como Power BI, SAP y Análisis de datos.
           </p>
           <div class="hero-actions">
             <button
-              class="button button-primary"
+              class="button button-white"
               type="button"
               @click="scrollToRoutes"
             >
-              {{ alreadyBought ? "Explorar mis rutas" : "Elegir mi ruta de estudio" }} <span aria-hidden="true">↓</span>
+              {{ alreadyBought ? "Explorar mis cursos de Excel" : "Empezar con Excel" }}
+              <span aria-hidden="true">↓</span>
             </button>
             <a
               v-if="!alreadyBought"
-              class="button button-light"
+              class="button button-outline-white"
               :href="whatsappUrl"
               target="_blank"
               rel="noopener noreferrer"
@@ -603,49 +671,39 @@ onBeforeUnmount(() => {
               WhatsApp ↗</a
             >
           </div>
-          <div class="hero-facts">
-            <span><b aria-hidden="true">✓</b> De nivel inicial a avanzado</span>
-            <span
-              ><b aria-hidden="true">✓</b> Hojas de cálculo, reportes y
-              oficina</span
-            >
-          </div>
-        </div>
-        <div class="hero-visual">
-          <img
-            src="/images/campaigns/datos-oficina/hero-rutas-estudio.webp"
-            alt="Ilustración de estudio con un portátil, hojas de cálculo, gráficos y herramientas de Excel, Power BI, Word y PowerPoint"
-            width="1536"
-            height="1024"
-            fetchpriority="high"
-          />
-          <div class="hero-image-label">
-            <span class="image-label-icon" aria-hidden="true">↗</span>
-            <div>
-              <strong>De las hojas de cálculo a los dashboards</strong
-              ><span
-                >Excel · Power BI · Análisis de datos · Business
-                Intelligence</span
-              >
-            </div>
-          </div>
-          <div class="hero-photo-pill">DATOS Y HERRAMIENTAS DE OFICINA</div>
+          <ul class="hero-facts">
+            <li><b aria-hidden="true">✓</b> De nivel inicial a avanzado</li>
+            <li><b aria-hidden="true">✓</b> Tablas dinámicas, dashboards y VBA</li>
+            <li>
+              <b aria-hidden="true">✦</b> {{ bonusRoutes.length }} rutas de regalo
+            </li>
+          </ul>
         </div>
       </div>
     </section>
 
-    <section class="pack-strip" aria-label="Acceso al bloque completo">
-      <div>
-        <span class="eyebrow">{{ alreadyBought ? "TU ACCESO ESTÁ ACTIVO" : "UN BLOQUE, MUCHAS POSIBILIDADES" }}</span>
-        <h2>Business Intelligence, Datos y Oficina</h2>
+    <section class="pack-strip" aria-label="Paquete Excel">
+      <div class="pack-copy">
+        <span class="eyebrow">{{ alreadyBought ? "TU ACCESO ESTÁ ACTIVO" : "UN SOLO PAGO, TODO INCLUIDO" }}</span>
+        <h2>
+          Paquete Excel
+          <em>+ {{ bonusRoutes.length }} rutas de regalo</em>
+        </h2>
         <p v-if="alreadyBought">
-          Ya tienes acceso a todo el bloque. Elige una ruta y abre tus cursos directamente desde aquí.
+          Ya tienes Excel y todas las rutas de regalo. Elige un curso y ábrelo
+          directamente desde aquí.
         </p>
         <p v-else>
-          Todas las rutas forman parte del bloque 103. Elige qué aprender; la
-          compra incluye el bloque completo.
+          Aprende Excel de básico a avanzado y llévate sin costo extra
+          {{ bonusPreview }} y más.
         </p>
       </div>
+      <ul class="pack-logos" aria-hidden="true">
+        <li v-for="studyRoute in bonusLogos" :key="studyRoute.id">
+          <img :src="studyRoute.image" alt="" width="44" height="44" loading="lazy" />
+        </li>
+        <li class="pack-logos-more">+{{ bonusRoutes.length - bonusLogos.length }}</li>
+      </ul>
       <div class="pack-purchase" aria-live="polite">
         <div
           v-if="categoryLoading"
@@ -654,7 +712,7 @@ onBeforeUnmount(() => {
         ></div>
         <template v-else-if="category"
           ><div v-if="!alreadyBought" class="price">
-            <small>Pago único · Bloque completo</small
+            <small>Pago único · Excel + rutas de regalo</small
             ><strong>${{ formattedPrice }} <span>COP</span></strong>
           </div>
           <button
@@ -663,7 +721,7 @@ onBeforeUnmount(() => {
             data-track="campaign-pack-web"
             @click="handleWebBuy('pack')"
           >
-            {{ alreadyBought ? "Explorar mis rutas" : "Obtener acceso" }}
+            {{ alreadyBought ? "Explorar mis rutas" : "Obtener paquete Excel" }}
             <span aria-hidden="true">→</span>
           </button></template
         >
@@ -679,30 +737,206 @@ onBeforeUnmount(() => {
       </div>
     </section>
 
-    <section id="rutas-estudio" class="section routes-section">
-      <div class="section-heading">
-        <div>
-          <span class="eyebrow">EMPIEZA POR TU OBJETIVO</span>
-          <h2>Encuentra tu ruta</h2>
-          <p>
-            Elige una habilidad para explorar sus pasos y cursos disponibles.
-          </p>
-        </div>
-        <span
-          v-if="category?.cantidad_cursos"
-          class="count-pill"
-          >{{ category?.cantidad_cursos }} cursos en el catálogo</span
-        >
+    <section
+      id="rutas-estudio"
+      class="section excel-section"
+      aria-labelledby="excel-titulo"
+    >
+      <div class="section-heading excel-heading">
+        <span class="eyebrow">LA RUTA PROTAGONISTA</span>
+        <h2 id="excel-titulo">Excel, paso a paso</h2>
+        <p>
+          Avanza por niveles: de tus primeras fórmulas a los dashboards y la
+          automatización.
+        </p>
       </div>
-        <div class="route-grid">
+      <div class="excel-layout">
+        <div class="sheet-window">
+          <div class="sheet-titlebar" aria-hidden="true">
+            <span class="sheet-dots"><i></i><i></i><i></i></span>
+            <span>Ruta_Excel.xlsx</span>
+            <span class="sheet-saved">Guardado</span>
+          </div>
+          <div class="sheet-ribbon" aria-hidden="true">
+            <span class="active">Inicio</span><span>Insertar</span
+            ><span>Fórmulas</span><span>Datos</span><span>Vista</span>
+          </div>
+          <div class="sheet-formula" aria-hidden="true">
+            <span class="formula-cell"
+              >D{{ activeSheetRow + 2 }}</span
+            ><span class="formula-fx">fx</span
+            ><span class="sheet-formula-text">{{
+              excelSheetRows[activeSheetRow]?.formula
+            }}</span>
+          </div>
+          <table class="sheet-grid">
+            <caption class="sr-only">
+              Niveles de la ruta Excel
+            </caption>
+            <thead>
+              <tr class="sheet-letters" aria-hidden="true">
+                <td></td>
+                <td>A</td>
+                <td>B</td>
+                <td class="sheet-formula-col">C</td>
+              </tr>
+              <tr>
+                <td class="sheet-row-number" aria-hidden="true">1</td>
+                <th scope="col">Nivel</th>
+                <th scope="col">Qué aprendes</th>
+                <th scope="col" class="sheet-formula-col">Ejemplo</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="(row, index) in excelSheetRows"
+                :key="row.level"
+                :class="{ active: activeSheetRow === index }"
+                @mouseenter="activeSheetRow = index"
+                @click="activeSheetRow = index"
+              >
+                <td class="sheet-row-number" aria-hidden="true">{{ index + 2 }}</td>
+                <th scope="row">
+                  <span class="sheet-level-dot" aria-hidden="true"></span>{{ row.level }}
+                </th>
+                <td>{{ row.learn }}</td>
+                <td class="sheet-formula-col">
+                  <code>{{ row.formula }}</code>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="sheet-tabs" aria-hidden="true">
+            <span class="active">Ruta Excel</span><span>Power BI</span
+            ><span>SAP</span><span class="sheet-tab-add">+</span>
+          </div>
+        </div>
+
+        <div class="excel-start" :style="{ '--route-accent': excelRoute.accent }">
+          <h3>¿Para qué quieres aprender Excel?</h3>
+          <p>Elige tu objetivo y te mostramos sus cursos ordenados por nivel.</p>
+          <div class="excel-goals">
+            <button
+              v-for="purpose in EXCEL_PURPOSES"
+              :key="purpose.id"
+              type="button"
+              class="excel-goal"
+              aria-haspopup="dialog"
+              aria-controls="study-route-dialog"
+              @click="selectStudyRoute(excelRoute.id, $event, purpose.id)"
+            >
+              <span class="purpose-icon" aria-hidden="true"
+                ><StudyPurposeIcon :id="purpose.id" /></span
+              ><span class="excel-goal-copy"
+                ><strong>{{ purpose.title }}</strong
+                ><span>{{ purpose.description }}</span></span
+              ><span class="excel-goal-arrow" aria-hidden="true">→</span>
+            </button>
+          </div>
           <button
-            v-for="studyRoute in visibleRoutes"
+            type="button"
+            class="route-card route-card-excel"
+            :class="{ selected: isRouteSelected(excelRoute.id) }"
+            :style="{ '--route-accent': excelRoute.accent }"
+            :aria-pressed="isRouteSelected(excelRoute.id)"
+            aria-haspopup="dialog"
+            aria-controls="study-route-dialog"
+            @click="selectStudyRoute(excelRoute.id, $event)"
+          >
+            <div class="route-card-image route-image-logo">
+              <img
+                :src="excelRoute.image"
+                :alt="excelRoute.imageAlt"
+                width="640"
+                height="400"
+                loading="lazy"
+              /><span class="route-card-tag">Ruta principal</span>
+            </div>
+            <div class="route-card-copy">
+              <div class="route-card-title">
+                <h3>{{ excelRoute.title }}</h3>
+                <span class="route-card-arrow" aria-hidden="true">↗</span>
+              </div>
+              <p>{{ excelRoute.summary }}</p>
+              <span class="route-card-bottom"
+                ><span>{{ routeCountLabel(excelRoute) }}</span
+                ><strong>{{
+                  isRouteSelected(excelRoute.id) ? "Seleccionada" : "Ver todos los cursos"
+                }}</strong></span
+              >
+            </div>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="section skills-section" aria-labelledby="skills-titulo">
+      <figure class="skills-photo">
+        <img
+          src="/images/campaigns/excel/excel-trabajo.webp"
+          alt="Persona trabajando en un portátil con una hoja de cálculo con formato condicional"
+          width="1200"
+          height="900"
+          loading="lazy"
+        />
+        <figcaption class="skills-chip" aria-hidden="true">
+          <span>fx</span> =SUMAR.SI.CONJUNTO(Ventas; Mes; "Oct")
+        </figcaption>
+      </figure>
+      <div class="skills-copy">
+        <span class="eyebrow">LO QUE VAS A PRACTICAR</span>
+        <h2 id="skills-titulo">Las habilidades de Excel que más se usan en el trabajo</h2>
+        <p>
+          Temas frecuentes en los cursos de la ruta, para que encuentres justo lo
+          que necesitas en tu día a día.
+        </p>
+        <ul class="skill-cells">
+          <li v-for="topic in excelTopics" :key="topic.ref">
+            <span class="cell-ref" aria-hidden="true">{{ topic.ref }}</span>{{ topic.label }}
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="rutas-regalo" class="bonus-band" aria-labelledby="regalo-titulo">
+      <div class="section bonus-section">
+        <div class="bonus-intro">
+          <div>
+            <span class="bonus-ribbon"
+              ><span aria-hidden="true">✦</span>
+              {{ alreadyBought ? "INCLUIDAS EN TU ACCESO" : "DE REGALO CON TU PAQUETE EXCEL" }}</span
+            >
+            <h2 id="regalo-titulo">
+              {{ bonusRoutes.length }} rutas más,
+              <span>sin costo extra</span>
+            </h2>
+            <p v-if="alreadyBought">
+              Ya tienes acceso a todas. Elige una ruta para ver sus cursos y
+              abrirlos en Google Drive.
+            </p>
+            <p v-else>
+              Cuando domines Excel, da el siguiente paso con Power BI, Análisis de
+              datos, SAP y más. Todas vienen incluidas en tu paquete Excel.
+            </p>
+          </div>
+          <img
+            class="bonus-photo"
+            src="/images/campaigns/excel/excel-dashboard.webp"
+            alt="Portátil con un dashboard de gráficos sobre un escritorio junto a una ventana"
+            width="1200"
+            height="675"
+            loading="lazy"
+          />
+        </div>
+        <div class="route-grid bonus-grid">
+          <button
+            v-for="studyRoute in bonusRoutes"
             :key="studyRoute.id"
             type="button"
-            class="route-card"
-            :class="{ selected: routeDialogOpen && selectedRouteId === studyRoute.id }"
+            class="route-card route-card-bonus"
+            :class="{ selected: isRouteSelected(studyRoute.id) }"
             :style="{ '--route-accent': studyRoute.accent }"
-            :aria-pressed="routeDialogOpen && selectedRouteId === studyRoute.id"
+            :aria-pressed="isRouteSelected(studyRoute.id)"
             aria-haspopup="dialog"
             aria-controls="study-route-dialog"
             @click="selectStudyRoute(studyRoute.id, $event)"
@@ -718,7 +952,7 @@ onBeforeUnmount(() => {
                 height="400"
                 loading="lazy"
               /><span class="route-card-tag">{{
-                studyRoute.featured ? "Ruta destacada" : "Más habilidades"
+                alreadyBought ? "Incluida" : "Gratis con Excel"
               }}</span>
             </div>
             <div class="route-card-copy">
@@ -728,18 +962,36 @@ onBeforeUnmount(() => {
               </div>
               <p>{{ studyRoute.summary }}</p>
               <span class="route-card-bottom"
-                ><span
-                  >{{ studyRoute.loaded
-                    ? `${studyRoute.courses.length} ${studyRoute.courses.length === 1 ? 'curso disponible' : 'cursos disponibles'}`
-                    : 'Explora los cursos de esta ruta' }}</span
+                ><span>{{ routeCountLabel(studyRoute) }}</span
                 ><strong>{{
-                  routeDialogOpen && selectedRouteId === studyRoute.id
-                    ? "Seleccionada"
-                    : "Ver ruta"
+                  isRouteSelected(studyRoute.id) ? "Seleccionada" : "Ver ruta"
                 }}</strong></span
               >
             </div>
           </button>
+          <div class="bonus-cta">
+            <div>
+              <strong>Y además, el catálogo completo</strong>
+              <p v-if="category">
+                {{ packTotal }} cursos entre Excel y las rutas de regalo, con un
+                solo pago.
+              </p>
+            </div>
+            <div class="bonus-cta-actions">
+              <button
+                v-if="category && !alreadyBought"
+                class="button button-white"
+                type="button"
+                data-track="campaign-bonus-web"
+                @click="handleWebBuy('bonus')"
+              >
+                Obtener paquete Excel <span aria-hidden="true">→</span>
+              </button>
+              <button class="text-button" type="button" @click="scrollToCatalog">
+                Ver todos los cursos <span aria-hidden="true">↓</span>
+              </button>
+            </div>
+          </div>
         </div>
         <p class="catalog-note">
           Un curso puede formar parte de varias rutas. Los contenidos se
@@ -752,6 +1004,7 @@ onBeforeUnmount(() => {
           rel="noopener noreferrer"
           >Créditos de las imágenes ↗</a
         >
+      </div>
     </section>
 
     <dialog
@@ -763,7 +1016,13 @@ onBeforeUnmount(() => {
       @click="$event.target === routeDialog && closeStudyRoute()"
     >
       <header class="route-dialog-header">
-        <span class="eyebrow">EXPLORA TU RUTA DE ESTUDIO</span>
+        <span class="eyebrow">{{
+          selectedRouteId === "excel"
+            ? "EXPLORA TU RUTA EXCEL"
+            : alreadyBought
+              ? "RUTA INCLUIDA EN TU ACCESO"
+              : "RUTA DE REGALO CON TU PAQUETE EXCEL"
+        }}</span>
         <button
           type="button"
           class="dialog-close"
@@ -780,7 +1039,7 @@ onBeforeUnmount(() => {
         :href="routeWhatsappUrl"
         target="_blank"
         rel="noopener noreferrer"
-        :aria-label="`Consultar por WhatsApp sobre la ruta de ${selectedStudyRoute.title}`"
+        :aria-label="`Consultar por WhatsApp sobre la ${selectedStudyRoute.title}`"
         @click="handleWhatsApp('route_floating_button', 'route')"
         ><WhatsAppIcon /><span>Me gusta esta ruta</span></a
       >
@@ -799,12 +1058,18 @@ onBeforeUnmount(() => {
           <div>
             <span class="eyebrow">TU CAMINO DE APRENDIZAJE</span>
             <h2 id="ruta-titulo" ref="routeHeading" tabindex="-1">
-              Ruta de {{ selectedStudyRoute.title }}
+              {{ selectedStudyRoute.title }}
             </h2>
             <p>{{ selectedStudyRoute.goal }}</p>
-            <span class="count-pill"
-              >{{ selectedStudyRoute.loaded ? `${selectedStudyRoute.courses.length} cursos en esta ruta` : 'Consulta los cursos disponibles' }}</span
-            >
+            <div class="detail-pills">
+              <span class="count-pill"
+                >{{ selectedStudyRoute.loaded ? `${selectedStudyRoute.courses.length} cursos en esta ruta` : 'Consulta los cursos disponibles' }}</span
+              >
+              <span v-if="selectedRouteId !== 'excel'" class="gift-pill"
+                ><span aria-hidden="true">✦</span>
+                {{ alreadyBought ? "Incluida en tu acceso" : "Gratis con el paquete Excel" }}</span
+              >
+            </div>
           </div>
           <ol
             class="learning-steps"
@@ -954,7 +1219,7 @@ onBeforeUnmount(() => {
                       v-if="course.author && course.author !== 'DESCONOCIDO'"
                       >{{ course.author }}</span
                     ></span
-                  ><span v-if="course.es_gratis" class="free-badge">Gratis</span
+                  ><span v-if="course.es_gratis" class="free-badge">Acceso libre</span
                   ><span class="course-open-label"
                     >Ver curso <span aria-hidden="true">→</span></span
                   >
@@ -985,9 +1250,9 @@ onBeforeUnmount(() => {
     <section id="catalogo-completo" class="section full-catalog" aria-labelledby="catalogo-titulo">
       <div class="catalog-toolbar">
         <div>
-          <span class="eyebrow">TODO EL CONTENIDO DEL BLOQUE</span>
+          <span class="eyebrow">TODO LO QUE INCLUYE TU PAQUETE</span>
           <h2 id="catalogo-titulo" ref="catalogHeading" tabindex="-1">Todos los cursos</h2>
-          <p>Explora el catálogo por nombre del curso y filtra por autor.</p>
+          <p>Excel y las rutas de regalo en un solo catálogo. Busca por nombre y filtra por autor.</p>
         </div>
         <div class="search-field">
           <label for="catalog-course-search">Buscar en todos los cursos</label>
@@ -1039,7 +1304,7 @@ onBeforeUnmount(() => {
                       v-if="course.author && course.author !== 'DESCONOCIDO'"
                       >{{ course.author }}</span
                     ></span
-                  ><span v-if="course.es_gratis" class="free-badge">Gratis</span
+                  ><span v-if="course.es_gratis" class="free-badge">Acceso libre</span
                   ><span class="course-open-label"
                     >Ver curso <span aria-hidden="true">→</span></span
                   >
@@ -1056,30 +1321,30 @@ onBeforeUnmount(() => {
 
     <section class="section how-section" aria-label="Cómo estudiar">
       <span class="eyebrow">APRENDE A TU MANERA</span>
-      <h2>Un objetivo. Tu propio ritmo.</h2>
+      <h2>Empieza por Excel. Sigue creciendo.</h2>
       <div class="how-grid">
         <article>
           <span aria-hidden="true">01</span>
-          <h3>Elige tu habilidad</h3>
+          <h3>Elige tu objetivo</h3>
           <p>
-            Comienza por la ruta que se conecta con tus objetivos de trabajo o
-            aprendizaje.
+            Trabajo, empleo, negocio o uso personal: te mostramos los cursos de
+            Excel que encajan contigo.
           </p>
         </article>
         <article>
           <span aria-hidden="true">02</span>
-          <h3>Encuentra tu nivel</h3>
+          <h3>Avanza por niveles</h3>
           <p>
-            Revisa las descripciones y elige entre cursos iniciales,
-            intermedios, avanzados o completos.
+            Pasa de las fórmulas básicas a tablas dinámicas, dashboards y
+            macros, a tu ritmo.
           </p>
         </article>
         <article>
           <span aria-hidden="true">03</span>
-          <h3>Practica y continúa</h3>
+          <h3>Suma tus rutas de regalo</h3>
           <p>
-            Estudia según tu disponibilidad y vuelve al material cuando
-            necesites repasar.
+            Con las bases de Excel, continúa con Power BI, Análisis de datos o
+            SAP sin pagar de más.
           </p>
         </article>
       </div>
@@ -1089,7 +1354,7 @@ onBeforeUnmount(() => {
       <div>
         <span class="eyebrow">ANTES DE EMPEZAR</span>
         <h2>Resolvemos tus dudas</h2>
-        <p>Las rutas te orientan; el acceso incluye todo el bloque.</p>
+        <p>Excel es tu ruta principal; las demás rutas vienen incluidas.</p>
       </div>
       <div class="faq-list">
         <article v-for="(faq, index) in faqs" :key="faq.question">
@@ -1116,10 +1381,10 @@ onBeforeUnmount(() => {
     <section v-if="!alreadyBought" class="section final-section">
       <div>
         <span class="eyebrow">DA EL SIGUIENTE PASO</span>
-        <h2>Abre nuevas posibilidades<br />con tus habilidades</h2>
+        <h2>Empieza hoy con Excel.<br />Las demás rutas van de regalo.</h2>
         <p>
-          Accede al bloque completo de Business Intelligence, Datos y Oficina y
-          explora las rutas a tu ritmo.
+          Un solo pago por el paquete Excel, con {{ bonusRoutes.length }} rutas
+          adicionales incluidas para seguir creciendo.
         </p>
         <p v-if="category" class="final-count">
           {{ packTotal }} cursos incluidos · Un solo pago
@@ -1135,7 +1400,7 @@ onBeforeUnmount(() => {
           data-track="campaign-final-web"
           @click="handleWebBuy('final')"
         >
-          Acceder al bloque completo
+          Obtener paquete Excel
           →</button
         ><a
           class="button button-outline-white"
@@ -1159,7 +1424,7 @@ onBeforeUnmount(() => {
       <template v-if="selectedCourse"
         ><header class="dialog-header">
           <div>
-            <span class="eyebrow">{{ selectedCourseRouteTitle || category?.titulo || "Cursos del bloque completo" }}</span>
+            <span class="eyebrow">{{ selectedCourseRouteTitle || "Paquete Excel" }}</span>
             <h2 id="study-course-title">
               {{ selectedCourse.name_del_curso || "Descripción del curso" }}
             </h2>
@@ -1197,7 +1462,7 @@ onBeforeUnmount(() => {
           ></div>
           <p v-else class="empty-description">
             Este curso todavía no tiene una descripción ampliada. Su contenido
-            forma parte del bloque 103.
+            forma parte del paquete Excel y sus rutas de regalo.
           </p>
         </div>
         <footer class="dialog-footer">
@@ -1212,7 +1477,7 @@ onBeforeUnmount(() => {
             {{
               canAccessCourse(selectedCourse)
                 ? "Abrir curso en Google Drive ↗"
-                : "Desbloquear con el bloque completo →"
+                : "Desbloquear con el paquete Excel →"
             }}
           </button>
           <p
@@ -1221,7 +1486,8 @@ onBeforeUnmount(() => {
               !canAccessCourse(selectedCourse)
             "
           >
-            El acceso se habilita al adquirir el bloque 103 completo.
+            El acceso se habilita al adquirir el paquete Excel, que incluye todas
+            las rutas de regalo.
           </p>
           <p v-else-if="!selectedCourse.info_tecnica?.url">
             Este curso no tiene un enlace de Drive disponible en este momento.
@@ -1288,8 +1554,8 @@ onBeforeUnmount(() => {
           alreadyBought
             ? "Explorar mis rutas"
             : category
-              ? `Acceder · $${formattedPrice}`
-              : "Acceso al bloque"
+              ? `Paquete Excel · $${formattedPrice}`
+              : "Paquete Excel"
         }}
       </button>
     </div>
@@ -1299,9 +1565,9 @@ onBeforeUnmount(() => {
       :href="whatsappUrl"
       target="_blank"
       rel="noopener noreferrer"
-      aria-label="Consultar por WhatsApp sobre todo el contenido del bloque 103"
+      aria-label="Consultar por WhatsApp sobre el paquete Excel"
       @click="handleWhatsApp('page_floating_button')"
-      ><WhatsAppIcon /><span>Me gusta el contenido</span></a
+      ><WhatsAppIcon /><span>Me interesa Excel</span></a
     >
     <EmergentBuyComponent />
     <FooterComponent />
@@ -1310,12 +1576,17 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .study-page {
-  --ink: #152842;
-  --muted: #5c6d81;
-  --blue: #245be8;
-  --line: #dfe7f1;
+  --ink: #10231a;
+  --muted: #526358;
+  --brand: #107c41;
+  --brand-dark: #0b5c30;
+  --brand-deep: #0d3320;
+  --brand-soft: #e7f4ec;
+  --gold: #f3c34f;
+  --line: #dbe7df;
+  --mono: ui-monospace, "SFMono-Regular", "Cascadia Code", Consolas, monospace;
   font-family: "Poppins", ui-sans-serif, system-ui, sans-serif;
-  background: #f8fafc;
+  background: #f5f8f6;
   color: var(--ink);
 }
 .study-page *,
@@ -1335,23 +1606,39 @@ onBeforeUnmount(() => {
   cursor: not-allowed;
 }
 .study-page :focus-visible {
-  outline: 3px solid #3b82f6;
+  outline: 3px solid #16a34a;
   outline-offset: 4px;
 }
 .study-page h1,
 .study-page h2,
 .study-page h3,
-.study-page p {
+.study-page p,
+.study-page figure {
   margin: 0;
+}
+/* El estilo global pone los h1 en Times New Roman. */
+.study-page h1 {
+  font-family: inherit;
 }
 .study-page a {
   text-decoration: none;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 .eyebrow {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  color: #245be8;
+  color: var(--brand);
   font-size: 0.7rem;
   letter-spacing: 0.13em;
   font-weight: 800;
@@ -1363,20 +1650,20 @@ onBeforeUnmount(() => {
   margin-inline: auto;
 }
 .section {
-  padding-block: 52px;
+  padding-block: 64px;
 }
 .section h2 {
-  font-size: clamp(1.7rem, 3vw, 2.4rem);
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
   font-weight: 800;
   letter-spacing: -0.035em;
-  line-height: 1.2;
+  line-height: 1.18;
 }
 .section-heading {
   display: flex;
   justify-content: space-between;
   align-items: end;
   gap: 24px;
-  margin-bottom: 28px;
+  margin-bottom: 32px;
 }
 .section-heading h2 {
   margin: 10px 0;
@@ -1392,7 +1679,7 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 12px;
   min-height: 48px;
-  padding: 13px 21px;
+  padding: 13px 22px;
   border: 1px solid transparent;
   border-radius: 12px;
   font-weight: 700;
@@ -1401,164 +1688,269 @@ onBeforeUnmount(() => {
   line-height: 1.4;
   transition:
     background 0.18s,
-    transform 0.18s;
+    transform 0.18s,
+    box-shadow 0.18s;
 }
 .button:hover {
   transform: translateY(-2px);
 }
 .button-primary {
-  background: var(--blue);
+  background: var(--brand);
   color: white;
-  box-shadow: 0 6px 18px #245be81a;
+  box-shadow: 0 8px 22px #107c4130;
 }
 .button-primary:hover {
-  background: #1849c7;
+  background: var(--brand-dark);
 }
 .button-light {
   background: white;
-  border-color: #dfe7f1;
-  color: #233d60;
+  border-color: var(--line);
+  color: var(--brand-deep);
 }
 .button-light:hover {
-  background: #eff6ff;
+  background: var(--brand-soft);
+}
+.button-white {
+  background: white;
+  color: var(--brand-deep);
+  box-shadow: 0 10px 30px #00000026;
+}
+.button-white:hover {
+  background: #effaf3;
+}
+.button-outline-white {
+  border-color: #ffffff59;
+  color: white;
+  background: #ffffff0f;
+}
+.button-outline-white:hover {
+  background: #ffffff1f;
 }
 .text-button {
   border: 0;
   background: none;
   padding: 8px 0;
-  color: var(--blue);
+  color: var(--brand);
   font-weight: 700;
   text-decoration: underline;
   text-underline-offset: 4px;
 }
-.study-hero {
-  background:
-    radial-gradient(ellipse at 30% 0%, #e8f0ff 0, transparent 65%), #f4f7fc;
-  border-bottom: 1px solid var(--line);
+
+/* ---------- Hero ---------- */
+.xl-hero {
+  position: relative;
+  isolation: isolate;
   overflow: hidden;
+  color: white;
+  background: linear-gradient(90deg, #0b2d1b 0%, #113f27 38%, #1b5f38 62%);
+}
+.xl-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(0deg, #ffffff0b 0 1px, transparent 1px 36px),
+    repeating-linear-gradient(90deg, #ffffff0b 0 1px, transparent 1px 110px);
+  -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 30%, transparent 58%);
+  mask-image: linear-gradient(90deg, #000 0%, #000 30%, transparent 58%);
+}
+.xl-hero-art {
+  position: absolute;
+  inset: 0 0 0 36%;
+  z-index: -2;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 22%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 22%);
+}
+.xl-hero-art img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 62% center;
 }
 .hero-inner {
   display: grid;
-  grid-template-columns: 1.12fr 1fr;
+  grid-template-columns: minmax(0, 640px);
   align-items: center;
-  gap: 60px;
-  padding-block: 70px;
+  min-height: clamp(560px, 80vh, 720px);
+  padding-block: 72px 128px;
+}
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  border: 1px solid #ffffff2e;
+  border-radius: 999px;
+  background: #ffffff12;
+  backdrop-filter: blur(6px);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+.hero-badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 0 4px #4ade8033;
 }
 .hero-copy h1 {
-  margin: 22px 0;
-  font-size: clamp(2.4rem, 4.25vw, 3.6rem);
-  line-height: 1.12;
-  letter-spacing: -0.055em;
-  font-weight: 850;
+  margin: 24px 0 26px;
+  font-size: clamp(2.8rem, 5.6vw, 4.75rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.05em;
 }
 .hero-copy h1 span {
-  color: var(--blue);
+  display: block;
+  margin-top: 0.28em;
+  max-width: 15em;
+  color: #a6ecc2;
+  font-size: 0.5em;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
 }
-.hero-description {
-  max-width: 570px;
-  color: var(--muted);
+.formula-bar {
+  display: flex;
+  align-items: stretch;
+  max-width: 560px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: white;
+  color: #1f2d25;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  box-shadow: 0 18px 40px #00000033;
+}
+.formula-cell {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  min-width: 52px;
+  padding: 10px 12px;
+  border-right: 1px solid #dfe6e1;
+  color: #4b5b51;
+}
+.formula-fx {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  padding: 0 12px;
+  border-right: 1px solid #dfe6e1;
+  color: #7b8a81;
+  font-family: Georgia, serif;
+  font-style: italic;
+}
+.formula-text {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: 10px 14px;
+  overflow: hidden;
+}
+.formula-text > span {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  border-right: 2px solid var(--brand);
+}
+.hero-copy .hero-description {
+  max-width: 560px;
+  margin-top: 26px;
+  color: #d3eadc;
   font-size: 1rem;
-  line-height: 1.85;
+  line-height: 1.8;
 }
 .hero-actions {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
-  margin-top: 28px;
+  margin-top: 30px;
+}
+.hero-actions .whatsapp-inline-icon {
+  color: #4ade80;
 }
 .hero-facts {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 20px;
-  margin-top: 26px;
-  font-size: 0.72rem;
-  color: var(--muted);
+  gap: 10px 22px;
+  margin: 28px 0 0;
+  padding: 0;
+  list-style: none;
+  color: #c4e3d0;
+  font-size: 0.76rem;
 }
 .hero-facts b {
-  color: #16a34a;
   margin-right: 4px;
+  color: #4ade80;
 }
-.hero-visual {
-  position: relative;
-  padding-bottom: 36px;
+.hero-facts li:last-child b {
+  color: var(--gold);
 }
-.hero-visual > img {
-  display: block;
-  width: 100%;
-  height: 430px;
-  object-fit: contain;
-  background: #fff;
-  padding: 44px 14px 50px;
-  border-radius: 24px;
-  box-shadow: 0 24px 70px #15345c1c;
-}
-.hero-image-label {
-  position: absolute;
-  bottom: 12px;
-  left: -22px;
-  right: 25px;
-  display: flex;
-  gap: 13px;
-  align-items: center;
-  padding: 22px;
-  border: 1px solid #e3eaf5;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 16px 36px #15345c16;
-}
-.image-label-icon {
-  width: 46px;
-  height: 46px;
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  border-radius: 12px;
-  background: #eaf1ff;
-  color: var(--blue);
-  font-size: 1.6rem;
-}
-.hero-image-label strong {
-  font-size: 0.87rem;
-  display: block;
-}
-.hero-image-label div > span {
-  display: block;
-  color: var(--muted);
-  font-size: 0.72rem;
-  margin-top: 5px;
-}
-.hero-photo-pill {
-  position: absolute;
-  top: 18px;
-  right: 18px;
-  background: #fffef3ed;
-  padding: 9px 12px;
-  border-radius: 8px;
-  color: #334155;
-  font-size: 0.57rem;
-  letter-spacing: 0.08em;
-  font-weight: 800;
-}
+
+/* ---------- Pack strip ---------- */
 .pack-strip {
-  display: flex;
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
-  justify-content: space-between;
-  gap: 30px;
-  padding-block: 30px;
-  border-bottom: 1px solid var(--line);
-}
-.pack-strip > div:first-child {
-  max-width: 680px;
+  gap: 32px;
+  margin-top: -76px;
+  padding: 26px 30px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: white;
+  box-shadow: 0 30px 70px #0d332026;
 }
 .pack-strip h2 {
-  margin: 8px 0;
-  font-size: 1.17rem;
+  margin: 8px 0 6px;
+  font-size: 1.3rem;
   font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.pack-strip h2 em {
+  color: var(--brand);
+  font-style: normal;
 }
 .pack-strip p {
   font-size: 0.82rem;
   line-height: 1.7;
   color: var(--muted);
+}
+.pack-logos {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 0 0 0 10px;
+  list-style: none;
+}
+.pack-logos li {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  margin-left: -10px;
+  border: 2px solid white;
+  border-radius: 50%;
+  background: #f3f7f4;
+  box-shadow: 0 4px 12px #0d332014;
+}
+.pack-logos img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+.pack-logos-more {
+  background: var(--brand-deep) !important;
+  color: white;
+  font-size: 0.72rem;
+  font-weight: 800;
 }
 .pack-purchase {
   display: flex;
@@ -1573,7 +1965,7 @@ onBeforeUnmount(() => {
 }
 .price strong {
   display: block;
-  font-size: 1.65rem;
+  font-size: 1.75rem;
   font-weight: 850;
   letter-spacing: -0.04em;
 }
@@ -1589,24 +1981,299 @@ onBeforeUnmount(() => {
 }
 .count-pill {
   display: inline-block;
-  background: #eaf1ff;
-  color: #2b4e83;
-  border: 1px solid #d8e5fc;
+  background: var(--brand-soft);
+  color: var(--brand-dark);
+  border: 1px solid #cde6d6;
   border-radius: 999px;
   padding: 8px 13px;
   font-size: 0.73rem;
   font-weight: 700;
   white-space: nowrap;
 }
-.routes-section {
-  scroll-margin-top: 100px;
+
+/* ---------- Excel section ---------- */
+.excel-section {
+  scroll-margin-top: 90px;
+  padding-top: 88px;
 }
+.excel-heading {
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  margin-inline: auto;
+  margin-bottom: 40px;
+  max-width: 640px;
+  text-align: center;
+}
+.excel-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.18fr) minmax(0, 0.82fr);
+  gap: 36px;
+  align-items: start;
+}
+.sheet-window {
+  overflow: hidden;
+  border: 1px solid #c9dbcf;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 30px 70px #0d33201c;
+}
+.sheet-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 40px;
+  padding: 0 16px;
+  background: var(--brand);
+  color: white;
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+.sheet-dots {
+  display: flex;
+  gap: 6px;
+}
+.sheet-dots i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ffffff55;
+}
+.sheet-saved {
+  color: #c8f0d7;
+  font-size: 0.66rem;
+  font-weight: 500;
+}
+.sheet-ribbon {
+  display: flex;
+  gap: 4px;
+  padding: 0 12px;
+  border-bottom: 1px solid #e3ebe6;
+  background: #f4f8f5;
+  font-size: 0.72rem;
+  color: #56665c;
+  overflow: hidden;
+}
+.sheet-ribbon span {
+  padding: 10px 10px 9px;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+.sheet-ribbon .active {
+  border-color: var(--brand);
+  color: var(--brand);
+  font-weight: 700;
+}
+.sheet-formula {
+  display: flex;
+  border-bottom: 1px solid #e3ebe6;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+}
+.sheet-formula-text {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: 9px 14px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--brand-deep);
+}
+.sheet-grid {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+.sheet-grid td,
+.sheet-grid th {
+  padding: 13px 14px;
+  border: 1px solid #e3ebe6;
+  text-align: left;
+  vertical-align: middle;
+}
+.sheet-grid tr > :first-child {
+  border-left: 0;
+}
+.sheet-grid tr > :last-child {
+  border-right: 0;
+}
+.sheet-letters td {
+  padding-block: 5px;
+  background: #f4f8f5;
+  color: #7d8d83;
+  font-size: 0.68rem;
+  text-align: center;
+}
+.sheet-row-number {
+  width: 40px;
+  background: #f4f8f5;
+  color: #7d8d83;
+  font-size: 0.68rem;
+  text-align: center !important;
+}
+.sheet-grid thead th {
+  background: var(--brand-soft);
+  color: var(--brand-dark);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.sheet-grid tbody tr {
+  cursor: default;
+  transition: background 0.15s;
+}
+.sheet-grid tbody tr:hover,
+.sheet-grid tbody tr.active {
+  background: #f6fbf8;
+}
+.sheet-grid tbody th {
+  font-weight: 700;
+  white-space: nowrap;
+}
+.sheet-level-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 9px;
+  border-radius: 2px;
+  background: var(--brand);
+  vertical-align: 1px;
+}
+.sheet-grid tbody tr:nth-child(2) .sheet-level-dot {
+  background: #21a366;
+}
+.sheet-grid tbody tr:nth-child(3) .sheet-level-dot {
+  background: #33c481;
+}
+.sheet-grid tbody tr:nth-child(4) .sheet-level-dot {
+  background: var(--gold);
+}
+.sheet-grid tbody td:not(.sheet-row-number) {
+  color: #3c4d43;
+  line-height: 1.5;
+}
+.sheet-grid code {
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  color: var(--brand-dark);
+}
+.sheet-grid tbody .sheet-formula-col {
+  position: relative;
+  background: #fafdfb;
+}
+.sheet-grid tbody tr.active .sheet-formula-col {
+  outline: 2px solid var(--brand);
+  outline-offset: -2px;
+  background: white;
+}
+.sheet-grid tbody tr.active .sheet-formula-col::after {
+  content: "";
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 7px;
+  height: 7px;
+  border: 1px solid white;
+  background: var(--brand);
+}
+.sheet-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 0 10px;
+  background: #f4f8f5;
+  font-size: 0.7rem;
+  color: #6b7b71;
+}
+.sheet-tabs span {
+  padding: 9px 14px;
+}
+.sheet-tabs .active {
+  background: white;
+  color: var(--brand);
+  font-weight: 700;
+  box-shadow: inset 0 -2px 0 var(--brand);
+}
+.sheet-tab-add {
+  color: #9aa9a0;
+}
+.excel-start {
+  display: grid;
+  gap: 14px;
+}
+.excel-start h3 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.excel-start > p {
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+.excel-goals {
+  display: grid;
+  gap: 10px;
+  margin-top: 4px;
+}
+.excel-goal {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: white;
+  color: var(--ink);
+  text-align: left;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s,
+    transform 0.15s;
+}
+.excel-goal:hover,
+.excel-goal:focus-visible {
+  border-color: var(--brand);
+  box-shadow: 0 8px 22px #107c411f;
+  transform: translateX(3px);
+}
+.excel-goal .purpose-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+}
+.excel-goal-copy {
+  display: grid;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+.excel-goal-copy strong {
+  font-size: 0.88rem;
+}
+.excel-goal-copy span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+.excel-goal-arrow {
+  color: var(--brand);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+/* ---------- Route cards ---------- */
 .route-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 22px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
 }
+/* Columna flexible: un <button> centra su contenido y desalinea las tarjetas de una fila. */
 .route-card {
+  display: flex;
+  flex-direction: column;
   padding: 0;
   border: 1px solid var(--line);
   border-radius: 17px;
@@ -1621,7 +2288,7 @@ onBeforeUnmount(() => {
 }
 .route-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 30px #203d6410;
+  box-shadow: 0 16px 34px #0000002e;
   border-color: var(--route-accent);
 }
 .route-card.selected {
@@ -1630,9 +2297,10 @@ onBeforeUnmount(() => {
 }
 .route-card-image {
   position: relative;
-  height: 170px;
+  flex-shrink: 0;
+  height: 130px;
   overflow: hidden;
-  background: color-mix(in srgb, var(--route-accent) 5%, white);
+  background: color-mix(in srgb, var(--route-accent) 6%, white);
 }
 .route-card-image img {
   width: 100%;
@@ -1641,52 +2309,57 @@ onBeforeUnmount(() => {
   object-fit: contain;
 }
 .route-image-logo img {
-  padding: 24px 32px 44px;
+  padding: 20px 32px 40px;
 }
 .route-image-report img {
-  padding: 12px 14px 40px;
+  padding: 10px 12px 36px;
 }
 .route-card-tag {
   position: absolute;
   z-index: 1;
-  bottom: 13px;
-  left: 16px;
+  bottom: 10px;
+  left: 14px;
   border-radius: 6px;
   padding: 5px 8px;
-  font-size: 0.58rem;
-  font-weight: 700;
-  background: white;
-  color: var(--route-accent);
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  background: var(--gold);
+  color: #3b2a00;
 }
 .route-card-copy {
-  padding: 20px;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 16px 18px 18px;
 }
 .route-card-title {
   display: flex;
   align-items: start;
-  gap: 15px;
+  gap: 12px;
   justify-content: space-between;
 }
 .route-card-title h3 {
-  font-size: 1.07rem;
+  font-size: 0.98rem;
   font-weight: 800;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.02em;
   line-height: 1.35;
 }
 .route-card-arrow {
   color: var(--route-accent);
-  font-size: 1.3rem;
+  font-size: 1.2rem;
 }
 .route-card-copy p {
-  margin-top: 10px;
-  min-height: 48px;
-  font-size: 0.79rem;
-  line-height: 1.65;
+  margin: 8px 0 14px;
+  min-height: 44px;
+  font-size: 0.76rem;
+  line-height: 1.6;
+  color: var(--muted);
 }
 .route-card-bottom {
-  margin-top: 20px;
-  padding-top: 15px;
-  border-top: 1px solid #edf1f6;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid #edf2ee;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1697,9 +2370,224 @@ onBeforeUnmount(() => {
 .route-card-bottom strong {
   color: var(--route-accent);
 }
-.catalog-note {
+.route-card-excel {
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
+  margin-top: 6px;
+  border: 0;
+  background: linear-gradient(135deg, var(--brand-deep), var(--brand));
+  color: white;
+  box-shadow: 0 18px 40px #0d33203d;
+}
+.route-card-excel:hover {
+  box-shadow: 0 22px 46px #0d332055;
+}
+.route-card-excel .route-card-image {
+  height: auto;
+  min-height: 150px;
+  background: #ffffff14;
+}
+.route-card-excel .route-image-logo img {
+  padding: 26px 22px 46px;
+}
+.route-card-excel .route-card-copy p {
+  min-height: 0;
+  color: #cdeedb;
+}
+.route-card-excel .route-card-arrow,
+.route-card-excel .route-card-bottom strong {
+  color: white;
+}
+.route-card-excel .route-card-bottom {
+  border-color: #ffffff2b;
+  color: #b8e4c9;
+}
+
+/* ---------- Skills ---------- */
+.skills-section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 60px;
+  align-items: center;
+}
+.skills-photo {
+  position: relative;
+}
+.skills-photo img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 24px;
+  box-shadow: 0 30px 70px #0d332026;
+}
+.skills-chip {
+  position: absolute;
+  left: 20px;
+  bottom: -18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100% - 40px);
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: white;
+  color: var(--brand-dark);
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  white-space: nowrap;
+  overflow: hidden;
+  box-shadow: 0 14px 30px #0d33201f;
+}
+.skills-chip span {
+  color: #7b8a81;
+  font-family: Georgia, serif;
+  font-style: italic;
+}
+.skills-copy h2 {
+  margin: 12px 0 14px;
+}
+.skills-copy > p {
+  font-size: 0.9rem;
+}
+.skill-cells {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 28px 0 0;
+  padding: 0;
+  list-style: none;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: white;
+}
+.skill-cells li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-right: 1px solid #e6eee9;
+  border-bottom: 1px solid #e6eee9;
+  font-size: 0.84rem;
+  font-weight: 600;
+  transition: background 0.15s;
+}
+.skill-cells li:nth-child(2n) {
+  border-right: 0;
+}
+.skill-cells li:nth-last-child(-n + 2) {
+  border-bottom: 0;
+}
+.skill-cells li:hover {
+  background: var(--brand-soft);
+}
+.skill-cells li:first-child {
+  box-shadow: inset 0 0 0 2px var(--brand);
+}
+.cell-ref {
+  min-width: 24px;
+  color: #8a9a90;
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  font-weight: 500;
+}
+
+/* ---------- Bonus routes ---------- */
+.bonus-band {
+  margin-top: 24px;
+  background:
+    radial-gradient(900px 420px at 88% 0%, #1f7a4a66, transparent 65%),
+    var(--brand-deep);
+  color: white;
+  scroll-margin-top: 90px;
+}
+.bonus-section {
+  padding-block: 80px;
+}
+.bonus-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 48px;
+  align-items: center;
+  margin-bottom: 40px;
+}
+.bonus-ribbon {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: var(--gold);
+  color: #3b2a00;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+.bonus-section h2 {
+  margin: 18px 0 14px;
+  color: white;
+}
+.bonus-section h2 span {
+  color: #9be3b7;
+}
+.bonus-intro p {
+  max-width: 520px;
+  color: #c6e4d2;
+  font-size: 0.92rem;
+}
+.bonus-photo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border: 1px solid #ffffff1f;
+  border-radius: 20px;
+  box-shadow: 0 30px 60px #00000040;
+}
+.route-card-bonus {
+  border-color: transparent;
+}
+/* Ocupa el resto de la última fila: 13 rutas dejan una sola tarjeta en ella. */
+.bonus-cta {
+  grid-column: span 3;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px 28px;
+  padding: 28px 32px;
+  border: 1px dashed #ffffff40;
+  border-radius: 17px;
+  background: #ffffff0d;
+}
+.bonus-cta strong {
+  display: block;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.bonus-cta p {
+  margin-top: 6px;
+  color: #c6e4d2;
+  font-size: 0.82rem;
+}
+.bonus-cta-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 22px;
+}
+.bonus-cta .text-button {
+  color: #a6ecc2;
+}
+.bonus-section .catalog-note {
+  margin-top: 26px;
+  color: #a5cdb5;
   font-size: 0.72rem;
-  margin-top: 20px !important;
+}
+.bonus-section .image-credits {
+  color: #a5cdb5;
 }
 .image-credits {
   display: inline-block;
@@ -1709,6 +2597,8 @@ onBeforeUnmount(() => {
   text-decoration: underline !important;
   text-underline-offset: 3px;
 }
+
+/* ---------- Route dialog ---------- */
 .route-detail {
   padding-top: 12px;
 }
@@ -1730,8 +2620,23 @@ onBeforeUnmount(() => {
 .detail-intro p {
   font-size: 0.9rem;
 }
-.detail-intro .count-pill {
+.detail-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-top: 20px;
+}
+.gift-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 13px;
+  border-radius: 999px;
+  background: #fff6db;
+  border: 1px solid #f6dd8f;
+  color: #6b4e00;
+  font-size: 0.73rem;
+  font-weight: 700;
 }
 .learning-steps {
   padding: 0;
@@ -1743,7 +2648,7 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 16px;
   padding: 15px 0;
-  border-bottom: 1px solid #edf1f6;
+  border-bottom: 1px solid #edf2ee;
   font-size: 0.83rem;
   line-height: 1.6;
 }
@@ -1756,7 +2661,7 @@ onBeforeUnmount(() => {
   flex-shrink: 0;
   width: 39px;
   height: 39px;
-  background: #f1f5f9;
+  background: #f1f6f2;
   color: var(--route-accent);
   border-radius: 11px;
   font-size: 0.8rem;
@@ -1796,7 +2701,7 @@ onBeforeUnmount(() => {
 .free-dialog input {
   width: 100%;
   padding: 13px 38px 13px 14px;
-  border: 1px solid #cbd8e7;
+  border: 1px solid #c9d9ce;
   background: white;
   border-radius: 11px;
   color: var(--ink);
@@ -1825,10 +2730,11 @@ onBeforeUnmount(() => {
   margin-top: 8px;
   font-size: 0.76rem;
 }
+/* Dos columnas solo cuando cada tarjeta tiene al menos 360 px dentro del modal. */
 .purpose-options {
   margin-top: 18px;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr));
   gap: 14px;
 }
 .purpose-option {
@@ -1843,9 +2749,10 @@ onBeforeUnmount(() => {
   border-radius: 16px;
   color: var(--ink);
   cursor: pointer;
-}
-.purpose-option {
-  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s,
+    transform 0.15s;
 }
 .purpose-option:hover,
 .purpose-option:focus-visible {
@@ -1923,11 +2830,6 @@ onBeforeUnmount(() => {
   gap: 8px 12px;
   font-size: 0.9rem;
 }
-@media (max-width: 600px) {
-  .purpose-options {
-    grid-template-columns: 1fr;
-  }
-}
 .level-groups {
   display: grid;
   gap: 22px;
@@ -1944,7 +2846,7 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 15px;
   padding: 24px;
-  background: #f2f6fc;
+  background: #f1f7f3;
 }
 .level-heading h3 {
   font-size: 1rem;
@@ -1972,14 +2874,14 @@ onBeforeUnmount(() => {
   margin: 0;
 }
 .course-list li + li {
-  border-top: 1px solid #edf1f6;
+  border-top: 1px solid #edf2ee;
 }
 .course-row {
   width: 100%;
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 20px 24px;
+  padding: 18px 24px;
   background: white;
   border: 0;
   text-align: left;
@@ -1987,7 +2889,7 @@ onBeforeUnmount(() => {
   transition: background 0.18s;
 }
 .course-row:hover {
-  background: #f8faff;
+  background: #f4faf6;
 }
 .course-icon {
   display: grid;
@@ -1995,7 +2897,7 @@ onBeforeUnmount(() => {
   flex-shrink: 0;
   width: 40px;
   height: 40px;
-  border: 1px solid #e5ecf4;
+  border: 1px solid #e2ece5;
   border-radius: 10px;
   font-size: 1.2rem;
   color: var(--route-accent);
@@ -2020,7 +2922,7 @@ onBeforeUnmount(() => {
 .course-open-label {
   flex-shrink: 0;
   font-size: 0.7rem;
-  color: var(--blue);
+  color: var(--brand);
   font-weight: 700;
 }
 .free-badge {
@@ -2041,20 +2943,13 @@ onBeforeUnmount(() => {
   padding: 16px;
   border: 0;
   border-top: 1px solid var(--line);
-  background: #fafcff;
-  color: var(--blue);
+  background: #f7fbf8;
+  color: var(--brand);
   font-size: 0.78rem;
   font-weight: 700;
 }
 .expand-button:hover {
-  background: #eff6ff;
-}
-.full-catalog-link {
-  display: inline-block;
-  margin-top: 24px;
-  color: var(--blue);
-  font-size: 0.8rem;
-  font-weight: 700;
+  background: var(--brand-soft);
 }
 .error-panel,
 .empty-panel {
@@ -2077,6 +2972,32 @@ onBeforeUnmount(() => {
   margin: 10px 0 16px;
   font-size: 0.85rem;
 }
+
+/* ---------- Catalog, how, FAQ, final ---------- */
+.full-catalog {
+  --route-accent: var(--brand);
+}
+.full-catalog h2 {
+  margin-top: 10px;
+  scroll-margin-top: 100px;
+}
+.catalog-course-list {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.catalog-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+.catalog-pagination > span {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
 .how-section {
   border-top: 1px solid var(--line);
 }
@@ -2086,15 +3007,31 @@ onBeforeUnmount(() => {
 .how-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 35px;
-  margin-top: 28px;
+  gap: 20px;
+  margin-top: 32px;
+}
+.how-grid article {
+  padding: 26px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: white;
 }
 .how-grid article > span {
-  display: block;
-  color: var(--blue);
+  display: inline-grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  margin-bottom: 18px;
+  border-radius: 12px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-family: var(--mono);
   font-size: 0.8rem;
   font-weight: 800;
-  margin-bottom: 15px;
+}
+.how-grid article:last-child > span {
+  background: #fff6db;
+  color: #8a6400;
 }
 .how-grid h3 {
   font-size: 1rem;
@@ -2134,7 +3071,7 @@ onBeforeUnmount(() => {
   font-weight: 700;
 }
 .faq-list h3 span {
-  color: var(--blue);
+  color: var(--brand);
   font-size: 1.25rem;
 }
 .faq-list article > p {
@@ -2142,38 +3079,52 @@ onBeforeUnmount(() => {
   padding-bottom: 20px;
 }
 .final-section {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: grid;
   grid-template-columns: 1fr 0.6fr;
   align-items: center;
   gap: 50px;
-  background: #173982;
+  background: linear-gradient(120deg, var(--brand-deep) 0%, var(--brand) 100%);
   color: white;
-  border-radius: 23px;
-  padding: 46px;
-  margin-bottom: 60px;
+  border-radius: 26px;
+  padding: 52px;
+  margin-bottom: 64px;
+}
+.final-section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    repeating-linear-gradient(0deg, #ffffff0d 0 1px, transparent 1px 36px),
+    repeating-linear-gradient(90deg, #ffffff0d 0 1px, transparent 1px 110px);
+  -webkit-mask-image: linear-gradient(90deg, transparent 30%, #000);
+  mask-image: linear-gradient(90deg, transparent 30%, #000);
 }
 .final-section .eyebrow {
-  color: #bfdbfe;
+  color: var(--gold);
 }
 .final-section h2 {
   margin: 14px 0;
 }
 .final-section p {
-  color: #dbeafe;
-  font-size: 0.87rem;
+  color: #d3eadc;
+  font-size: 0.88rem;
   max-width: 590px;
 }
 .final-section .final-count {
   font-size: 0.76rem;
   margin-top: 14px;
-  color: #bfdbfe;
+  color: #a6ecc2;
 }
 .final-actions {
   display: grid;
   gap: 12px;
 }
 .final-price {
-  font-size: 2.2rem;
+  font-size: 2.3rem;
   letter-spacing: -0.04em;
   text-align: center;
 }
@@ -2181,27 +3132,23 @@ onBeforeUnmount(() => {
   font-size: 0.8rem;
   letter-spacing: 0;
 }
-.button-white {
-  background: white;
-  color: #173982;
-}
-.button-outline-white {
-  border-color: #7a9bd0;
+.final-section .whatsapp-inline-icon {
   color: white;
-  background: transparent;
 }
+
+/* ---------- Dialogs ---------- */
 .route-dialog,
 .course-dialog,
 .free-dialog {
   padding: 0;
-  border: 1px solid #dfe7f1;
+  border: 1px solid var(--line);
   border-radius: 20px;
   background: white;
   color: var(--ink);
   width: min(820px, calc(100% - 32px));
   max-height: 85dvh;
   margin: auto;
-  box-shadow: 0 24px 80px #10274755;
+  box-shadow: 0 24px 80px #0b241655;
 }
 .course-dialog[open] {
   display: flex;
@@ -2210,13 +3157,14 @@ onBeforeUnmount(() => {
 .route-dialog::backdrop,
 .course-dialog::backdrop,
 .free-dialog::backdrop {
-  background: #10213ec9;
+  background: #0a2416cc;
   backdrop-filter: blur(5px);
 }
 .route-dialog {
   width: min(1100px, calc(100% - 32px));
   max-height: 90dvh;
   overflow: hidden;
+  background: #f7faf8;
 }
 .route-dialog[open] {
   display: flex;
@@ -2229,6 +3177,7 @@ onBeforeUnmount(() => {
   gap: 16px;
   padding: 16px 24px;
   border-bottom: 1px solid var(--line);
+  background: white;
   flex-shrink: 0;
 }
 .route-dialog-body {
@@ -2242,7 +3191,6 @@ onBeforeUnmount(() => {
   margin: 0;
   padding: 24px;
 }
-
 .dialog-header {
   display: flex;
   justify-content: space-between;
@@ -2270,7 +3218,7 @@ onBeforeUnmount(() => {
   flex-shrink: 0;
   border: 1px solid var(--line);
   border-radius: 9px;
-  background: #f8fafc;
+  background: #f5f8f6;
   height: 36px;
   width: 36px;
   font-size: 1.4rem !important;
@@ -2284,7 +3232,7 @@ onBeforeUnmount(() => {
 .dialog-footer {
   padding: 22px 26px;
   border-top: 1px solid var(--line);
-  background: #f8fafc;
+  background: #f5f8f6;
 }
 .dialog-footer .button {
   width: 100%;
@@ -2304,7 +3252,7 @@ onBeforeUnmount(() => {
   font-size: 0.88rem;
 }
 .course-content {
-  color: #40536c;
+  color: #3f5146;
   font-size: 0.9rem;
   line-height: 1.8;
   overflow-wrap: anywhere;
@@ -2341,7 +3289,7 @@ onBeforeUnmount(() => {
   height: auto;
 }
 .course-content :deep(a) {
-  color: var(--blue);
+  color: var(--brand);
   text-decoration: underline;
 }
 .free-dialog {
@@ -2383,9 +3331,6 @@ onBeforeUnmount(() => {
   flex-shrink: 0;
   color: #168844;
 }
-.button-outline-white .whatsapp-inline-icon {
-  color: white;
-}
 .whatsapp-float {
   display: inline-flex;
   align-items: center;
@@ -2424,18 +3369,14 @@ onBeforeUnmount(() => {
   bottom: 20px;
   z-index: 1;
 }
-
 .mobile-purchase {
   display: none;
 }
 .skeleton {
-  background: linear-gradient(110deg, #e9eef6 30%, #f5f8fc 50%, #e9eef6 70%);
+  background: linear-gradient(110deg, #e6eee9 30%, #f4f8f5 50%, #e6eee9 70%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 14px;
-}
-.route-skeleton {
-  height: 315px;
 }
 .price-skeleton {
   width: 280px;
@@ -2446,36 +3387,53 @@ onBeforeUnmount(() => {
   height: 160px;
   margin-bottom: 20px;
 }
-.loading-message {
-  grid-column: 1 / -1;
-  font-size: 0.85rem;
-  text-align: center;
-}
 @keyframes shimmer {
   to {
     background-position: -200% 0;
   }
 }
+
+/* La fórmula se escribe sola solo si la persona no pidió reducir el movimiento. */
+@media (prefers-reduced-motion: no-preference) {
+  .formula-text > span {
+    width: 0;
+    animation:
+      formula-typing 2.6s steps(54, end) 0.5s forwards,
+      formula-caret 0.9s step-end infinite;
+  }
+  @keyframes formula-typing {
+    to {
+      /* El ancho incluye el cursor de 2 px (box-sizing: border-box). */
+      width: calc(54ch + 4px);
+    }
+  }
+  @keyframes formula-caret {
+    50% {
+      border-color: transparent;
+    }
+  }
+}
+
 @media (max-width: 1100px) {
-  .hero-inner {
-    gap: 30px;
-  }
-  .hero-visual > img {
-    height: 390px;
-  }
   .pack-strip {
-    align-items: start;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .pack-logos {
+    display: none;
   }
   .pack-purchase {
     flex-direction: column;
-    align-items: start;
+    align-items: stretch;
     gap: 10px;
   }
   .route-grid {
-    gap: 18px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-  .route-card-copy {
-    padding: 17px;
+  .bonus-cta {
+    grid-column: span 2;
+  }
+  .excel-layout {
+    grid-template-columns: 1fr;
   }
 }
 @media (max-width: 850px) {
@@ -2484,29 +3442,35 @@ onBeforeUnmount(() => {
   .pack-strip {
     width: calc(100% - 40px);
   }
+  .xl-hero-art {
+    inset: 0 0 0 20%;
+    opacity: 0.55;
+  }
   .hero-inner {
+    min-height: 0;
+    padding-block: 56px 116px;
+  }
+  .pack-strip {
     grid-template-columns: 1fr;
-    padding-block: 45px;
-    gap: 32px;
+    gap: 18px;
   }
-  .hero-copy h1 {
-    max-width: 670px;
-    font-size: 2.8rem;
-  }
-  .hero-visual {
-    max-width: 650px;
-    width: 100%;
-    margin: auto;
-  }
-  .hero-visual > img {
-    height: 350px;
-  }
-  .hero-image-label {
-    left: 15px;
-    right: 15px;
+  .pack-purchase {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
   }
   .route-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .bonus-cta {
+    grid-column: span 1;
+    padding: 22px;
+  }
+  .skills-section,
+  .bonus-intro {
+    grid-template-columns: 1fr;
+    gap: 40px;
   }
   .detail-intro {
     gap: 25px;
@@ -2522,46 +3486,18 @@ onBeforeUnmount(() => {
     grid-template-columns: 1fr;
     gap: 20px;
   }
-  .final-section {
-    gap: 25px;
-    padding: 32px;
-  }
   .how-grid {
-    gap: 22px;
+    grid-template-columns: 1fr;
+    gap: 14px;
   }
-}
-
-.full-catalog {
-  --route-accent: var(--blue);
-}
-.full-catalog h2 {
-  margin-top: 10px;
-  scroll-margin-top: 100px;
-}
-.catalog-course-list {
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  overflow: hidden;
-}
-.catalog-pagination {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-  margin-top: 24px;
-}
-.catalog-pagination > span {
-  font-size: 0.8rem;
-  color: var(--muted);
+  .final-section {
+    grid-template-columns: 1fr;
+    gap: 25px;
+    padding: 34px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .purpose-option,
-  .purpose-option:hover {
-    transition: none;
-    transform: none;
-  }
   .study-page *,
   .study-page *::before,
   .study-page *::after {
@@ -2573,3 +3509,202 @@ onBeforeUnmount(() => {
 </style>
 
 <style scoped src="../../styles/campaignMobile.css"></style>
+
+<style scoped>
+/* Ajustes de teléfono propios de esta página; van después del CSS compartido. */
+@media (max-width: 600px) {
+  .study-page .xl-hero {
+    background: #0f3b25;
+  }
+  .study-page .xl-hero-art {
+    position: relative;
+    inset: auto;
+    display: block;
+    height: 230px;
+    opacity: 1;
+    -webkit-mask-image: linear-gradient(180deg, #000 60%, transparent);
+    mask-image: linear-gradient(180deg, #000 60%, transparent);
+  }
+  .study-page .xl-hero-art img {
+    object-position: 60% center;
+  }
+  .study-page .xl-hero::after {
+    display: none;
+  }
+  .study-page .hero-inner {
+    margin-top: -40px;
+    padding-block: 0 96px;
+  }
+  .study-page .hero-copy h1 {
+    margin: 18px 0 20px;
+    font-size: clamp(2.2rem, 11vw, 2.75rem);
+  }
+  .study-page .hero-badge {
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+  }
+  .study-page .formula-bar {
+    font-size: 0.68rem;
+  }
+  .study-page .formula-cell {
+    min-width: 40px;
+    padding: 9px 8px;
+  }
+  .study-page .formula-fx {
+    padding: 0 8px;
+  }
+  .study-page .formula-text {
+    padding: 9px 10px;
+  }
+  .study-page .hero-description {
+    margin-top: 20px;
+  }
+  .study-page .hero-facts {
+    font-size: 0.72rem;
+  }
+  .study-page .pack-strip {
+    margin-top: -64px;
+    padding: 20px;
+    border-radius: 18px;
+  }
+  .study-page .excel-section {
+    padding-top: 48px;
+  }
+  .study-page .excel-heading {
+    align-items: center;
+    margin-bottom: 26px;
+  }
+  .study-page .sheet-ribbon span:nth-child(n + 4) {
+    display: none;
+  }
+  .study-page .sheet-grid {
+    font-size: 0.74rem;
+  }
+  .study-page .sheet-grid td,
+  .study-page .sheet-grid th {
+    padding: 11px 10px;
+  }
+  .study-page .sheet-row-number {
+    width: 30px;
+  }
+  .study-page .sheet-formula-col {
+    display: none;
+  }
+  .study-page .route-card-excel {
+    grid-template-columns: 92px minmax(0, 1fr);
+    grid-template-rows: none;
+  }
+  .study-page .route-card-excel .route-card-image {
+    height: auto;
+    min-height: 0;
+  }
+  .study-page .route-card-excel .route-card-image img {
+    padding: 18px 14px 44px;
+  }
+  .study-page .excel-goal {
+    padding: 12px;
+    gap: 12px;
+  }
+  /* Objetivo del modal: ícono a la izquierda; cursos y botón debajo del texto. */
+  .study-page .purpose-option {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    align-items: start;
+    gap: 4px 12px;
+    padding: 14px;
+  }
+  .study-page .purpose-option .purpose-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+  }
+  .study-page .purpose-copy strong {
+    font-size: 0.86rem;
+  }
+  .study-page .purpose-copy span {
+    font-size: 0.72rem;
+    line-height: 1.5;
+  }
+  .study-page .purpose-action {
+    grid-column: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .study-page .skills-section {
+    gap: 44px;
+  }
+  .study-page .skills-chip {
+    left: 12px;
+    max-width: calc(100% - 24px);
+    font-size: 0.66rem;
+  }
+  .study-page .skill-cells li {
+    padding: 12px;
+    font-size: 0.76rem;
+  }
+  .study-page .bonus-section {
+    padding-block: 48px;
+  }
+  .study-page .bonus-intro {
+    gap: 26px;
+    margin-bottom: 26px;
+  }
+  /* En el teléfono las rutas de regalo son una lista compacta, no tarjetas altas. */
+  .study-page .bonus-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .study-page .route-card-bonus {
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr);
+    grid-template-rows: none;
+  }
+  .study-page .route-card-bonus .route-card-image {
+    height: auto;
+    min-height: 100px;
+  }
+  .study-page .route-card-bonus .route-card-image img {
+    position: absolute;
+    inset: 0;
+    padding: 12px 12px 34px;
+  }
+  .study-page .route-card-bonus .route-card-tag {
+    left: 6px;
+    right: auto;
+    bottom: 6px;
+    max-width: calc(100% - 12px);
+    padding: 3px 5px;
+    font-size: 0.55rem;
+    text-align: center;
+  }
+  .study-page .route-card-bonus .route-card-copy {
+    gap: 2px;
+    padding: 12px 14px;
+  }
+  .study-page .route-card-bonus .route-card-copy p {
+    margin: 2px 0 8px;
+    font-size: 0.72rem;
+    line-height: 1.5;
+  }
+  .study-page .route-card-bonus .route-card-bottom {
+    padding-top: 6px;
+    border-top: 0;
+  }
+  .study-page .route-card-bonus .route-card-bottom > span {
+    display: none;
+  }
+  .study-page .bonus-cta-actions,
+  .study-page .bonus-cta-actions .button {
+    width: 100%;
+  }
+  .study-page .how-grid article {
+    padding: 20px;
+  }
+  .study-page .final-section {
+    padding: 30px 22px;
+  }
+}
+</style>

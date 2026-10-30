@@ -204,7 +204,7 @@ describe("carga de cursos bajo demanda: Excel", () => {
     await selectRoute("Excel");
     expect(host.querySelector(".route-dialog[open]")).not.toBeNull();
     expect(buttons(".course-row")).toHaveLength(4);
-    expect(host.querySelector("#ruta-titulo")?.textContent?.trim()).toBe("Ruta de Ruta Excel");
+    expect(host.querySelector("#ruta-titulo")?.textContent?.trim()).toBe("Ruta Excel");
     expect(document.activeElement).toBe(host.querySelector("#ruta-titulo"));
     const calls = mocks.get.mock.calls.map(([url]) => String(url));
     expect(calls.filter((url) => url.includes("/courses?"))).not.toHaveLength(0);
@@ -321,7 +321,7 @@ describe("carga de cursos bajo demanda: Excel", () => {
     mocks.getCategory.mockResolvedValue({ ...fixtureCategory, user_bought: true });
     const router = await mountPage();
     const currentPath = router.currentRoute.value.fullPath;
-    expect(host.querySelector("h1")?.textContent).toContain("Tus rutas de Excel");
+    expect(host.querySelector("h1")?.textContent).toContain("Tus cursos de Excel");
     expect(host.querySelector(".pack-strip")?.textContent).toContain("TU ACCESO ESTÁ ACTIVO");
     expect(host.querySelector(".price")).toBeNull();
     expect(host.querySelector(".final-section")).toBeNull();
@@ -342,7 +342,38 @@ describe("carga de cursos bajo demanda: Excel", () => {
     const help = Array.from(host.querySelectorAll<HTMLButtonElement>(".faq-list button"))
       .find((button) => button.textContent?.includes("¿Cómo accedo al material?"))!;
     help.click(); await flush();
-    expect(host.querySelector(".faq-list")?.textContent).toContain("Tu acceso al bloque completo ya está activo");
+    expect(host.querySelector(".faq-list")?.textContent).toContain("Tu acceso al paquete Excel y a las rutas de regalo ya está activo");
+    expect(host.querySelector(".pack-strip")?.textContent).toContain("+ 13 rutas de regalo");
+    expect(Array.from(host.querySelectorAll(".route-card-bonus .route-card-tag")).every((tag) => tag.textContent === "Incluida")).toBe(true);
+  });
+
+  it("presenta Excel como producto y las demás rutas como regalo", async () => {
+    await mountPage();
+    expect(host.querySelector("h1")?.textContent).toContain("Domina Excel");
+    expect(host.querySelector(".route-card")?.querySelector("h3")?.textContent).toBe("Ruta Excel");
+    const bonus = buttons(".route-card-bonus");
+    expect(bonus).toHaveLength(13);
+    expect(bonus.some((card) => card.querySelector("h3")?.textContent === "Ruta Excel")).toBe(false);
+    expect(bonus.every((card) => card.querySelector(".route-card-tag")?.textContent === "Gratis con Excel")).toBe(true);
+    expect(decodeURIComponent(host.querySelector<HTMLAnchorElement>('a[href*="wa.me"]')!.href)).toContain("paquete Excel");
+    bonus.find((card) => card.querySelector("h3")?.textContent === "Ruta SAP")!.click(); await flush();
+    expect(host.querySelector(".route-dialog .gift-pill")?.textContent).toContain("Gratis con el paquete Excel");
+  });
+
+  it("abre la Ruta Excel con el objetivo elegido desde la página", async () => {
+    await mountPage();
+    const goals = buttons(".excel-goal");
+    expect(goals.map((button) => button.querySelector("strong")?.textContent)).toEqual([
+      "Para mi trabajo actual", "Para conseguir empleo", "Para mi negocio o emprendimiento", "Para estudiar o uso personal",
+    ]);
+    goals[3]!.click(); await flush();
+    expect(host.querySelector(".route-dialog[open]")).not.toBeNull();
+    expect(host.querySelector("#ruta-titulo")?.textContent?.trim()).toBe("Ruta Excel");
+    expect(buttons(".purpose-option")).toHaveLength(0);
+    expect(host.querySelector(".purpose-current")?.textContent).toContain("Para estudiar o uso personal");
+    expect(buttons(".course-row")).toHaveLength(4);
+    closeRoute(); await flush();
+    expect(document.activeElement).toBe(goals[3]);
   });
 
   it("permite abrir Drive al comprador desde una ruta sin iniciar otra compra", async () => {

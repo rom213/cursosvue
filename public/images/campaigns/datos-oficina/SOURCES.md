@@ -25,3 +25,11 @@ Los originales vectoriales conservan sus colores, proporciones y diseño. Los re
 ## Recursos específicos para las rutas
 
 - **automatizacion.webp** — KSanjay2240279. Licencia: [CC0](http://creativecommons.org/publicdomain/zero/1.0/deed.en). [Origen](https://commons.wikimedia.org/wiki/File:ExcelVBA.png); [archivo descargado](https://thumb.wikimedia.org/wikipedia/commons/thumb/9/97/ExcelVBA.png/1280px-ExcelVBA.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail). Redimensionada y convertida a WebP.
+
+## Página del paquete Excel (`public/images/campaigns/excel/`)
+
+Descargadas el 29 de octubre de 2026 bajo la [licencia de Unsplash](https://unsplash.com/license) (uso comercial gratuito, sin atribución obligatoria; se acredita igualmente).
+
+- **excel-hero.webp, excel-hero-mobile.webp, excel-social.webp** — Rubaitul Azad. [Origen](https://unsplash.com/photos/microsoft-excel-3d-icon-GauA0hiEwDk). Redimensionadas (2000 px y 900 px), versión social recortada a 1200×630 y convertidas a WebP.
+- **excel-trabajo.webp** — Gorilla ROI Data Connector. [Origen](https://unsplash.com/photos/hands-typing-on-a-laptop-displaying-a-data-spreadsheet-9fZuqBYlV1w). Redimensionada a 1200 px y convertida a WebP.
+- **excel-dashboard.webp** — Ngital. [Origen](https://unsplash.com/photos/laptop-with-charts-on-a-desk-by-a-sunny-window-8OYcY9CRP_0). Redimensionada a 1200 px y convertida a WebP.
